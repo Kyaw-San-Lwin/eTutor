@@ -1,0 +1,1029 @@
+openapi: 3.0.3
+info:
+  title: eTutor Backend API
+  version: 1.0.0
+  description: |
+    Backend API for eTutor.
+    Base pattern: /Backend/api/index.php?controller={controller}[&action={action}]
+    Standard response shape includes: success, message, data (when applicable).
+servers:
+  - url: http://localhost/eTutor
+    description: Local XAMPP
+
+tags:
+  - name: Auth
+  - name: Dashboard
+  - name: User
+  - name: Message
+  - name: Blog
+  - name: BlogComment
+  - name: Allocation
+  - name: Meeting
+  - name: MeetingRecording
+  - name: Document
+  - name: DocumentComment
+  - name: Report
+  - name: Inactivity
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    SuccessMessage:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operation completed
+    ErrorMessage:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Invalid request
+    AuthLoginRequest:
+      type: object
+      required: [login, password]
+      properties:
+        login:
+          type: string
+          example: admin@example.com
+        password:
+          type: string
+          example: your_password
+    AuthRefreshRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token:
+          type: string
+    AuthResetRequest:
+      type: object
+      required: [login]
+      properties:
+        login:
+          type: string
+    AuthResetByTokenRequest:
+      type: object
+      required: [token, new_password]
+      properties:
+        token:
+          type: string
+        new_password:
+          type: string
+          minLength: 8
+    MessageCreateRequest:
+      type: object
+      required: [receiver_id, message]
+      properties:
+        receiver_id:
+          type: integer
+        message:
+          type: string
+    Pagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+
+security:
+  - bearerAuth: []
+
+paths:
+  /Backend/api/index.php?controller=auth:
+    post:
+      tags: [Auth]
+      summary: Login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthLoginRequest'
+      responses:
+        '200':
+          description: Tokens and user profile
+        '401':
+          description: Invalid credentials
+
+  /Backend/api/index.php?controller=auth&action=refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRefreshRequest'
+      responses:
+        '200':
+          description: New access token
+        '401':
+          description: Invalid refresh token
+
+  /Backend/api/index.php?controller=auth&action=requestPasswordReset:
+    post:
+      tags: [Auth]
+      summary: Request password reset token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthResetRequest'
+      responses:
+        '200':
+          description: Reset token generated
+
+  /Backend/api/index.php?controller=auth&action=resetPasswordByToken:
+    post:
+      tags: [Auth]
+      summary: Reset password using token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthResetByTokenRequest'
+      responses:
+        '200':
+          description: Password reset successful
+        '400':
+          description: Invalid/expired token or invalid password
+
+  /Backend/api/index.php?controller=dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Get current user dashboard
+      responses:
+        '200':
+          description: Dashboard metrics
+        '403':
+          description: Access denied
+
+  /Backend/api/index.php?controller=dashboard&action=lastLogin:
+    get:
+      tags: [Dashboard]
+      summary: Get current user last login
+      responses:
+        '200':
+          description: Last login info
+
+  /Backend/api/index.php?controller=dashboard&action=userDashboard:
+    get:
+      tags: [Dashboard]
+      summary: Staff views tutor/student dashboard
+      parameters:
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Target dashboard data
+        '403':
+          description: Staff only
+
+  /Backend/api/index.php?controller=user:
+    get:
+      tags: [User]
+      summary: List users (admin only)
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0 }
+        - in: query
+          name: include_inactive
+          schema: { type: integer, enum: [0, 1] }
+      responses:
+        '200':
+          description: User list
+    post:
+      tags: [User]
+      summary: Create user (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_name, email, password, role_id]
+              properties:
+                user_name: { type: string }
+                email: { type: string }
+                password: { type: string }
+                role_id: { type: integer }
+      responses:
+        '201':
+          description: Created
+    put:
+      tags: [User]
+      summary: Update user (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, user_name, email, role_id]
+              properties:
+                id: { type: integer }
+                user_name: { type: string }
+                email: { type: string }
+                role_id: { type: integer }
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [User]
+      summary: Delete user (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: integer }
+      responses:
+        '200':
+          description: Deleted
+
+  /Backend/api/index.php?controller=user&action=resetPassword:
+    post:
+      tags: [User]
+      summary: Reset user password (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, new_password]
+              properties:
+                id: { type: integer }
+                new_password: { type: string, minLength: 8 }
+      responses:
+        '200':
+          description: Password reset
+
+  /Backend/api/index.php?controller=message:
+    get:
+      tags: [Message]
+      summary: List messages
+      parameters:
+        - in: query
+          name: with_user_id
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 200 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0 }
+      responses:
+        '200':
+          description: Message list
+    post:
+      tags: [Message]
+      summary: Send message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageCreateRequest'
+      responses:
+        '201':
+          description: Sent
+    put:
+      tags: [Message]
+      summary: Update message status (receiver only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, status]
+              properties:
+                id: { type: integer }
+                status:
+                  type: string
+                  enum: [read, sent]
+      responses:
+        '200':
+          description: Updated
+
+  /Backend/api/index.php?controller=blog:
+    get:
+      tags: [Blog]
+      summary: List blog posts
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0 }
+        - in: query
+          name: author_id
+          schema: { type: integer }
+        - in: query
+          name: date_from
+          schema: { type: string, format: date }
+        - in: query
+          name: date_to
+          schema: { type: string, format: date }
+        - in: query
+          name: q
+          schema: { type: string }
+      responses:
+        '200':
+          description: Blog list
+    post:
+      tags: [Blog]
+      summary: Create blog post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, content]
+              properties:
+                title: { type: string }
+                content: { type: string }
+      responses:
+        '201':
+          description: Created
+    put:
+      tags: [Blog]
+      summary: Update blog post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, title, content]
+              properties:
+                id: { type: integer }
+                title: { type: string }
+                content: { type: string }
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [Blog]
+      summary: Delete blog post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: integer }
+      responses:
+        '200':
+          description: Deleted
+
+  /Backend/api/index.php?controller=blog_comment:
+    get:
+      tags: [BlogComment]
+      summary: List blog comments
+      parameters:
+        - in: query
+          name: post_id
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Comment list
+    post:
+      tags: [BlogComment]
+      summary: Create blog comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [post_id, comment]
+              properties:
+                post_id: { type: integer }
+                comment: { type: string }
+      responses:
+        '201':
+          description: Created
+    put:
+      tags: [BlogComment]
+      summary: Update blog comment (owner only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, comment]
+              properties:
+                id: { type: integer }
+                comment: { type: string }
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [BlogComment]
+      summary: Delete blog comment (owner only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: integer }
+      responses:
+        '200':
+          description: Deleted
+
+  /Backend/api/index.php?controller=allocation:
+    get:
+      tags: [Allocation]
+      summary: List allocations (admin only)
+      responses:
+        '200':
+          description: Allocation list
+    post:
+      tags: [Allocation]
+      summary: Create allocation (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [student_id, tutor_id]
+              properties:
+                student_id: { type: integer }
+                tutor_id: { type: integer }
+                status:
+                  type: string
+                  enum: [active, completed]
+      responses:
+        '201':
+          description: Created
+    put:
+      tags: [Allocation]
+      summary: Update allocation (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, student_id, tutor_id, status]
+              properties:
+                id: { type: integer }
+                student_id: { type: integer }
+                tutor_id: { type: integer }
+                status:
+                  type: string
+                  enum: [active, completed]
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [Allocation]
+      summary: Delete allocation (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: integer }
+      responses:
+        '200':
+          description: Deleted
+
+  /Backend/api/index.php?controller=allocation&action=bulk:
+    post:
+      tags: [Allocation]
+      summary: Bulk allocation (staff)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [allocations]
+              properties:
+                status:
+                  type: string
+                  enum: [active, completed]
+                allocations:
+                  type: array
+                  items:
+                    type: object
+                    required: [student_id, tutor_id]
+                    properties:
+                      student_id: { type: integer }
+                      tutor_id: { type: integer }
+      responses:
+        '207':
+          description: Mixed result summary
+
+  /Backend/api/index.php?controller=allocation&action=reallocate:
+    post:
+      tags: [Allocation]
+      summary: Reallocate student to new tutor (staff)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [student_id, new_tutor_id]
+              properties:
+                student_id: { type: integer }
+                new_tutor_id: { type: integer }
+      responses:
+        '200':
+          description: Reallocated
+
+  /Backend/api/index.php?controller=allocation&action=myTutor:
+    get:
+      tags: [Allocation]
+      summary: Get my allocated tutor (student)
+      responses:
+        '200':
+          description: Tutor allocation
+
+  /Backend/api/index.php?controller=allocation&action=assignedStudents:
+    get:
+      tags: [Allocation]
+      summary: Get assigned students (tutor)
+      responses:
+        '200':
+          description: Assigned students
+
+  /Backend/api/index.php?controller=meeting:
+    get:
+      tags: [Meeting]
+      summary: List meetings
+      responses:
+        '200':
+          description: Meeting list
+    post:
+      tags: [Meeting]
+      summary: Create meeting (tutor or admin staff)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [student_id, tutor_id, meeting_date, meeting_time, meeting_type, status]
+              properties:
+                student_id: { type: integer }
+                tutor_id: { type: integer }
+                meeting_date:
+                  type: string
+                  format: date
+                meeting_time:
+                  type: string
+                  example: "10:00:00"
+                meeting_type:
+                  type: string
+                  enum: [physical, virtual, online, real]
+                meeting_platform:
+                  type: string
+                meeting_link:
+                  type: string
+                meeting_location:
+                  type: string
+                outcome:
+                  type: string
+                status:
+                  type: string
+                  enum: [scheduled, completed, cancelled]
+      responses:
+        '201':
+          description: Created
+    put:
+      tags: [Meeting]
+      summary: Update meeting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: integer }
+                student_id: { type: integer }
+                tutor_id: { type: integer }
+                meeting_date:
+                  type: string
+                  format: date
+                meeting_time:
+                  type: string
+                meeting_type:
+                  type: string
+                  enum: [physical, virtual, online, real]
+                meeting_platform:
+                  type: string
+                meeting_link:
+                  type: string
+                meeting_location:
+                  type: string
+                outcome:
+                  type: string
+                status:
+                  type: string
+                  enum: [scheduled, completed, cancelled]
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [Meeting]
+      summary: Delete meeting (admin staff only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: integer }
+      responses:
+        '200':
+          description: Deleted
+
+  /Backend/api/index.php?controller=meeting_recording:
+    get:
+      tags: [MeetingRecording]
+      summary: List meeting recordings
+      parameters:
+        - in: query
+          name: meeting_id
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Recording list
+    post:
+      tags: [MeetingRecording]
+      summary: Create meeting recording (one recording per meeting)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meeting_id, file_path]
+              properties:
+                meeting_id: { type: integer }
+                file_path: { type: string }
+          multipart/form-data:
+            schema:
+              type: object
+              required: [meeting_id, file]
+              properties:
+                meeting_id:
+                  type: integer
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Created
+        '409':
+          description: Already exists for meeting
+    put:
+      tags: [MeetingRecording]
+      summary: Update recording path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id: { type: integer }
+                meeting_id: { type: integer }
+                file_path: { type: string }
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [MeetingRecording]
+      summary: Delete recording
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id: { type: integer }
+                meeting_id: { type: integer }
+      responses:
+        '200':
+          description: Deleted
+
+  /Backend/api/index.php?controller=document:
+    get:
+      tags: [Document]
+      summary: List documents
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0 }
+        - in: query
+          name: student_id
+          schema: { type: integer }
+        - in: query
+          name: date_from
+          schema: { type: string, format: date }
+        - in: query
+          name: date_to
+          schema: { type: string, format: date }
+        - in: query
+          name: q
+          schema: { type: string }
+      responses:
+        '200':
+          description: Document list
+    post:
+      tags: [Document]
+      summary: Create document upload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [student_id, file_path]
+              properties:
+                student_id: { type: integer }
+                file_path: { type: string }
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                student_id:
+                  type: integer
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Created
+    put:
+      tags: [Document]
+      summary: Update document (admin staff only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, student_id, file_path]
+              properties:
+                id: { type: integer }
+                student_id: { type: integer }
+                file_path: { type: string }
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [Document]
+      summary: Delete document (admin staff only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: integer }
+      responses:
+        '200':
+          description: Deleted
+
+  /Backend/api/index.php?controller=document_comment:
+    get:
+      tags: [DocumentComment]
+      summary: List document comments
+      parameters:
+        - in: query
+          name: document_id
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Comment list
+    post:
+      tags: [DocumentComment]
+      summary: Create document comment (one comment per document)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [document_id, comment]
+              properties:
+                document_id: { type: integer }
+                tutor_id: { type: integer }
+                comment: { type: string }
+      responses:
+        '201':
+          description: Created
+        '409':
+          description: Comment already exists for document
+    put:
+      tags: [DocumentComment]
+      summary: Update comment (tutor)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id: { type: integer }
+                document_id: { type: integer }
+                comment: { type: string }
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [DocumentComment]
+      summary: Delete comment (tutor)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id: { type: integer }
+                document_id: { type: integer }
+      responses:
+        '200':
+          description: Deleted
+
+  /Backend/api/index.php?controller=report:
+    get:
+      tags: [Report]
+      summary: Activity summary report (admin staff only)
+      responses:
+        '200':
+          description: Report data
+
+  /Backend/api/index.php?controller=report&action=statistics:
+    get:
+      tags: [Report]
+      summary: Statistics report (admin staff only)
+      responses:
+        '200':
+          description: Statistics
+
+  /Backend/api/index.php?controller=report&action=exceptions:
+    get:
+      tags: [Report]
+      summary: Exception report (admin staff only)
+      responses:
+        '200':
+          description: Exceptions
+
+  /Backend/api/index.php?controller=report&action=overview:
+    get:
+      tags: [Report]
+      summary: Consolidated report (admin staff only)
+      responses:
+        '200':
+          description: Overview
+
+  /Backend/api/index.php?controller=report&action=activityLogs:
+    get:
+      tags: [Report]
+      summary: Activity logs with filters and pagination (admin staff only)
+      parameters:
+        - in: query
+          name: user_id
+          schema: { type: integer }
+        - in: query
+          name: activity_type
+          schema: { type: string }
+        - in: query
+          name: page_visited
+          schema: { type: string }
+        - in: query
+          name: from_date
+          schema: { type: string, format: date }
+        - in: query
+          name: to_date
+          schema: { type: string, format: date }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 500 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0 }
+      responses:
+        '200':
+          description: Log list
+
+  /Backend/api/index.php?controller=report&action=activityLogsCsv:
+    get:
+      tags: [Report]
+      summary: Export activity logs CSV (admin staff only)
+      parameters:
+        - in: query
+          name: user_id
+          schema: { type: integer }
+        - in: query
+          name: activity_type
+          schema: { type: string }
+        - in: query
+          name: from_date
+          schema: { type: string, format: date }
+        - in: query
+          name: to_date
+          schema: { type: string, format: date }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 5000 }
+      responses:
+        '200':
+          description: CSV stream
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  /Backend/api/index.php?controller=inactivity:
+    get:
+      tags: [Inactivity]
+      summary: Inactivity lists (admin staff only)
+      responses:
+        '200':
+          description: 7-day and 28-day inactivity lists
+
+  /Backend/api/index.php?controller=inactivity&action=warn:
+    get:
+      tags: [Inactivity]
+      summary: Trigger inactivity warnings (admin staff only)
+      parameters:
+        - in: query
+          name: days
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Warning summary

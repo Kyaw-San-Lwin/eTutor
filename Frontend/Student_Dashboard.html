@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="Css/Sidebar.css">
+    <link rel="stylesheet" href="Css/Student_Dashboard.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="assets/js/core/config.js"></script>
+    <script src="assets/js/core/storage.js"></script>
+    <script src="assets/js/core/apiClient.js"></script>
+    <script src="assets/js/core/authGuard.js"></script>
+    <script src="assets/js/core/components.js"></script>
+    <script src="assets/js/api/dashboard.js"></script>
+    <script src="assets/js/api/meeting.js"></script>
+    <script src="assets/js/api/message.js"></script>
+    <script src="assets/js/api/blog.js"></script>
+</head>
+
+<body class="bg-light">
+
+    <div class="d-flex min-vh-100">
+
+        <aside id="sidebar"></aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="d-flex-grow-1 dashboard-main w-100">
+
+            <div class="dashboard-grid">
+
+                <!-- LEFT SIDE -->
+                <div class="left-section">
+
+                    <!-- Meeting History -->
+                    <div class="bg-white p-4 rounded-4 shadow-sm">
+                        <h2 class="fs-5 fw-semibold mb-3">Meeting History</h2>
+                        <p id="meetingCount" class="display-5 fw-bold mb-1">0</p>
+                        <p id="meetingText" class="text-secondary mb-3">You have 0 scheduled meetings</p>
+                        <a href="Meeting.html" class="text-primary d-inline-flex align-items-center gap-1">All meeting <span aria-hidden="true">→</span></a>
+                    </div>
+
+                    <!-- Blog Comment -->
+                    <div class="bg-white p-4 rounded-4 shadow-sm">
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h2 class="fs-5 fw-semibold mb-0">Blog Comment</h2>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Sort by Newest
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><button class="dropdown-item" type="button">Newest</button></li>
+                                    <li><button class="dropdown-item" type="button">Oldest</button></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div id="blogListPreview" class="d-flex flex-column gap-2">
+
+                            <div class="comment-item d-none">
+
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="Images/profile.jpg" class="rounded-circle" style="width:2.5rem;height:2.5rem;" alt="Profile">
+                                    <p class="mb-0">Hnin Yati</p>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-3 text-secondary">
+                                    <i class="bi bi-chat"></i>
+                                    <span class="vr"></span>
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </div>
+
+                            </div>
+
+                            <div class="comment-item d-none">
+
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="Images/profile 2.jpg" class="rounded-circle" style="width:2.5rem;height:2.5rem;" alt="Profile">
+                                    <p class="mb-0">Kyaw San Lwin</p>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-3 text-secondary">
+                                    <i class="bi bi-chat"></i>
+                                    <span class="vr"></span>
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </div>
+
+                            </div>
+
+                            <div class="comment-item d-none">
+
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="Images/profile.jpg" class="rounded-circle" style="width:2.5rem;height:2.5rem;" alt="Profile">
+                                    <p class="mb-0">Sai Thiha Aung</p>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-3 text-secondary">
+                                    <i class="bi bi-chat"></i>
+                                    <span class="vr"></span>
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </div>
+
+                            </div>
+
+                            <div class="comment-item d-none">
+
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="Images/profile 2.jpg" class="rounded-circle" style="width:2.5rem;height:2.5rem;" alt="Profile">
+                                    <p class="mb-0">Hein Khant Thura</p>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-3 text-secondary">
+                                    <i class="bi bi-chat"></i>
+                                    <span class="vr"></span>
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <a href="Blog.html" class="text-primary mt-3 d-inline-flex align-items-center gap-1">All comments <span aria-hidden="true">→</span></a>
+
+                    </div>
+
+                    <!-- Bottom Cards -->
+                    <div class="bottom-cards">
+
+                        <div class="bg-white p-4 rounded-4 shadow-sm chat-card">
+                            <h3 class="fs-6 fw-semibold mb-1">Chats</h3>
+                            <p id="unreadMessagesText" class="text-secondary small mb-3">0 unread messages</p>
+                            <img src="Images/profile 2.jpg" class="rounded-circle" style="width:2.75rem;height:2.75rem;" alt="Profile">
+                            <div class="mt-auto">
+                                <a href="Messaging.html" class="text-primary d-inline-flex align-items-center gap-1">All messages <span aria-hidden="true">→</span></a>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-4 shadow-sm text-center">
+                            <h3 class="fs-6 fw-semibold mb-3">Upload Document</h3>
+                            <div id="documentCount" class="mx-auto d-flex align-items-center justify-content-center fs-4 fw-bold" style="width:9rem;height:9rem;border:8px solid #1d4ed8;border-radius:9999px;">0</div>
+                            <a href="Document.html" class="text-primary d-inline-flex align-items-center gap-1 mt-3">Check Document <span aria-hidden="true">→</span></a>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- RIGHT SIDE -->
+                <div id="meetingList" class="meeting-section">
+
+                    <div class="meeting-card d-none">
+                        <img src="Images/meeting example pic.jpg">
+                        <div class="meeting-info">
+                            <h3>RM</h3>
+                            <p>1:00 PM - 3:00 PM</p>
+                            <p class="date">5 March</p>
+                            <button class="remind-btn">Remind Me</button>
+                        </div>
+                    </div>
+
+                    <div class="meeting-card d-none">
+                        <img src="Images/meeting example pic.jpg">
+                        <div class="meeting-info">
+                            <h3>EWSD</h3>
+                            <p>4:00 PM - 5:00 PM</p>
+                            <p class="date">5 March</p>
+                            <button class="remind-btn">Remind Me</button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <script>
+      requireAuth();
+      loadSidebar("student");
+
+      function formatDateLabel(dateStr) {
+        if (!dateStr) return "--/--/--";
+        const d = new Date(dateStr);
+        if (Number.isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString();
+      }
+
+      async function hydrateDashboard() {
+        const res = await loadDashboard();
+        if (!res || !res.success) return;
+
+        const metrics = (res.data && res.data.metrics) ? res.data.metrics : {};
+        const meetingCount = metrics.scheduled_meetings ?? 0;
+        const unread = metrics.unread_messages ?? 0;
+        const docs = metrics.my_documents ?? 0;
+
+        document.getElementById("meetingCount").textContent = meetingCount;
+        document.getElementById("meetingText").textContent = `You have ${meetingCount} scheduled meetings`;
+        document.getElementById("unreadMessagesText").textContent = `${unread} unread messages`;
+        document.getElementById("documentCount").textContent = docs;
+      }
+
+      async function hydrateLastLogin() {
+        const res = await loadLastLogin();
+        if (!res || !res.success) return;
+        // const value = formatDateLabel(res.data && res.data.last_login);
+        const value =res.data.last_login;
+        // console.log(res.data.last_login);
+        const el = document.getElementById("lastLoginValue");
+        if (el) el.textContent = res.data.last_login;
+      }
+
+      async function hydrateMeetings() {
+        const res = await loadMeetings();
+        if (!res || !res.success) return;
+        const list = (res.data || []).slice(0, 2);
+        const container = document.getElementById("meetingList");
+        if (!container) return;
+        container.innerHTML = "";
+
+        list.forEach((m) => {
+          const dateLabel = m.meeting_date || "";
+          const timeLabel = m.meeting_time ? m.meeting_time.slice(0, 5) : "";
+          container.innerHTML += `
+            <div class="meeting-card">
+              <img src="Images/meeting example pic.jpg" alt="Meeting">
+              <div class="meeting-info">
+                <h3>${m.meeting_type ? m.meeting_type.toUpperCase() : "Meeting"}</h3>
+                <p>${timeLabel}</p>
+                <p class="date">${dateLabel}</p>
+                <button class="remind-btn" type="button">Remind Me</button>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      async function hydrateBlogs() {
+        const res = await loadBlogs();
+        if (!res || !res.success) return;
+        const list = (res.data || []).slice(0, 4);
+        const container = document.getElementById("blogListPreview");
+        if (!container) return;
+        container.innerHTML = "";
+
+        list.forEach((post) => {
+          const user = post.user_name || "User";
+          container.innerHTML += `
+            <div class="comment-item">
+              <div class="d-flex align-items-center gap-3">
+                <img src="Images/profile.jpg" class="rounded-circle" style="width:2.5rem;height:2.5rem;" alt="Profile">
+                <p class="mb-0">${user}</p>
+              </div>
+              <div class="d-flex align-items-center gap-3 text-secondary">
+                <i class="bi bi-chat"></i>
+                <span class="vr"></span>
+                <i class="bi bi-three-dots-vertical"></i>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      hydrateDashboard();
+      hydrateLastLogin();
+      hydrateMeetings();
+      hydrateBlogs();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

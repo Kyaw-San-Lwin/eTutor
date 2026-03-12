@@ -1,0 +1,118 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+.doc-main{
+    flex:1;
+    padding:40px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    align-items:center;
+}
+
+/* Upload Section */
+.upload-box{
+    background:white;
+    padding:25px;
+    border-radius:8px;
+    width:100%;
+    max-width:1000px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.1);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.upload-box h2{
+    font-size:20px;
+    font-weight:600;
+}
+
+.upload-box input{
+    padding:8px;
+    border:1px solid #ccc;
+    border-radius:5px;
+}
+
+.upload-box button{
+    background:#1e3a8a;
+    color:white;
+    padding:6px 20px;
+    border-radius:5px;
+    width:120px;
+    cursor:pointer;
+}
+
+/* Search Bar */
+.search-bar{
+    width:100%;
+    max-width:1000px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:white;
+    padding:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+.search-bar select{
+    border:1px solid #ccc;
+    padding:5px;
+    border-radius:4px;
+}
+
+.search-bar input{
+    flex:1;
+    border:none;
+    outline:none;
+}
+
+/* Table */
+table{
+    width:100%;
+    max-width:1000px;
+    background:white;
+    border-collapse:collapse;
+}
+
+thead{
+    background:#879abf;
+}
+
+th,td{
+    border:1px solid #ccc;
+    padding:10px;
+    text-align:left;
+}
+
+th{
+    font-weight:600;
+}
+
+tbody tr:hover{
+    background:#f3f4f6;
+}
+
+/* Buttons */
+.download-btn{
+    background:#1e3a8a;
+    color:white;
+    padding:4px 10px;
+    border-radius:4px;
+    font-size:14px;
+    text-decoration:none;
+}
+
+.file-name{
+    cursor:pointer;
+    color:#1e3a8a;
+    font-weight:500;
+}
+
+.file-name:hover{
+    text-decoration:underline;
+}

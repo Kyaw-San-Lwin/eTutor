@@ -1,0 +1,18 @@
+{
+    "name": "etutor/backend",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Etutor\\Backend\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Kyaw San Lwin",
+            "email": "128618172+Kyaw-San-Lwin@users.noreply.github.com"
+        }
+    ],
+    "require": {
+        "firebase/php-jwt": "^7.0"
+    }
+}

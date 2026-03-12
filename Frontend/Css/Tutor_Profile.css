@@ -1,0 +1,82 @@
+/* Main Content Container */
+.main-content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2.5rem; /* 40px */
+}
+
+/* Profile Card */
+.profile-card {
+    background: white;
+    border-radius: 1rem; /* 16px */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 64rem; /* 1024px */
+    padding: 3rem; /* 48px */
+    text-align: center;
+}
+
+/* Title */
+.profile-title {
+    font-family: serif;
+    font-size: 2.25rem; /* 36px */
+    margin-bottom: 2.5rem; /* 40px */
+}
+
+/* Profile Image */
+.profile-image-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem; /* 24px */
+}
+
+.profile-image {
+    width: 16rem; /* 256px */
+    height: 16rem;
+    border-radius: 9999px; /* Full circle */
+    object-fit: cover;
+}
+
+/* Name */
+.profile-name {
+    font-size: 1.125rem; /* 18px */
+    font-weight: 600;
+    margin-bottom: 3rem; /* 48px */
+}
+
+/* Info Grid */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5rem; /* 40px */
+    text-align: center;
+    color: #4b5563; /* gray-600 */
+}
+
+.info-item .info-label {
+    font-size: 0.875rem; /* 14px */
+}
+
+.info-item .info-value {
+    margin-top: 0.5rem; /* 8px */
+    font-size: 1.125rem; /* 18px */
+    color: #1f2937; /* gray-800 */
+}
+
+/* Department Section */
+.department {
+    margin-top: 2.5rem; /* 40px */
+    color: #4b5563; /* gray-600 */
+}
+
+.department .info-label {
+    font-size: 0.875rem; /* 14px */
+}
+
+.department .info-value {
+    margin-top: 0.5rem;
+    font-size: 1.125rem;
+    color: #1f2937;
+}
