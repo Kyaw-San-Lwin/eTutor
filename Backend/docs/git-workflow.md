@@ -1,276 +1,79 @@
-# Git Strategy for eTutor (Student Full‑Stack)
+# eTutor Git Workflow
 
-This guide describes a complete Git strategy for a student full‑stack project like **eTutor** (HTML/CSS/JS frontend + PHP backend + MySQL database).
+This repository uses a simple student‑friendly Git workflow that keeps `main` stable and allows safe feature development.
 
-## 1. Overall Strategy
+## Branches
 
-The repo should manage **four main parts**:
+- `main`: stable release
+- `develop`: integration branch
+- `feature/*`: new features
+- `bugfix/*`: fixes
 
-1. Frontend
-2. Backend
-3. Database
-4. Documentation
-
-### Recommended Repository Structure
-
-```text
-etutor-system
-│
-├── frontend
-│   ├── css
-│   ├── js
-│   ├── components
-│   ├── pages
-│   └── assets
-│
-├── backend
-│   ├── config
-│   ├── controllers
-│   ├── models
-│   ├── services
-│   ├── middleware
-│   └── api
-│
-├── database
-│   ├── migrations
-│   ├── seeds
-│   └── schema.sql
-│
-├── docs
-│   ├── api-documentation.md
-│   ├── system-architecture.md
-│   └── setup-guide.md
-│
-├── .gitignore
-└── README.md
-```
-
-## 2. Database Version Control
-
-Track database changes using **migrations**.
-
-### Folder Structure
-
-```text
-database
-│
-├── migrations
-│   ├── 001_create_users_table.sql
-│   ├── 002_create_courses_table.sql
-│   ├── 003_create_messages_table.sql
-│
-├── seeds
-│   ├── sample_users.sql
-│   └── sample_courses.sql
-│
-└── schema.sql
-```
-
-### Migration Naming Style
-
-Each migration is one database change.
-
-Example:
-
-```sql
--- 001_create_users_table.sql
-
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100),
-    email VARCHAR(100),
-    password VARCHAR(255),
-    role ENUM('student','tutor','admin'),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Database Update Workflow
-
-Example: Messaging system
-
-1. Create migration file
-2. Commit
-3. Push
+## Setup
 
 ```bash
-git add database/migrations/004_create_messages_table.sql
-git commit -m "Add messages table migration"
-git push origin feature-messaging
+git clone <your-repo-url>
+cd eTutor
+git checkout -b develop
+git push -u origin develop
 ```
 
-## 3. Backend API Versioning
-
-Version your APIs so the frontend doesn’t break on changes.
-
-### API Folder Structure
-
-```text
-backend/api
-│
-├── v1
-│   ├── auth
-│   │   ├── login.php
-│   │   └── register.php
-│   │
-│   ├── courses
-│   │   ├── create.php
-│   │   ├── list.php
-│   │   └── enroll.php
-│   │
-│   └── messages
-│       ├── send.php
-│       └── get.php
-│
-└── v2
-```
-
-Example endpoint:
-
-```
-/api/v1/auth/login.php
-/api/v1/messages/send.php
-```
-
-## 4. Frontend Component Commits
-
-Commit by **component or feature**, not the entire project.
-
-Example structure:
-
-```text
-frontend
-│
-├── components
-│   ├── navbar
-│   │   ├── navbar.html
-│   │   ├── navbar.css
-│   │   └── navbar.js
-│
-├── pages
-│   ├── login.html
-│   ├── dashboard.html
-│   └── messaging.html
-```
-
-Good commit messages:
-
-```
-Add navbar component
-Create login page UI
-Add messaging chat interface
-Connect messaging API to frontend
-Fix responsive navbar layout
-```
-
-## 5. Feature‑Based Branching
-
-Use feature branches for development.
-
-Branch types:
-
-```
-main
-develop
-feature/*
-bugfix/*
-hotfix/*
-```
-
-Workflow:
-
-```
-develop → feature branch → develop → main
-```
-
-## 6. Team Collaboration Workflow
+## Start a Feature
 
 ```bash
+git checkout develop
 git pull origin develop
 git checkout -b feature-messaging
 ```
 
-Commit regularly:
+## Commit Changes
 
 ```bash
-git commit -m "Create messages table"
-git commit -m "Add send message API"
-git commit -m "Add chat UI"
+git add .
+git commit -m "Add message send API"
+git push -u origin feature-messaging
 ```
 
-Push and merge:
+## Merge Feature into Develop
 
 ```bash
-git push origin feature-messaging
 git checkout develop
+git pull origin develop
 git merge feature-messaging
+git push origin develop
 ```
 
-Release:
+## Release to Main
 
 ```bash
 git checkout main
+git pull origin main
 git merge develop
 git push origin main
 ```
 
-## 7. Issue Tracking (Optional)
+## Recommended Commit Messages
 
-Use GitHub Issues and reference them in commits:
+- `Add login validation`
+- `Fix sidebar spacing`
+- `Create document upload API`
 
-```
-git commit -m "Implement login API (fixes #12)"
-```
-
-## 8. Release Version Strategy
-
-Use tags:
-
-```
-v0.1  login system
-v0.2  course management
-v0.3  messaging system
-v1.0  full system release
-```
-
-```bash
-git tag v1.0
-git push origin v1.0
-```
-
-## 9. Important .gitignore
+## .gitignore Essentials
 
 ```
 .env
 /vendor
 /node_modules
 *.log
-*.cache
-config/database_local.php
+.DS_Store
 ```
 
-## 10. Daily Development Routine
+## Daily Habit
 
-```text
-1. git pull
-2. create feature branch
-3. write code
-4. commit frequently
-5. push branch
-6. merge to develop
-```
-
-## Summary
-
-```
-Repository
-├── frontend (UI)
-├── backend (PHP APIs)
-├── database (migrations)
-├── docs (documentation)
-│
-Workflow
-main → stable
-develop → development
-feature branches → new features
+```bash
+git pull
+git checkout -b feature-xyz
+git add .
+git commit -m "Describe change"
+git push -u origin feature-xyz
 ```
