@@ -7,47 +7,47 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="Css/tw-compat.css">
+    <link rel="stylesheet" href="Css/bootstrap-custom.css">
 </head>
 
-<body class="bg-gray-100 font-sans">
+<body class="u-bg-gray-100 u-font-sans">
 
-  <div class="flex h-screen">
+  <div class="d-flex vh-100">
 
     <!-- Sidebar -->
-    <aside class="w-64 bg-[#0054a7] text-white flex flex-col">
+    <aside class="u-w-16rem u-bg-0054a7 text-white d-flex flex-column">
 
-      <div class="flex justify-center items-center py-6">
-        <img src="Images/KMD Full Logo.png" class="w-40 h-auto object-contain">
+      <div class="d-flex justify-content-center align-items-center py-6">
+        <img src="Images/KMD Full Logo.png" class="u-w-10rem u-h-auto u-object-contain">
       </div>
 
-      <nav class="flex-1 p-4 space-y-2">
-        <a href="Staff_Dashboard.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-tv"></i> Dashboard</a>
-        <a href="Profile.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-person-circle"></i> Profile</a>
-        <a href="Register.html" class="block p-3 rounded bg-[#003f7d]"> <i class="bi bi-person-circle"></i> Create User Account</a>
-        <a href="Meeting.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-person-video"></i> Meeting</a>
-        <a href="Messaging.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-person-fill"></i> Tutor</a>
-        <a href="Messaging.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-chat-left-dots"></i> Message</a>
-        <a href="Blog.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-envelope"></i> Blog Post</a>
-        <a href="Upload_Blog.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-envelope-arrow-up"></i> Upload Document</a>
-        <a href="Login.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-people-fill"></i> Switch Account</a>
-        <a href="Login.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-box-arrow-right"></i> Logout</a>
+      <nav class="flex-grow-1 p-4 u-space-y-2">
+        <a href="Staff_Dashboard.html" class="d-block p-3 rounded u-hover-bg-003f7d"> <i class="bi bi-tv"></i> Dashboard</a>
+        <a href="Profile.html" class="d-block p-3 rounded u-hover-bg-003f7d"> <i class="bi bi-person-circle"></i> Profile</a>
+        <a href="Register.html" class="d-block p-3 rounded u-bg-003f7d"> <i class="bi bi-person-circle"></i> Create User Account</a>
+        <a href="Meeting.html" class="d-block p-3 rounded u-hover-bg-003f7d"> <i class="bi bi-person-video"></i> Meeting</a>
+        <a href="Messaging.html" class="d-block p-3 rounded u-hover-bg-003f7d"> <i class="bi bi-person-fill"></i> Tutor</a>
+        <a href="Messaging.html" class="d-block p-3 rounded u-hover-bg-003f7d"> <i class="bi bi-chat-left-dots"></i> Message</a>
+        <a href="Blog.html" class="d-block p-3 rounded u-hover-bg-003f7d"> <i class="bi bi-envelope"></i> Blog Post</a>
+        <a href="Upload_Blog.html" class="d-block p-3 rounded u-hover-bg-003f7d"> <i class="bi bi-envelope-arrow-up"></i> Upload Document</a>
+        <a href="Login.html" class="d-block p-3 rounded u-hover-bg-003f7d"> <i class="bi bi-people-fill"></i> Switch Account</a>
+        <a href="Login.html" class="d-block p-3 rounded u-hover-bg-003f7d"> <i class="bi bi-box-arrow-right"></i> Logout</a>
       </nav>
 
     </aside>
 
     <!-- Main Content -->
-    <div class="flex-1 flex justify-center items-center">
+    <div class="flex-grow-1 d-flex justify-content-center align-items-center">
 
       <!-- Form Container -->
-      <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 mt-16 mb-16">
+      <div class="w-100 u-max-w-md bg-white u-rounded-2xl u-shadow-lg p-8 mt-16 mb-16">
 
         <!-- Title -->
         <div class="text-center mb-6">
-            <h1 class="text-3xl font-bold text-indigo-700 flex items-center justify-center gap-2">
-                <img src="Images/KMD Logo.jpg" class="w-30 h-20 object-contain"> College
+            <h1 class="u-text-3xl fw-bold u-text-indigo-700 d-flex align-items-center justify-content-center gap-2">
+                <img src="Images/KMD Logo.jpg" class="u-w-7-5rem u-h-5rem u-object-contain"> College
             </h1>
-            <p class="text-gray-500 text-sm">Create User Account</p>
+            <p class="u-text-gray-500 u-text-sm">Create User Account</p>
         </div>
 
         <!-- Form -->
@@ -55,29 +55,29 @@
 
           <!-- Full Name -->
           <div class="mb-4">
-            <label class="block text-gray-600 mb-1">Full Name</label>
-            <input type="text" id="name" placeholder="Enter Full Name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0054a7]">
-            <p id="nameError" class="text-red-500 text-sm"></p>
+            <label class="d-block u-text-gray-600 mb-1">Full Name</label>
+            <input type="text" id="name" placeholder="Enter Full Name" class="w-100 px-4 py-2 border rounded u-focus-outline-none u-focus-ring-2 u-focus-ring-0054a7">
+            <p id="nameError" class="u-text-red-500 u-text-sm"></p>
           </div>
 
           <!-- Email -->
           <div class="mb-4">
-            <label class="block text-gray-600 mb-1">Email</label>
-            <input type="email" id="email" placeholder="Enter Email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0054a7]">
-            <p id="emailError" class="text-red-500 text-sm"></p>
+            <label class="d-block u-text-gray-600 mb-1">Email</label>
+            <input type="email" id="email" placeholder="Enter Email" class="w-100 px-4 py-2 border rounded u-focus-outline-none u-focus-ring-2 u-focus-ring-0054a7">
+            <p id="emailError" class="u-text-red-500 u-text-sm"></p>
           </div>
 
           <!-- Phone Number -->
           <div class="mb-4">
-            <label class="block text-gray-600 mb-1">Phone Number</label>
-            <input type="text" id="phNum" placeholder="Enter Phone Number" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0054a7]">
-            <p id="emailError" class="text-red-500 text-sm"></p>
+            <label class="d-block u-text-gray-600 mb-1">Phone Number</label>
+            <input type="text" id="phNum" placeholder="Enter Phone Number" class="w-100 px-4 py-2 border rounded u-focus-outline-none u-focus-ring-2 u-focus-ring-0054a7">
+            <p id="emailError" class="u-text-red-500 u-text-sm"></p>
           </div>
 
           <!-- Role -->
           <div class="mb-4">
-            <label class="block text-gray-600 mb-1">Select Role</label>
-            <select id="role" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0054a7]">
+            <label class="d-block u-text-gray-600 mb-1">Select Role</label>
+            <select id="role" class="w-100 px-4 py-2 border rounded u-focus-outline-none u-focus-ring-2 u-focus-ring-0054a7">
               <option>Student</option>
               <option>Tutor</option>
               <option>Admin</option>
@@ -86,20 +86,20 @@
 
           <!-- Password -->
           <div class="mb-4">
-            <label class="block text-gray-600 mb-1">Password</label>
-            <input type="password" id="password" placeholder="Enter Password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0054a7]">
-            <p id="passwordError" class="text-red-500 text-sm"></p>
+            <label class="d-block u-text-gray-600 mb-1">Password</label>
+            <input type="password" id="password" placeholder="Enter Password" class="w-100 px-4 py-2 border rounded u-focus-outline-none u-focus-ring-2 u-focus-ring-0054a7">
+            <p id="passwordError" class="u-text-red-500 u-text-sm"></p>
           </div>
 
           <!-- Confirm Password -->
           <div class="mb-6">
-            <label class="block text-gray-600 mb-1">Confirm Password</label>
-            <input type="password" id="confirmPassword" placeholder="Enter Confirm password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0054a7]">
-            <p id="confirmError" class="text-red-500 text-sm"></p>
+            <label class="d-block u-text-gray-600 mb-1">Confirm Password</label>
+            <input type="password" id="confirmPassword" placeholder="Enter Confirm password" class="w-100 px-4 py-2 border rounded u-focus-outline-none u-focus-ring-2 u-focus-ring-0054a7">
+            <p id="confirmError" class="u-text-red-500 u-text-sm"></p>
           </div>
 
           <!-- Button -->
-          <button class="w-full bg-[#0054a7] text-white py-2 rounded-lg hover:bg-[#003f7d]"> Create <i class="bi bi-box-arrow-in-right text-lg"></i> </button>
+          <button class="w-100 u-bg-0054a7 text-white py-2 rounded u-hover-bg-003f7d"> Create <i class="bi bi-box-arrow-in-right u-text-lg"></i> </button>
 
         </form>
 

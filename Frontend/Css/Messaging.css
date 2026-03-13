@@ -1,12 +1,12 @@
 /* Chat Area Container */
-.flex-1.flex.flex-col {
+.flex-grow-1.d-flex.flex-column {
     display: flex;
     flex-direction: column;
     height: 100vh;
 }
 
 /* Chat Header */
-.flex.items-center.justify-between.p-6.bg-white.border-b {
+.d-flex.align-items-center.justify-content-between.p-6.bg-white.border-bottom {
     flex-shrink: 0;
 }
 
@@ -19,12 +19,12 @@
 }
 
 /* Chat Input */
-.bg-white.p-4.flex.items-center.gap-4.border-t {
+.bg-white.p-4.d-flex.align-items-center.gap-4.border-top {
     flex-shrink: 0;
 }
 
 /* Message Bubbles */
-#chatBody .bg-blue-800 {
+#chatBody .u-bg-blue-800 {
     word-wrap: break-word;
 }
 
