@@ -4,69 +4,41 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Staff Dashboard</title>
-
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-  <script src="assets/js/core/config.js"></script>
-  <script src="assets/js/core/storage.js"></script>
-  <script src="assets/js/core/apiClient.js"></script>
-  <script src="assets/js/core/authGuard.js"></script>
-  <script src="assets/js/core/components.js"></script>
-  <script src="assets/js/api/dashboard.js"></script>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="Css/tw-compat.css">
 </head>
 
-<body class="bg-light">
+<body class="bg-gray-100 font-sans">
 
-  <div class="d-flex min-vh-100">
+  <div class="flex h-screen">
 
-    <aside id="sidebar"></aside>
+    <!-- Sidebar -->
+    <aside class="w-64 bg-[#0054a7] text-white flex flex-col">
 
-    <main class="flex-grow-1 p-4">
-      <div class="container-fluid">
-        <h1 class="h4 fw-semibold mb-4">Staff Dashboard</h1>
-        <div class="row g-3">
-          <div class="col-md-4">
-            <div class="bg-white rounded-4 shadow-sm p-4">
-              <div class="text-secondary small">Total Users</div>
-              <div id="metricTotalUsers" class="fs-2 fw-bold">0</div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="bg-white rounded-4 shadow-sm p-4">
-              <div class="text-secondary small">Active Allocations</div>
-              <div id="metricActiveAllocations" class="fs-2 fw-bold">0</div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="bg-white rounded-4 shadow-sm p-4">
-              <div class="text-secondary small">Scheduled Meetings</div>
-              <div id="metricScheduledMeetings" class="fs-2 fw-bold">0</div>
-            </div>
-          </div>
-        </div>
+      <div class="flex justify-center items-center py-6">
+        <img src="Images/KMD Full Logo.png" class="w-40 h-auto object-contain">
       </div>
-    </main>
+
+      <nav class="flex-1 p-4 space-y-2">
+        <a href="Staff_Dashboard.html" class="block p-3 rounded bg-[#003f7d]"> <i class="bi bi-tv"></i> Dashboard</a>
+        <a href="Profile.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-person-circle"></i> Profile</a>
+        <a href="Register.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-person-circle"></i> Create User Account</a>
+        <a href="Meeting.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-person-video"></i> Meeting</a>
+        <a href="Messaging.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-person-fill"></i> Tutor</a>
+        <a href="Messaging.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-chat-left-dots"></i> Message</a>
+        <a href="Blog.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-envelope"></i> Blog Post</a>
+        <a href="Upload_Blog.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-envelope-arrow-up"></i> Upload Document</a>
+        <a href="Login.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-people-fill"></i> Switch Account</a>
+        <a href="Login.html" class="block p-3 rounded hover:bg-[#003f7d]"> <i class="bi bi-box-arrow-right"></i> Logout</a>
+      </nav>
+
+    </aside>
+
+
 
   </div>
-
-  <script>
-    requireAuth();
-    loadSidebar("staff");
-
-    async function hydrateStaffDashboard() {
-      const res = await loadDashboard();
-      if (!res || !res.success) return;
-      const metrics = (res.data && res.data.metrics) ? res.data.metrics : {};
-      const totalUsers = metrics.total_users ?? 0;
-      const activeAllocations = metrics.active_allocations ?? 0;
-      const scheduledMeetings = metrics.scheduled_meetings ?? 0;
-      document.getElementById("metricTotalUsers").textContent = totalUsers;
-      document.getElementById("metricActiveAllocations").textContent = activeAllocations;
-      document.getElementById("metricScheduledMeetings").textContent = scheduledMeetings;
-    }
-
-    hydrateStaffDashboard();
-  </script>
 
 </body>
 </html>
