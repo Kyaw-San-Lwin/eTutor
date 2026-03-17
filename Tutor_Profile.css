@@ -1,0 +1,181 @@
+/* Main Content Container */
+.main-content {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 40px;
+}
+
+/* Profile Card */
+.profile-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 1024px;
+    padding: 48px;
+    text-align: center;
+}
+
+/* Title */
+.profile-title {
+    font-family: serif;
+    font-size: 36px;
+    margin-bottom: 40px;
+}
+
+/* Profile Image */
+.profile-image-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.profile-image {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Name */
+.profile-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 48px;
+}
+
+/* Info Grid */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    text-align: center;
+    color: #4b5563;
+}
+
+.info-item .info-label {
+    font-size: 14px;
+}
+
+.info-item .info-value {
+    margin-top: 8px;
+    font-size: 18px;
+    color: #1f2937;
+}
+
+/* Department Section */
+.department {
+    margin-top: 40px;
+    color: #4b5563;
+}
+
+.department .info-label {
+    font-size: 14px;
+}
+
+.department .info-value {
+    margin-top: 0.5rem;
+    font-size: 1.125rem;
+    color: #1f2937;
+}
+
+/* ================= TABLET (1024px) ================= */
+@media (max-width: 1024px) {
+
+    .main-content {
+        padding:32px;
+    }
+
+    .profile-card {
+        padding:32px;
+    }
+
+    .profile-title {
+        font-size:30px;
+        margin-bottom:32px;
+    }
+
+    .profile-image {
+        width:180px;
+        height:180px;
+    }
+
+    .profile-name {
+        font-size:16px;
+        margin-bottom:32px;
+    }
+
+    /* Merge department into the grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap:30px;
+    }
+
+    .info-item .info-value {
+        font-size:16px;
+    }
+
+    /* Hide department margin top so it aligns with grid */
+    .department {
+        margin-top:0;
+    }
+}
+
+/* ================= MOBILE (768px) ================= */
+@media (max-width: 768px) {
+
+    .main-content {
+        padding:20px;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .profile-card {
+        padding:20px;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .profile-title {
+        font-size:24px;
+        margin-bottom:24px;
+    }
+
+    .profile-image {
+        width:140px;
+        height:140px;
+    }
+
+    .profile-name {
+        font-size:16px;
+        margin-bottom:30px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap:20px;
+    }
+
+    .info-item .info-label {
+        font-size:14px;
+    }
+
+    .info-item .info-value {
+        font-size:14px;
+    }
+
+    .department {
+        margin-top: 20px;
+    }
+
+    .department .info-label {
+        font-size:12px;
+    }
+
+    .department .info-value {
+        font-size:14px;
+    }
+}

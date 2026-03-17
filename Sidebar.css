@@ -1,0 +1,189 @@
+.sidebar{
+    width:80px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    flex-shrink: 0;
+    transition:0.3s;
+    overflow:hidden;
+}
+
+.sidebar:hover{
+    width:240px;
+}
+
+/* Logo container */
+.logo-container{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    padding:16px 0;
+}
+
+.logo-container img{
+    width:36px;
+    transition:0.3s;
+}
+
+.sidebar:hover .logo-container img{
+    width:120px;
+}
+
+/* Logo text - completely hidden when not hovered */
+.logo-text{
+    display: none;
+    font-size:22px;
+    font-weight:bold;
+    color:#0054a7;
+}
+
+.sidebar:hover .logo-text{
+    display:block;
+    margin-top:4px;
+}
+
+/* Navigation */
+.nav-item{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:12px;
+    border-radius:8px;
+    transition:0.2s;
+    white-space:nowrap;
+}
+
+.nav-item i{
+    font-size:20px;
+    min-width:24px;
+    text-align:center;
+}
+
+.menu-text{
+    opacity:0;
+    transition:0.2s;
+}
+
+.sidebar:hover .menu-text{
+    opacity:1;
+}
+
+.nav-item:hover{
+    background:#0054a7;
+    color:white;
+}
+
+.active{
+    background:#0054a7;
+    color:white;
+}
+
+.logout:hover{
+    background:#ef4444;
+    color:white;
+}
+
+/* Last login */
+.last-login{
+    display:flex;
+    justify-content:space-between;
+    font-size:14px;
+    color:#1d4ed8;
+    padding-top:16px;
+    border-top:1px solid #e5e7eb;
+    opacity:0;
+    transition:0.2s;
+}
+
+.sidebar:hover .last-login{
+    opacity:1;
+}
+
+/* ================= TABLET (1024px) ================= */
+@media (max-width:1024px){
+
+    .sidebar{
+        width:70px;
+    }
+
+    .sidebar:hover{
+        width:200px;
+    }
+
+    .logo-container img{
+        width:32px;
+    }
+
+    .sidebar:hover .logo-container img{
+        width:100px;
+    }
+
+    .logo-text{
+        font-size:18px;
+    }
+
+    .nav-item{
+        gap:12px;
+        padding:10px;
+    }
+
+    .nav-item i{
+        font-size:16px;
+    }
+
+}
+
+/* ================= MOBILE (768px) ================= */
+@media (max-width:768px){
+
+    .logo-container img{
+        width:28px;
+    }
+
+    .sidebar{
+        width:70px;
+    }
+
+    .sidebar:hover{
+        width:150px;
+    }
+
+    .sidebar:hover .logo-container img{
+        width:90px;
+    }
+
+    /* smaller icons */
+    .nav-item i{
+        font-size:14px;
+    }
+
+    .nav-item{
+        padding:8px;
+    }
+
+    /* hide text until hover */
+    .menu-text{
+        font-size: 12px;
+        display:none;
+    }
+
+    .sidebar:hover .menu-text{
+        display:inline;
+    }
+
+    /* hide logo text */
+    .logo-text{
+        display:none;
+    }
+
+    .sidebar:hover .logo-text{
+        display:block;
+    }
+
+    /* last login smaller */
+    .last-login{
+        font-size:12px;
+    }
+
+}

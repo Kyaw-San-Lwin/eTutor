@@ -1,0 +1,158 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+/* MAIN CONTENT */
+.doc-main{
+    flex:1;
+    padding:40px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    align-items:center;
+}
+
+/* SEARCH BAR */
+.search-bar{
+    width:100%;
+    max-width:1000px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:white;
+    padding:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+.search-bar select{
+    border:1px solid #ccc;
+    padding:5px;
+    border-radius:4px;
+}
+
+.search-bar input{
+    flex:1;
+    border:none;
+    outline:none;
+}
+
+.table-container{
+    width:100%;
+    max-width:1000px;
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    min-width:600px;
+    background:white;
+    border-collapse:collapse;
+}
+
+thead{
+    background:#879abf;
+}
+
+th,td{
+    border:1px solid #ccc;
+    padding:10px;
+    text-align:left;
+    white-space:nowrap;
+}
+
+th{
+    font-weight:600;
+}
+
+/* STUDENT NAME */
+.student-name{
+    color:#2563eb;
+    cursor:pointer;
+    font-weight:500;
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.student-name:hover{
+    text-decoration:underline;
+}
+
+/* AVATAR */
+.student-avatar{
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    object-fit:cover;
+}
+
+.student-profile{
+    position:fixed;
+    top:0;
+    right:-320px;
+    width:300px;
+    height:100vh;
+    background:white;
+    box-shadow:-5px 0 15px rgba(0,0,0,0.1);
+    transition:0.3s;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding-top:80px;
+}
+
+.student-profile.show{
+    right:0;
+}
+
+/* ================= TABLET (1024px) ================= */
+@media (max-width:1024px){
+
+    .doc-main{
+        padding:25px;
+        gap:15px;
+    }
+
+    th,td{
+        padding:8px;
+        font-size:14px;
+    }
+
+    .student-avatar{
+        width:28px;
+        height:28px;
+    }
+}
+
+/* ================= MOBILE (768px) ================= */
+@media (max-width:768px){
+
+    .doc-main{
+        padding:15px;
+        gap:10px;
+    }
+
+    .search-bar{
+        flex-wrap:wrap;
+        gap:6px;
+    }
+
+    .search-bar input,
+    .search-bar select{
+        font-size:13px;
+        padding:6px;
+    }
+
+    th,td{
+        font-size:12px;
+        padding:6px;
+    }
+
+    .student-avatar{
+        width:24px;
+        height:24px;
+    }
+}

@@ -1,0 +1,242 @@
+/* Chat Area Container */
+.flex-1.flex.flex-col {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Chat Header */
+.flex.items-center.justify-between.p-6.bg-white.border-b {
+    flex-shrink: 0;
+}
+
+/* Chat Body */
+#chatBody {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem; /* 32px */
+    background-color: #f9fafb;
+}
+
+/* Chat Input */
+.bg-white.p-4.flex.items-center.gap-4.border-t {
+    flex-shrink: 0;
+}
+
+/* Message Bubbles */
+#chatBody .bg-blue-800 {
+    word-wrap: break-word;
+}
+
+/* Meeting Page */
+.meeting-main{
+    padding:40px;
+}
+
+/* Meeting Card */
+.meeting-card{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    margin-bottom:25px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.05);
+}
+
+/* Header Layout */
+.meeting-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+}
+
+/* Profile Info */
+.profile-info{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+/* Profile Image */
+.profile-pic{
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    object-fit:cover;
+}
+
+/* Name and Time */
+.name-time{
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+
+.tutor-name{
+    font-weight:600;
+}
+
+.message-time{
+    color:gray;
+    font-size:14px;
+}
+
+.dot{
+    color:gray;
+}
+
+/* Tabs */
+.meeting-tabs{
+    display:flex;
+    gap:10px;
+}
+
+.tab-btn{
+    padding:3px 5px;
+    border-radius:6px;
+    border:1px solid #d1d5db;
+    background:#f9fafb;
+    font-size:14px;
+    transition:0.2s;
+}
+
+.tab-btn:hover{
+    background:#e5e7eb;
+}
+
+.tab-btn.active{
+    background:#1e3a8a;
+    color:white;
+    border:none;
+}
+
+/* Message Section */
+.message-section{
+    margin-top:10px;
+}
+
+.message-text{
+    line-height:1.6;
+}
+
+/* Scrollbar (optional styling) */
+#chatBody::-webkit-scrollbar {
+    width: 6px;
+}
+
+#chatBody::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 3px;
+}
+
+#chatBody::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ===================== TABLET (1024px) ===================== */
+@media (max-width:1024px) {
+
+    /* Chat Area */
+    .flex-1.flex.flex-col {
+        height: 90vh;
+    }
+
+    #chatBody {
+        padding: 20px;
+    }
+
+    .bg-white.p-4.flex.items-center.gap-4.border-t {
+        padding: 10px;
+    }
+
+    /* Message bubbles */
+    #chatBody .bg-blue-800,
+    #chatBody .bg-gray-200 {
+        max-width: 70%;
+    }
+
+    /* Meeting Page */
+    .meeting-main {
+        padding: 25px;
+    }
+
+    .meeting-card {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .profile-pic {
+        width: 40px;
+        height: 40px;
+    }
+
+    .name-time {
+        gap: 4px;
+    }
+
+    .message-time {
+        font-size: 13px;
+    }
+
+    .tab-btn {
+        padding: 3px 4px;
+        font-size: 13px;
+    }
+}
+
+/* ===================== MOBILE (768px) ===================== */
+@media (max-width:768px) {
+
+    /* Chat Area full screen behavior handled by JS */
+    .flex-1.flex.flex-col {
+        height: 100vh;
+    }
+
+    #chatBody {
+        padding: 15px;
+    }
+
+    .bg-white.p-4.flex.items-center.gap-4.border-t {
+        padding: 8px;
+        gap: 6px;
+    }
+
+    /* Message bubbles */
+    #chatBody .bg-blue-800,
+    #chatBody .bg-gray-200 {
+        max-width: 85%;
+    }
+
+    /* Meeting Page adjustments */
+    .meeting-main {
+        padding: 15px 10px;
+        gap: 15px;
+    }
+
+    .meeting-card {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .profile-pic {
+        width: 35px;
+        height: 35px;
+    }
+
+    .name-time {
+        gap: 3px;
+    }
+
+    .tutor-name {
+        font-size: 14px;
+    }
+
+    .message-time {
+        font-size: 12px;
+    }
+
+    .tab-btn {
+        padding: 2px 4px;
+        font-size: 12px;
+    }
+}
