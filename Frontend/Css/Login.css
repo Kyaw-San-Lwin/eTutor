@@ -12,7 +12,7 @@ body.login-page {
   max-width: calc(100vw - 48px);
   background: #ffffff;
   border-radius: 18px;
-  padding: 56px 58px;
+  padding: 48px 50px;
   box-shadow: 0 12px 25px rgba(23, 31, 56, 0.18);
 }
 
