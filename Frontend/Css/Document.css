@@ -116,3 +116,83 @@ tbody tr:hover{
 .file-name:hover{
     text-decoration:underline;
 }
+
+/* ===================== TABLET (1024px) ===================== */
+@media (max-width:1024px) {
+
+    .doc-main {
+        padding: 30px;
+    }
+
+    .upload-box, .search-bar, table {
+        max-width: 90%;
+    }
+
+    .upload-box h2 {
+        font-size: 18px;
+    }
+
+    .upload-box input {
+        padding: 6px;
+    }
+
+    .upload-box button {
+        width: 100px;
+        padding: 5px 15px;
+    }
+
+    .search-bar input {
+        font-size: 14px;
+    }
+
+    th, td {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .download-btn {
+        padding: 3px 8px;
+        font-size: 13px;
+    }
+}
+
+/* ===================== MOBILE (768px) ===================== */
+@media (max-width:768px) {
+
+    .doc-main {
+        padding: 20px 10px;
+        gap: 15px;
+    }
+
+    .upload-box, .search-bar, table {
+        max-width: 100%;
+        width: 100%;
+        padding: 15px;
+    }
+
+    .upload-box h2 {
+        font-size: 16px;
+    }
+
+    .upload-box input {
+        padding: 5px;
+    }
+
+    .upload-box button {
+        width: 100%;
+        padding: 6px 10px;
+    }
+
+    table, th, td {
+        font-size: 13px;
+    }
+
+    th, td {
+        padding: 6px;
+    }
+
+    .download-btn {
+        padding: 3px 6px;
+        font-size: 12px;
+    }
+}

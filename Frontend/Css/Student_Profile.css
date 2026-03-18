@@ -1,13 +1,12 @@
 .profile-main{
     flex:1;
     display:flex;
-    align-items:center;
-    justify-content:center;
+    align-items:flex-start;
+    justify-content:flex-start;
     padding:40px;
 }
 
 /* Profile Card */
-
 .profile-card{
     background:white;
     border-radius:12px;
@@ -19,7 +18,6 @@
 }
 
 /* Title */
-
 .profile-title{
     font-size:36px;
     font-family:serif;
@@ -27,7 +25,6 @@
 }
 
 /* Profile Image */
-
 .profile-image{
     display:flex;
     justify-content:center;
@@ -35,14 +32,13 @@
 }
 
 .profile-image img{
-    width:260px;
-    height:260px;
+    width:220px;
+    height:220px;
     border-radius:50%;
     object-fit:cover;
 }
 
 /* Name */
-
 .profile-name{
     font-size:18px;
     font-weight:600;
@@ -50,7 +46,6 @@
 }
 
 /* Info Grid */
-
 .profile-info{
     display:grid;
     grid-template-columns:repeat(3,1fr);
@@ -59,16 +54,78 @@
 }
 
 /* Labels */
-
 .info-label{
     font-size:14px;
     color:#6b7280;
 }
 
 /* Values */
-
 .info-value{
     margin-top:8px;
     font-size:18px;
     color:#111827;
+}
+
+/* ================= TABLET (1024px) ================= */
+@media (max-width: 1024px){
+
+    .profile-card{
+        padding:32px;
+    }
+
+    .profile-title{
+        font-size:30px;
+    }
+
+    .profile-image img{
+        width:180px;
+        height:180px;
+    }
+
+    .profile-info{
+        grid-template-columns:repeat(2,1fr);
+        gap:30px;
+    }
+
+    .info-value{
+        font-size: 16px;
+    }
+
+}
+
+/* ================= MOBILE (768px) ================= */
+@media (max-width: 768px){
+
+    .profile-main{
+        padding:20px;
+        align-items:flex-start;
+    }
+
+    .profile-card{
+        padding:20px;
+    }
+
+    .profile-title{
+        font-size:24px;
+    }
+
+    .profile-image img{
+        width:140px;
+        height:140px;
+    }
+
+    .profile-name{
+        font-size:16px;
+        margin-bottom:30px;
+    }
+
+    .profile-info{
+        grid-template-columns:1fr;
+        gap:20px;
+    }
+
+    .info-value{
+        font-size: 14px;
+    }
+
 }

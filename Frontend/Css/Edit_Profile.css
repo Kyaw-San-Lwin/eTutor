@@ -9,7 +9,6 @@
 }
 
 /* Cards */
-
 .edit-card{
     background:white;
     width:100%;
@@ -20,7 +19,6 @@
 }
 
 /* Titles */
-
 .edit-title{
     font-size:36px;
     font-family:serif;
@@ -30,53 +28,75 @@
 
 /* Upload section */
 .photo-upload {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 24px;
-    color: #374151;
-    cursor: pointer;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin-bottom:24px;
 }
 
-/* Camera icon container */
-.photo-upload .icon-container {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 80px;
-    height: 80px;
+/* Image container */
+.icon-container {
+    position:relative;
+    width:80px;
+    height:80px;
+}
+
+/* Center camera icon */
+.profile-circle {
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
+    overflow: hidden;
     background: #f3f4f6;
-    color: #6b7280;
-    font-size: 36px;
-}
-
-/* Plus icon overlay */
-.photo-upload .icon-container .plus-icon {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background: #0054a7;
-    color: white;
-    border-radius: 50%;
-    padding: 4px;
-    font-size: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid white;
 }
 
-/* Upload text */
-.photo-upload p {
-    font-size: 14px;
-    margin: 0;
-    font-weight: 500;
+/* Camera icon style */
+#defaultIcon {
+    font-size: 30px;
+    color: #9ca3af;
+}
+
+/* Image */
+.profile-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Profile image */
+.icon-container img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+/* Plus button */
+.plus-icon {
+    position:absolute;
+    bottom: -4px;
+    right:-4px;
+    background:#0054a7;
+    color:white;
+    border-radius:50%;
+    width:24px;
+    height:24px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    border:2px solid white;
+    cursor:pointer;
+}
+
+/* Hide file input */
+#uploadImage{
+    display:none;
 }
 
 /* Inputs */
-
 .input-group{
     margin-bottom:16px;
 }
@@ -100,7 +120,6 @@
 }
 
 /* Button */
-
 .save-btn{
     width:100%;
     background:#0054a7;

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message with Students</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="Css/Sidebar.css">
+    <link rel="stylesheet" href="Css/Messaging.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 font-sans">
+
+    <div class="flex min-h-screen">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar bg-white border-r">
+
+            <!-- Logo -->
+            <div class="logo-container">
+                <img src="Images/KMD Logo.jpg">
+                <h1 class="logo-text">College</h1>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-1 text-black">
+
+                <a href="Tutor_Dashboard.html" class="nav-item">
+                    <i class="bi bi-tv"></i>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+
+                <a href="Tutor_Profile.html" class="nav-item">
+                    <i class="bi bi-person-circle"></i>
+                    <span class="menu-text">Profile</span>
+                </a>
+
+                <a href="Student_List.html" class="nav-item">
+                    <i class="bi bi-people-fill"></i>
+                    <span class="menu-text">Students</span>
+                </a>
+
+                <a href="Tutor_Meeting.html" class="nav-item">
+                    <i class="bi bi-camera-video"></i>
+                    <span class="menu-text">Meeting</span>
+                </a>
+
+                <a href="Tutor_Messaging.html" class="nav-item active">
+                    <i class="bi bi-chat-left-dots"></i>
+                    <span class="menu-text">Message</span>
+                </a>
+
+                <a href="Tutor_Blog.html" class="nav-item">
+                    <i class="bi bi-journal-text"></i>
+                    <span class="menu-text">Blog Post</span>
+                </a>
+
+                <a href="Tutor_Document.html" class="nav-item">
+                    <i class="bi bi-file-earmark-arrow-down"></i>
+                    <span class="menu-text">Document</span>
+                </a>
+
+                <a href="Login.html" class="nav-item logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="menu-text">Logout</span>
+                </a>
+
+                <div class="last-login">
+                    <p>Last Login</p>
+                    <p>03/07/26</p>
+                </div>
+
+            </nav>
+        </aside>
+
+        <!-- CHAT LIST -->
+        <div class="chat-list w-80 bg-white border-r">
+            <div class="p-4 border-b">
+                <h2 class="text-xl font-semibold">Messaging</h2>
+            </div>
+            <div class="p-4">
+                <input type="text" placeholder="Search..." class="w-full p-2 bg-gray-100 rounded-lg">
+            </div>
+
+            <div class="p-4 flex items-center gap-3 bg-gray-100 chat-profile" data-name="Yun Aeindary Oo">
+                <img src="Images/profile 2.jpg" class="w-12 h-12 rounded-full">
+                <div>
+                    <p class="font-medium">Yun Aeindary Oo</p>
+                    <p class="text-sm text-gray-500">Yes, I am! See you soon.</p>
+                </div>
+            </div>
+
+            <div class="p-4 flex items-center gap-3 bg-gray-100 chat-profile" data-name="Kyaw San Lwin">
+                <img src="Images/profile.jpg" class="w-12 h-12 rounded-full">
+                <div>
+                    <p class="font-medium">Kyaw San Lwin</p>
+                    <p class="text-sm text-gray-500">Sure, let's do it now.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHAT AREA -->
+        <div class="chat-container flex-1 flex flex-col">
+            <div class="flex items-center justify-between p-6 bg-white border-b chat-header">
+                <div class="flex items-center gap-3">
+                    <span class="back-btn hidden text-blue-700 cursor-pointer">&#8592;</span>
+                    <img src="Images/profile 2.jpg" class="w-12 h-12 rounded-full chat-img">
+                    <div>
+                        <p class="font-semibold chat-name">Yun Aeindary Oo</p>
+                        <p class="text-green-500 text-sm">Online</p>
+                    </div>
+                </div>
+                <div class="flex gap-5 text-xl text-gray-500">
+                    <i class="bi bi-camera-video"></i>
+                    <i class="bi bi-telephone"></i>
+                    <i class="bi bi-grid"></i>
+                </div>
+            </div>
+
+            <div id="chatBody" class="flex-1 p-8 overflow-y-auto space-y-6 bg-gray-50">
+                <!-- Messages dynamically inserted here -->
+            </div>
+
+            <div class="bg-white p-4 flex items-center gap-4 border-t chat-input">
+                <input id="messageInput" type="text" placeholder="Type your message" class="flex-1 bg-gray-100 p-3 rounded-lg outline-none" />
+                <button id="sendBtn" class="bg-blue-700 text-white px-5 py-3 rounded-lg"><i class="bi bi-send"></i></button>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+
+    const chatList = document.querySelector('.chat-list');
+    const chatContainer = document.querySelector('.chat-container');
+    const chatProfiles = document.querySelectorAll('.chat-profile');
+    const backBtn = document.querySelector('.back-btn');
+    const chatName = document.querySelector('.chat-name');
+    const chatImg = document.querySelector('.chat-img');
+    const chatBody = document.getElementById('chatBody');
+
+    function isMobile() { return window.innerWidth < 768; }
+    function isTablet() { return window.innerWidth >= 768 && window.innerWidth <= 1024; }
+
+    // Initial mobile setup
+    if(isMobile()){
+        chatContainer.style.display = 'none';
+    }
+
+    // Search chat profiles
+    const searchInput = document.querySelector('.chat-list input[placeholder="Search..."]');
+
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.toLowerCase();
+
+        chatProfiles.forEach(profile => {
+            const name = profile.dataset.name.toLowerCase();
+            if(name.includes(query)){
+                profile.style.display = 'flex';
+            } else {
+                profile.style.display = 'none';
+            }
+        });
+    });
+
+    // Sample conversation data
+    const conversations = {
+        "Yun Aeindary Oo": [
+            { from: "tutor", text: "Hi! Are you ready for our meeting at 1:20 PM?" },
+            { from: "student", text: "Yes, I am! See you soon." }
+        ],
+        "Kyaw San Lwin": [
+            { from: "tutor", text: "Can we discuss homework?" },
+            { from: "student", text: "Sure, let's do it now." }
+        ]
+    };
+
+    // Function to render messages
+    function renderMessages(name){
+        chatBody.innerHTML = '';
+        const conv = conversations[name] || [];
+        conv.forEach(msg => {
+            const div = document.createElement('div');
+            div.classList.add('max-w-sm','px-6','py-3','rounded-xl');
+            if(msg.from === 'student') div.classList.add('bg-gray-200','text-gray-800','justify-start','flex');
+            else div.classList.add('bg-blue-800','text-white','justify-end','flex');
+
+            const inner = document.createElement('div');
+            inner.textContent = msg.text;
+            div.appendChild(inner);
+
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('flex');
+            wrapper.classList.add(msg.from === 'student' ? 'justify-start' : 'justify-end');
+            wrapper.appendChild(div);
+            chatBody.appendChild(wrapper);
+        });
+
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    // Initial render for first profile
+    renderMessages('Yun Aeindary Oo');
+
+    // Profile click event
+    chatProfiles.forEach(profile => {
+        profile.addEventListener('click', () => {
+            const name = profile.dataset.name;
+            chatName.textContent = name;
+
+            // Update profile image
+            const img = profile.querySelector('img');
+            chatImg.src = img.src;
+
+            // Render messages
+            renderMessages(name);
+
+            if(isMobile()){
+                chatList.style.display = 'none';
+                chatContainer.style.display = 'flex';
+                backBtn.classList.remove('hidden');
+            }
+        });
+    });
+
+    // Back button for mobile
+    backBtn.addEventListener('click', () => {
+        chatList.style.display = 'block';
+        chatContainer.style.display = 'none';
+        backBtn.classList.add('hidden');
+    });
+
+    // Sending messages
+    const sendBtn = document.getElementById('sendBtn');
+    const messageInput = document.getElementById('messageInput');
+
+    sendBtn.addEventListener('click', () => {
+        const text = messageInput.value.trim();
+        if(!text) return;
+
+        const div = document.createElement('div');
+        div.classList.add('flex','justify-end');
+
+        const msg = document.createElement('div');
+        msg.classList.add('bg-blue-800','text-white','px-6','py-3','rounded-xl','max-w-sm');
+        msg.textContent = text;
+
+        div.appendChild(msg);
+        chatBody.appendChild(div);
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        // Add to conversation array
+        const currentName = chatName.textContent;
+        conversations[currentName].push({from:'tutor', text});
+
+        messageInput.value = '';
+    });
+
+    // Responsive behavior
+    window.addEventListener('resize', () => {
+        if(isMobile()){
+            chatContainer.style.display = 'none';
+            backBtn.classList.add('hidden');
+        } else {
+            chatContainer.style.display = 'flex';
+            chatList.style.display = 'block';
+            backBtn.classList.add('hidden');
+        }
+    });
+
+</script>
+
+</body>
+</html>

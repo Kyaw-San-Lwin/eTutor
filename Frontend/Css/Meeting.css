@@ -49,3 +49,124 @@
     font-size: 12px;
     color: #9ca3af;
 }
+
+/* For Tutor Meeting Page */
+.meeting-upload{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:25px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
+.meeting-upload textarea{
+    width:100%;
+    height:80px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:10px;
+    resize:none;
+    outline:none;
+    margin-bottom:10px;
+}
+
+.post-btn{
+    background:#0054a7;
+    color:white;
+    padding:8px 16px;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.post-btn:hover{
+    background:#003f80;
+}
+
+/* ================= TABLET (1024px) ================= */
+@media (max-width: 1024px) {
+    .meeting-card {
+        padding: 24px;
+    }
+
+    .profile-pic {
+        width: 70px;
+        height: 70px;
+    }
+
+    .tutor-name {
+        font-size: 15px;
+    }
+
+    .tutor-email {
+        font-size: 13px;
+    }
+
+    .message-text {
+        font-size: 15px;
+    }
+
+    .message-time {
+        font-size: 11px;
+    }
+
+    .meeting-upload {
+        padding: 16px;
+    }
+
+    .meeting-upload textarea {
+        height: 70px;
+        font-size: 13px;
+    }
+
+    .post-btn {
+        padding: 7px 16px;
+    }
+}
+
+/* ================= MOBILE (768px) ================= */
+@media (max-width: 768px) {
+    .meeting-main {
+        padding: 15px;
+        gap: 16px;
+    }
+
+    .meeting-card {
+        padding: 20px;
+        border-left-width: 3px;
+    }
+
+    .profile-pic {
+        width: 60px;
+        height: 60px;
+    }
+
+    .tutor-name {
+        font-size: 14px;
+    }
+
+    .tutor-email {
+        font-size: 12px;
+    }
+
+    .message-text {
+        font-size: 14px;
+    }
+
+    .message-time {
+        font-size: 10px;
+    }
+
+    .meeting-upload {
+        padding: 15px;
+    }
+
+    .meeting-upload textarea {
+        height: 60px;
+        font-size: 12px;
+    }
+
+    .post-btn {
+        padding: 6px 14px;
+        font-size: 13px;
+    }
+}

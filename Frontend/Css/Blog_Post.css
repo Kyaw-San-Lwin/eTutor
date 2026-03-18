@@ -5,7 +5,6 @@
     box-sizing:border-box;
 }
 
-
 /* MAIN */
 .blog-main{
     flex:1;
@@ -162,4 +161,99 @@ textarea{
     color:#1e3a8a;
     padding:6px 18px;
     border-radius:6px;
+}
+
+/* ================= TABLET (1024px) ================= */
+@media (max-width: 1024px) {
+
+    .blog-main {
+        padding: 40px;
+    }
+
+    #posts {
+        width: 700px;
+    }
+
+    .blog-box {
+        width: 700px;
+        padding: 25px;
+    }
+
+    .post-card {
+        width: 700px;
+        padding: 25px;
+    }
+
+    .post-header img {
+        width: 60px;
+        height: 60px;
+    }
+
+    textarea {
+        height: 100px;
+    }
+
+    .post-btn button {
+        padding: 6px 25px;
+    }
+
+}
+
+/* ================= MOBILE (768px) ================= */
+@media (max-width: 768px) {
+
+    .blog-main {
+        padding: 20px;
+        gap: 20px;
+    }
+
+    #posts {
+        width: 100%;
+    }
+
+    .blog-box {
+        width: 100%;
+        padding: 20px;
+    }
+
+    .post-card {
+        width: 100%;
+        padding: 20px;
+    }
+
+    .post-header {
+        gap: 10px;
+    }
+
+    .post-header img {
+        width: 50px;
+        height: 50px;
+    }
+
+    textarea {
+        height: 80px;
+        padding: 10px;
+    }
+
+    .post-btn {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .post-btn button {
+        width: 100%;
+        padding: 8px 0;
+    }
+
+    .comment-box {
+        flex-direction: column;
+    }
+
+    .comment-box input {
+        width: 100%;
+    }
+
+    .comment-box button {
+        width: 100%;
+    }
 }

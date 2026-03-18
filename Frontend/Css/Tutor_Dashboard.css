@@ -7,6 +7,7 @@
 
 
 /* DASHBOARD GRID */
+
 .dashboard-grid{
     display:grid;
     grid-template-columns:2fr 1fr;
@@ -151,6 +152,29 @@
     /* smaller meeting image */
     .meeting-card img{
         height:140px;
+    }
+
+    /* smaller sidebar for mobile */
+    .sidebar{
+        width:70px;
+    }
+
+    /* hide text until hover */
+    .menu-text{
+        display:none;
+    }
+
+    .sidebar:hover .menu-text{
+        display:inline;
+    }
+
+    /* hide logo text */
+    .logo-text{
+        display:none;
+    }
+
+    .sidebar:hover .logo-text{
+        display:block;
     }
 
 }

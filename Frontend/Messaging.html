@@ -1,22 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messages</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="Css/Sidebar.css">
-    <link rel="stylesheet" href="Css/Messaging.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="Css/bootstrap-custom.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Messaging</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="Css/Sidebar.css">
+<link rel="stylesheet" href="Css/Messaging.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 
-<body class="u-bg-gray-100 u-font-sans">
+<body class="bg-gray-100 font-sans">
 
-    <div class="d-flex min-vh-100">
+    <div class="flex min-h-screen">
 
         <!-- SIDEBAR -->
-        <aside class="sidebar bg-white border-end">
+        <aside class="sidebar bg-white border-r">
 
             <!-- Logo -->
             <div class="logo-container">
@@ -25,7 +24,7 @@
             </div>
 
             <!-- Navigation -->
-            <nav class="flex-grow-1 p-4 u-space-y-1 text-dark">
+            <nav class="flex-1 p-4 space-y-1 text-black">
 
                 <a href="Student_Dashboard.html" class="nav-item">
                     <i class="bi bi-tv"></i>
@@ -42,7 +41,7 @@
                     <span class="menu-text">Edit Profile</span>
                 </a>
 
-                <a href="Tutor_Profile.html" class="nav-item">
+                <a href="Tutor2_Profile.html" class="nav-item">
                     <i class="bi bi-person-fill"></i>
                     <span class="menu-text">Tutor</span>
                 </a>
@@ -77,6 +76,7 @@
                     <span class="menu-text">Logout</span>
                 </a>
 
+
                 <div class="last-login">
                     <p>Last Login</p>
                     <p>03/07/26</p>
@@ -85,95 +85,165 @@
             </nav>
         </aside>
 
-        <!-- MAIN CONTENT -->
-        <div class="d-flex flex-grow-1">
-
-        <!-- CHAT LIST -->
-        <div class="u-w-20rem bg-white border-end">
-            <div class="p-4 border-bottom">
-                <h2 class="u-text-xl fw-semibold">Messaging</h2>
-            </div>
-            <div class="p-4">
-                <input type="text" placeholder="Search..." class="w-100 p-2 u-bg-gray-100 rounded">
-            </div>
-            <div class="p-4 d-flex align-items-center gap-3 u-bg-gray-100">
-                <img src="Images/profile.jpg" class="u-w-3rem u-h-3rem rounded-circle">
-                <div>
-                    <p class="fw-medium">Yun Aeindary Oo</p>
-                    <p class="u-text-sm u-text-gray-500">Thank you very much...</p>
-                </div>
-            </div>
+    <!-- CHAT LIST -->
+    <div class="chat-list w-80 bg-white border-r">
+        <div class="p-4 border-b">
+            <h2 class="text-xl font-semibold">Messaging</h2>
+        </div>
+        <div class="p-4">
+            <input type="text" placeholder="Search..." class="w-full p-2 bg-gray-100 rounded-lg">
         </div>
 
-        <!-- CHAT AREA -->
-        <div class="flex-grow-1 d-flex flex-column">
-
-            <!-- CHAT HEADER -->
-            <div class="d-flex align-items-center justify-content-between p-6 bg-white border-bottom">
-                <div class="d-flex align-items-center gap-3">
-                    <img src="Images/profile.jpg" class="u-w-3rem u-h-3rem rounded-circle">
-                    <div>
-                        <p class="fw-semibold">Yun Aeindary Oo</p>
-                        <p class="u-text-green-500 u-text-sm">Online</p>
-                    </div>
-                </div>
-                <div class="d-flex gap-5 u-text-xl u-text-gray-500">
-                    <i class="bi bi-camera-video"></i>
-                    <i class="bi bi-telephone"></i>
-                    <i class="bi bi-grid"></i>
-                </div>
+        <div class="p-4 flex items-center gap-3 bg-gray-100 chat-profile" data-name="Moe Thant Oo">
+            <img src="Images/profile 2.jpg" class="w-12 h-12 rounded-full">
+            <div>
+                <p class="font-medium">Moe Thant Oo</p>
+                <p class="text-sm text-gray-500">Ready for today's meeting?</p>
             </div>
-
-            <!-- CHAT BODY -->
-            <div id="chatBody" class="flex-grow-1 p-8 u-overflow-y-auto u-space-y-6">
-                <!--Messages will appear here!-->
-            </div>
-
-            <!-- CHAT INPUT -->
-            <div class="bg-white p-4 d-flex align-items-center gap-4 border-top">
-                <input id="messageInput" type="text" placeholder="Type your message" class="flex-grow-1 u-bg-gray-100 p-3 rounded u-outline-none" />
-                <button id="sendBtn" class="u-bg-blue-700 text-white px-5 py-3 rounded">
-                <i class="bi bi-send"></i>
-                </button>
-            </div>
-
         </div>
 
     </div>
 
-<script>
+    <!-- CHAT AREA -->
+    <div class="chat-container flex-1 flex flex-col">
+        <div class="flex items-center justify-between p-6 bg-white border-b chat-header">
+            <div class="flex items-center gap-3">
+                <span class="back-btn hidden text-blue-700 cursor-pointer">&#8592;</span>
+                <img src="Images/profile 2.jpg" class="w-12 h-12 rounded-full">
+                <div>
+                    <p class="font-semibold chat-name">Moe Thant Oo</p>
+                    <p class="text-green-500 text-sm">Online</p>
+                </div>
+            </div>
+            <div class="flex gap-5 text-xl text-gray-500">
+                <i class="bi bi-camera-video"></i>
+                <i class="bi bi-telephone"></i>
+                <i class="bi bi-grid"></i>
+            </div>
+        </div>
 
+        <div id="chatBody" class="flex-1 p-8 overflow-y-auto space-y-6 bg-gray-50">
+            <div class="flex justify-start">
+                <div class="bg-gray-200 text-gray-800 px-6 py-3 rounded-xl max-w-sm">
+                    Hi! Are you ready for our meeting at 1:20 PM?
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <div class="bg-blue-800 text-white px-6 py-3 rounded-xl max-w-sm">
+                    Yes, I am! See you soon.
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 flex items-center gap-4 border-t chat-input">
+            <input id="messageInput" type="text" placeholder="Type your message" class="flex-1 bg-gray-100 p-3 rounded-lg outline-none" />
+            <button id="sendBtn" class="bg-blue-700 text-white px-5 py-3 rounded-lg">
+                <i class="bi bi-send"></i>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    
+    const chatList = document.querySelector('.chat-list');
+    const chatContainer = document.querySelector('.chat-container');
+    const chatProfiles = document.querySelectorAll('.chat-profile');
+    const backBtn = document.querySelector('.back-btn');
+    const chatName = document.querySelector('.chat-name');
+
+    // Check window width
+    function isMobile() { return window.innerWidth < 768; }
+    function isTablet() { return window.innerWidth >= 768 && window.innerWidth <= 1024; }
+
+    // Mobile: hide chat container initially
+    if(isMobile()){
+        chatContainer.style.display = 'none';
+    }
+
+    // Search chat profiles
+    const searchInput = document.querySelector('.chat-list input[placeholder="Search..."]');
+
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.toLowerCase();
+
+        chatProfiles.forEach(profile => {
+            const name = profile.dataset.name.toLowerCase();
+            if(name.includes(query)){
+                profile.style.display = 'flex';
+            } else {
+                profile.style.display = 'none';
+            }
+        });
+    });
+
+    // Profile click
+    chatProfiles.forEach(profile => {
+        profile.addEventListener('click', () => {
+            const name = profile.dataset.name;
+
+            // Update chat name
+            chatName.textContent = name;
+
+            // For mobile: show full screen
+            if(isMobile()){
+                chatList.style.display = 'none';
+                chatContainer.style.display = 'flex';
+                backBtn.classList.remove('hidden');
+            }
+            // For tablet & desktop: just update chat name/messages
+            else {
+                chatContainer.style.display = 'flex';
+                backBtn.classList.add('hidden');
+            }
+        });
+    });
+
+    // Back button (only for mobile)
+    backBtn.addEventListener('click', () => {
+        chatList.style.display = 'block';
+        chatContainer.style.display = 'none';
+        backBtn.classList.add('hidden');
+    });
+
+    // Send message
     const sendBtn = document.getElementById('sendBtn');
     const messageInput = document.getElementById('messageInput');
     const chatBody = document.getElementById('chatBody');
 
     sendBtn.addEventListener('click', () => {
-    const messageText = messageInput.value.trim();
-    if (messageText === '') return;
+        const text = messageInput.value.trim();
+        if(!text) return;
 
-    // Create message container
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('d-flex', 'justify-content-end');
+        const div = document.createElement('div');
+        div.classList.add('flex', 'justify-end');
 
-    const messageContent = document.createElement('div');
-    messageContent.classList.add('u-bg-blue-800', 'text-white', 'px-6', 'py-3', 'u-rounded-xl', 'u-max-w-sm');
-    messageContent.textContent = messageText;
+        const msg = document.createElement('div');
+        msg.classList.add('bg-blue-800','text-white','px-6','py-3','rounded-xl','max-w-sm');
+        msg.textContent = text;
 
-    messageDiv.appendChild(messageContent);
-    chatBody.appendChild(messageDiv);
-
-    // Scroll to bottom
-    chatBody.scrollTop = chatBody.scrollHeight;
-
-    // Clear input
-    messageInput.value = '';
+        div.appendChild(msg);
+        chatBody.appendChild(div);
+        chatBody.scrollTop = chatBody.scrollHeight;
+        messageInput.value = '';
     });
 
-    // Optional: Send on Enter key
-    messageInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        sendBtn.click();
-    }
+    // Enter key
+    messageInput.addEventListener('keypress', e => {
+        if(e.key === 'Enter') sendBtn.click();
+    });
+
+    // Responsive: hide chat container on resize for mobile
+    window.addEventListener('resize', () => {
+        if(isMobile()){
+            chatContainer.style.display = 'none';
+            backBtn.classList.add('hidden');
+        } else {
+            chatContainer.style.display = 'flex';
+            chatList.style.display = 'block';
+            backBtn.classList.add('hidden');
+        }
     });
 
 </script>
