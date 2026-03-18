@@ -16,7 +16,7 @@
     <!-- Title -->
     <div class="text-center mb-6">
       <h1 class="text-3xl font-bold text-indigo-700 flex items-center justify-center gap-2">
-        <img src="Images/KMD Logo.jpg" class="w-30 h-20 object-contain"> College
+        <img src="../../Images/KMD Logo.jpg" class="w-30 h-20 object-contain"> College
       </h1>
 
       <p class="text-gray-500 text-sm">Login to your account</p>
@@ -88,7 +88,7 @@
       truePassword = "kmd123";
       if (usernameEmail == trueUsernameEmail && password == truePassword) {
         alert("Login successful!");
-        window.location.href = "Student_Dashboard.html";
+        window.location.href = "../Student/Student_Dashboard.html";
       }
       else {
         loginError.textContent = "No registered user found!";
