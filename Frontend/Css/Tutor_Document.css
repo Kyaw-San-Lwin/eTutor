@@ -94,8 +94,7 @@ th{
     font-weight:600;
 }
 
-td:first-child,
-th:first-child{
+td:first-child, th:first-child{
     white-space: nowrap;
     min-width: 180px;   /* ✅ gives enough space for names */
 }
