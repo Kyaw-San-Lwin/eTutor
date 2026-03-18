@@ -9,6 +9,11 @@
     <link rel="stylesheet" href="../../Css/Sidebar.css">
     <link rel="stylesheet" href="../../Css/Tutor_Dashboard.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="../../assets/js/core/config.js"></script>
+    <script src="../../assets/js/core/storage.js"></script>
+    <script src="../../assets/js/core/apiClient.js"></script>
+    <script src="../../assets/js/core/auth.js"></script>
+    <script src="../../assets/js/features/tutor-dashboard-page.js"></script>
 </head>
 
 <body class="bg-gray-100 font-sans">
@@ -74,7 +79,7 @@
 
                 <div class="last-login">
                     <p>Last Login</p>
-                    <p>03/07/26</p>
+                    <p id="lastLoginValue">Loading...</p>
                 </div>
 
             </nav>
@@ -91,8 +96,8 @@
                     <!-- Meeting History -->
                     <div class="bg-white p-8 rounded-xl">
                         <h2 class="text-xl font-semibold mb-4">Meeting History</h2>
-                        <p class="text-6xl font-bold">15</p>
-                        <p class="text-gray-500 mt-2">You attended 15 out of 45 meetings</p>
+                        <p id="meetingCount" class="text-6xl font-bold">0</p>
+                        <p id="meetingSummary" class="text-gray-500 mt-2">Loading scheduled meetings...</p>
                         <a href="./Tutor_Meeting.html" class="text-blue-600 mt-4 inline-block">All meeting -></a>
                     </div>
 
@@ -104,69 +109,7 @@
                             <p class="text-gray-500">Sort by Newest</p>
                         </div>
 
-                        <div class="space-y-2">
-
-                            <div class="comment-item">
-
-                                <div class="flex items-center gap-3">
-                                    <img src="../../Images/profile.jpg" class="w-10 h-10 rounded-full">
-                                    <p>Hnin Yati</p>
-                                </div>
-
-                                <div class="flex items-center gap-3 text-gray-500">
-                                    <i class="bi bi-chat"></i>
-                                    <div class="w-px h-5 bg-gray-300"></div>
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </div>
-
-                            </div>
-
-                            <div class="comment-item">
-
-                                <div class="flex items-center gap-3">
-                                    <img src="../../Images/profile 2.jpg" class="w-10 h-10 rounded-full">
-                                    <p>Kyaw San Lwin</p>
-                                </div>
-
-                                <div class="flex items-center gap-3 text-gray-500">
-                                    <i class="bi bi-chat"></i>
-                                    <div class="w-px h-5 bg-gray-300"></div>
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </div>
-
-                            </div>
-
-                            <div class="comment-item">
-
-                                <div class="flex items-center gap-3">
-                                    <img src="../../Images/profile.jpg" class="w-10 h-10 rounded-full">
-                                    <p>Sai Thiha Aung</p>
-                                </div>
-
-                                <div class="flex items-center gap-3 text-gray-500">
-                                    <i class="bi bi-chat"></i>
-                                    <div class="w-px h-5 bg-gray-300"></div>
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </div>
-
-                            </div>
-
-                            <div class="comment-item">
-
-                                <div class="flex items-center gap-3">
-                                    <img src="../../Images/profile 2.jpg" class="w-10 h-10 rounded-full">
-                                    <p>Hein Khant Thura</p>
-                                </div>
-
-                                <div class="flex items-center gap-3 text-gray-500">
-                                    <i class="bi bi-chat"></i>
-                                    <div class="w-px h-5 bg-gray-300"></div>
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </div>
-
-                            </div>
-
-                        </div>
+                        <div id="recentComments" class="space-y-2"></div>
 
                         <a href="./Tutor_Blog.html" class="text-blue-600 mt-4 inline-block">All comments -></a>
 
@@ -177,7 +120,7 @@
 
                         <div class="bg-white p-6 rounded-xl chat-card">
                             <h3 class="text-lg font-semibold">Chats</h3>
-                            <p class="text-gray-500 text-sm mb-6">1 unread messages</p>
+                            <p id="unreadMessageCount" class="text-gray-500 text-sm mb-6">Loading unread messages...</p>
                             <img src="../../Images/profile 2.jpg" class="w-12 h-12 rounded-full">
                             <div class="mt-auto">
                                 <a href="./Tutor_Messaging.html" class="text-blue-600 block">All messages -></a>
@@ -185,9 +128,9 @@
                         </div>
 
                         <div class="bg-white p-6 rounded-xl text-center">
-                            <h3 class="text-lg font-semibold mb-6">Upload Document</h3>
-                            <div class="w-40 h-40 border-8 border-blue-700 rounded-full mx-auto flex items-center justify-center text-3xl font-bold">84%</div>
-                            <a href="./Tutor_Document.html" class="text-blue-600 block mt-6">Check Document -></a>
+                            <h3 class="text-lg font-semibold mb-6">Assigned Students</h3>
+                            <div id="assignedStudentCount" class="w-40 h-40 border-8 border-blue-700 rounded-full mx-auto flex items-center justify-center text-3xl font-bold">0</div>
+                            <a id="assignedStudentSummary" href="./Student_List.html" class="text-blue-600 block mt-6">Loading assigned students...</a>
                         </div>
 
                     </div>
@@ -195,29 +138,7 @@
                 </div>
 
                 <!-- RIGHT SIDE -->
-                <div class="meeting-section">
-
-                    <div class="meeting-card">
-                        <img src="../../Images/meeting example pic.jpg">
-                        <div class="meeting-info">
-                            <h3>RM</h3>
-                            <p>1:00 PM - 3:00 PM</p>
-                            <p class="date">5 March</p>
-                            <button class="remind-btn">Remind Me</button>
-                        </div>
-                    </div>
-
-                    <div class="meeting-card">
-                        <img src="../../Images/meeting example pic.jpg">
-                        <div class="meeting-info">
-                            <h3>EWSD</h3>
-                            <p>4:00 PM - 5:00 PM</p>
-                            <p class="date">5 March</p>
-                            <button class="remind-btn">Remind Me</button>
-                        </div>
-                    </div>
-
-                </div>
+                <div id="upcomingMeetings" class="meeting-section"></div>
 
             </div>
 
