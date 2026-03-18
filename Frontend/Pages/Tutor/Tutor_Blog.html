@@ -108,6 +108,27 @@
 
     let blogs = JSON.parse(localStorage.getItem("blogs")) || [];
 
+    /* POST BLOG */
+    function postBlog(){
+
+        let text = document.getElementById("blogText").value;
+
+        if(text.trim()==="") return;
+
+        blogs.push({
+        content:text,
+        time:new Date().toLocaleString(),
+        comments:[]
+        });
+
+        localStorage.setItem("blogs",JSON.stringify(blogs));
+
+        document.getElementById("blogText").value="";
+
+        displayPosts();
+
+    }
+
     /* DISPLAY POSTS */
     function displayPosts(){
 
