@@ -8,9 +8,14 @@
     <link rel="stylesheet" href="../../Css/Sidebar.css">
     <link rel="stylesheet" href="../../Css/Edit_Profile.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="../../assets/js/core/config.js"></script>
+    <script src="../../assets/js/core/storage.js"></script>
+    <script src="../../assets/js/core/apiClient.js"></script>
+    <script src="../../assets/js/core/auth.js"></script>
+    <script src="../../assets/js/features/edit-profile-page.js"></script>
 </head>
 
-<body class="bg-gray-200 font-sans">
+<body class="bg-gray-200 font-sans" data-profile-mode="tutor-edit">
 
     <div class="flex min-h-screen">
 
@@ -73,7 +78,7 @@
 
                 <div class="last-login">
                     <p>Last Login</p>
-                    <p>03/07/26</p>
+                    <p id="lastLoginValue">Loading...</p>
                 </div>
 
             </nav>
@@ -111,14 +116,15 @@
                 <!-- Email -->
                 <div class="input-group">
                     <label>Email</label>
-                    <input type="email" value="example@gmail.com" readonly>
+                    <input id="profileEmail" type="email" value="" readonly>
                 </div>
 
                 <!-- Phone -->
                 <div class="input-group">
                     <label>Phone Number</label>
-                    <input type="text" placeholder="Enter your Phone Number">
+                    <input id="profilePhone" type="text" placeholder="Enter your Phone Number">
                 </div>
+                <p id="profileEditError" class="text-sm text-red-500"></p>
 
                 <button class="save-btn">Save</button>
 
@@ -151,35 +157,5 @@
         </main>
 
     </div>
-
-<script>
-
-    const input = document.getElementById("uploadImage");
-    const preview = document.getElementById("profilePreview");
-    const icon = document.getElementById("defaultIcon");
-
-    input.addEventListener("change", function(){
-
-        const file = this.files[0];
-
-        if(file){
-
-            const reader = new FileReader();
-
-            reader.onload = function(e){
-                preview.src = e.target.result;
-
-                preview.style.display = "block";
-                icon.style.display = "none";
-            }
-
-            reader.readAsDataURL(file);
-
-        }
-
-    });
-
-</script>
-
 </body>
 </html>
