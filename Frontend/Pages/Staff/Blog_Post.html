@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blogs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../../Css/Sidebar.css">
+    <link rel="stylesheet" href="../../Css/Blog_Post.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-200">
+
+    <div class="flex min-h-screen">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar bg-white border-r">
+
+            <!-- Logo -->
+            <div class="logo-container">
+                <img src="../../Images/KMD Logo.jpg">
+                <h1 class="logo-text">College</h1>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-1 text-black">
+
+                <a href="./Student_Dashboard.html" class="nav-item">
+                    <i class="bi bi-tv"></i>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+
+                <a href="./Student_Profile.html" class="nav-item">
+                    <i class="bi bi-person-circle"></i>
+                    <span class="menu-text">Profile</span>
+                </a>
+
+                <a href="./Edit_Profile.html" class="nav-item">
+                    <i class="bi bi-pencil-square"></i>
+                    <span class="menu-text">Edit Profile</span>
+                </a>
+
+                <a href="./Tutor_Profile.html" class="nav-item">
+                    <i class="bi bi-person-fill"></i>
+                    <span class="menu-text">Tutor</span>
+                </a>
+
+                <a href="./Meeting.html" class="nav-item">
+                    <i class="bi bi-camera-video"></i>
+                    <span class="menu-text">Meeting</span>
+                </a>
+
+                <a href="./Messaging.html" class="nav-item">
+                    <i class="bi bi-chat-left-dots"></i>
+                    <span class="menu-text">Message</span>
+                </a>
+
+                <a href="./Blog_Post.html" class="nav-item active">
+                    <i class="bi bi-journal-text"></i>
+                    <span class="menu-text">Blog Post</span>
+                </a>
+
+                <a href="./Document.html" class="nav-item">
+                    <i class="bi bi-upload"></i>
+                    <span class="menu-text">Document</span>
+                </a>
+
+                <a href="./Comment.html" class="nav-item">
+                    <i class="bi bi-chat-left-dots"></i>
+                    <span class="menu-text">Comment</span>
+                </a>
+
+                <a href="../Auth/Login.html" class="nav-item logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="menu-text">Logout</span>
+                </a>
+
+
+                <div class="last-login">
+                    <p>Last Login</p>
+                    <p>03/07/26</p>
+                </div>
+
+            </nav>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="blog-main">
+
+            <!-- CREATE BLOG -->
+            <div class="blog-box">
+
+                <div class="user-info">
+                    <img src="../../Images/profile.jpg">
+                    <h3>Yun Aeindary Oo</h3>
+                </div>
+                <textarea id="blogText" placeholder="Write your blog note here"></textarea>
+                <div class="post-btn">
+                    <button onclick="postBlog()">Post</button>
+                    <button class="reset-btn" onclick="clearPosts()">Reset All</button>
+                </div>
+
+            </div>
+
+            <!-- BLOG POSTS -->
+            <div id="posts"></div>
+
+        </main>
+
+    </div>
+
+<script>
+
+    let blogs = JSON.parse(localStorage.getItem("blogs")) || [];
+
+    /* POST BLOG */
+    function postBlog(){
+
+        let text = document.getElementById("blogText").value;
+
+        if(text.trim()==="") return;
+
+        blogs.push({
+        content:text,
+        time:new Date().toLocaleString(),
+        comments:[]
+        });
+
+        localStorage.setItem("blogs",JSON.stringify(blogs));
+
+        document.getElementById("blogText").value="";
+
+        displayPosts();
+
+    }
+
+    /* DISPLAY POSTS */
+    function displayPosts(){
+
+        let container=document.getElementById("posts");
+
+        container.innerHTML="";
+
+        blogs.slice().reverse().forEach((blog,index)=>{
+
+            let realIndex=blogs.length-1-index;
+
+            let commentsHTML="";
+
+            blog.comments.forEach(c=>{
+
+                commentsHTML+=`
+                <div class="comment">
+
+                    <div class="comment-header">
+                        <span class="comment-user">${c.user}</span>
+                        <span class="comment-time">${c.time}</span>
+                    </div>
+                    <p>${c.text}</p>
+
+                </div>
+                `;
+
+            });
+
+            container.innerHTML+=`
+
+            <div class="post-card">
+
+                <div class="post-header">
+                    <img src="../../Images/profile.jpg">
+                    <div>
+                        <h2>Yun Aeindary Oo</h2>
+                        <p>example@gmail.com</p>
+                    </div>
+                </div>
+
+                <p class="post-text">${blog.content}</p>
+                <p class="post-time">${blog.time}</p>
+
+                <div class="comment-list">
+                    ${commentsHTML}
+                </div>
+
+                <div class="comment-box">
+                    <input id="comment-${realIndex}" placeholder="Write a comment...">
+                    <button onclick="addComment(${realIndex})">Send</button>
+                </div>
+
+            </div>
+
+            `;
+
+        });
+
+    }
+
+    /* ADD COMMENT */
+    function addComment(i){
+
+        let input=document.getElementById(`comment-${i}`);
+
+        let text=input.value;
+
+        if(text.trim()==="") return;
+
+        blogs[i].comments.push({
+            user:"Yun Aeindary Oo",
+            text:text,
+            time:new Date().toLocaleString()
+        });
+
+        localStorage.setItem("blogs",JSON.stringify(blogs));
+
+        displayPosts();
+
+    }
+
+    /* RESET POSTS */
+    function clearPosts(){
+
+        if(confirm("Delete all blog posts?")){
+
+            localStorage.removeItem("blogs");
+            blogs=[];
+            displayPosts();
+
+        }
+
+    }
+
+    displayPosts();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../../Css/Sidebar.css">
+  <link rel="stylesheet" href="../../Css/Student_Profile.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-200 font-sans">
+
+  <div class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside class="sidebar bg-white border-r">
+
+      <!-- Logo -->
+      <div class="logo-container">
+        <img src="../../Images/KMD Logo.jpg">
+        <h1 class="logo-text">College</h1>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 p-4 space-y-1 text-black">
+
+        <a href="./Staff_Dashboard.html" class="nav-item">
+          <i class="bi bi-tv"></i>
+          <span class="menu-text">Dashboard</span>
+        </a>
+
+        <a href="./Staff_Profile.html" class="nav-item active">
+          <i class="bi bi-person-circle"></i>
+          <span class="menu-text">Profile</span>
+        </a>
+
+        <a href="./Edit_Profile.html" class="nav-item">
+          <i class="bi bi-pencil-square"></i>
+          <span class="menu-text">Edit Profile</span>
+        </a>
+
+        <a href="../Auth/Register.html" class="nav-item">
+          <i class="bi bi-pencil-square"></i>
+          <span class="menu-text">Create Account</span>
+        </a>
+
+        <!-- USERS DROPDOWN -->
+        <div class="dropdown">
+          <div class="nav-item dropdown-toggle">
+            <i class="bi bi-people-fill"></i>
+            <span class="menu-text">Users</span>
+            <i class="bi bi-chevron-down arrow"></i>
+          </div>
+
+          <div class="dropdown-menu">
+            <a href="./Student_List.html">
+              <i class="bi bi-person"></i>
+              <span class="menu-text">Students</span>
+            </a>
+            <a href="./Tutor_List.html">
+              <i class="bi bi-person-badge"></i>
+              <span class="menu-text">Tutors</span>
+            </a>
+          </div>
+        </div>
+          
+        <!-- PERSONAL TUTOR DROPDOWN -->
+        <div class="dropdown">
+          <div class="nav-item dropdown-toggle">
+            <i class="bi bi-chat-left-dots"></i>
+            <span class="menu-text">Personal Tutor</span>
+            <i class="bi bi-chevron-down arrow"></i>
+          </div>
+          
+          <div class="dropdown-menu">
+            <a href="./Allocation.html">
+              <i class="bi bi-diagram-3"></i>
+              <span class="menu-text">Tutor Allocation</span>
+            </a>
+            <a href="./Reallocation.html">
+              <i class="bi bi-arrow-repeat"></i>
+              <span class="menu-text">Tutor Reallocation</span>
+            </a>
+          </div>
+        </div>
+          
+        <a href="./Messaging.html" class="nav-item">
+          <i class="bi bi-chat-left-dots"></i>
+          <span class="menu-text">Message</span>
+        </a>
+          
+        <a href="./Blog_Post.html" class="nav-item">
+          <i class="bi bi-journal-text"></i>
+          <span class="menu-text">Blog Post</span>
+        </a>
+          
+        <a href="../Auth/Login.html" class="nav-item logout">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="menu-text">Logout</span>
+        </a>
+          
+        <div class="last-login">
+          <p>Last Login</p>
+          <p>03/07/26</p>
+        </div>
+          
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="profile-main">
+
+      <div class="profile-card">
+
+        <h1 class="profile-title">Profile</h1>
+
+        <!-- Profile Image -->
+        <div class="profile-image">
+          <img src="../../Images/profile.jpg">
+        </div>
+
+        <!-- Name -->
+        <h2 class="profile-name">Moe Pale</h2>
+
+        <!-- Information -->
+        <div class="profile-info">
+
+          <div class="info-box">
+            <p class="info-label">Phone Number</p>
+            <p class="info-value">09123456789</p>
+          </div>
+
+          <div class="info-box">
+            <p class="info-label">Email</p>
+            <p class="info-value">example@gmail.com</p>
+          </div>
+
+          <div class="info-box">
+            <p class="info-label">Department</p>
+            <p class="info-value">Student Office</p>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+    
+  </div>
+
+<script>
+
+    document.querySelectorAll(".dropdown-toggle").forEach(item => {
+        item.addEventListener("click", function () {
+            const parent = this.parentElement;
+
+            // Close others
+            document.querySelectorAll(".dropdown").forEach(d => {
+                if (d !== parent) {
+                    d.classList.remove("active");
+                }
+            });
+
+            // Toggle current
+            parent.classList.toggle("active");
+        });
+    });
+
+</script>
+</body>
+</html>

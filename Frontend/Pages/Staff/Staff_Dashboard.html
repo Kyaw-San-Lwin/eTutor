@@ -27,12 +27,12 @@
             <!-- Navigation -->
             <nav class="flex-1 p-4 space-y-1 text-black">
 
-                <a href="./Tutor_Dashboard.html" class="nav-item active">
+                <a href="./Staff_Dashboard.html" class="nav-item active">
                     <i class="bi bi-tv"></i>
                     <span class="menu-text">Dashboard</span>
                 </a>
 
-                <a href="./Tutor_Profile.html" class="nav-item">
+                <a href="./Staff_Profile.html" class="nav-item">
                     <i class="bi bi-person-circle"></i>
                     <span class="menu-text">Profile</span>
                 </a>
@@ -42,29 +42,59 @@
                     <span class="menu-text">Edit Profile</span>
                 </a>
 
-                <a href="./Student_List.html" class="nav-item">
-                    <i class="bi bi-people-fill"></i>
-                    <span class="menu-text">Students</span>
+                <a href="../Auth/Register.html" class="nav-item">
+                    <i class="bi bi-pencil-square"></i>
+                    <span class="menu-text">Create Account</span>
                 </a>
 
-                <a href="./Tutor_Meeting.html" class="nav-item">
-                    <i class="bi bi-camera-video"></i>
-                    <span class="menu-text">Meeting</span>
-                </a>
+                <!-- USERS DROPDOWN -->
+                <div class="dropdown">
+                    <div class="nav-item dropdown-toggle">
+                        <i class="bi bi-people-fill"></i>
+                        <span class="menu-text">Users</span>
+                        <i class="bi bi-chevron-down arrow"></i>
+                    </div>
 
-                <a href="./Tutor_Messaging.html" class="nav-item">
+                    <div class="dropdown-menu">
+                        <a href="./Student_List.html">
+                            <i class="bi bi-person"></i>
+                            <span class="menu-text">Students</span>
+                        </a>
+                        <a href="./Tutor_List.html">
+                            <i class="bi bi-person-badge"></i>
+                            <span class="menu-text">Tutors</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- PERSONAL TUTOR DROPDOWN -->
+                <div class="dropdown">
+                    <div class="nav-item dropdown-toggle">
+                        <i class="bi bi-chat-left-dots"></i>
+                        <span class="menu-text">Personal Tutor</span>
+                        <i class="bi bi-chevron-down arrow"></i>
+                    </div>
+
+                    <div class="dropdown-menu">
+                        <a href="./Allocation.html">
+                            <i class="bi bi-diagram-3"></i>
+                            <span class="menu-text">Tutor Allocation</span>
+                        </a>
+                        <a href="./Reallocation.html">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <span class="menu-text">Tutor Reallocation</span>
+                        </a>
+                    </div>
+                </div>
+
+                <a href="./Messaging.html" class="nav-item">
                     <i class="bi bi-chat-left-dots"></i>
                     <span class="menu-text">Message</span>
                 </a>
 
-                <a href="./Tutor_Blog.html" class="nav-item">
+                <a href="./Blog_Post.html" class="nav-item">
                     <i class="bi bi-journal-text"></i>
                     <span class="menu-text">Blog Post</span>
-                </a>
-
-                <a href="./Tutor_Document.html" class="nav-item">
-                    <i class="bi bi-file-earmark-arrow-down"></i>
-                    <span class="menu-text">Document</span>
                 </a>
 
                 <a href="../Auth/Login.html" class="nav-item logout">
@@ -81,149 +111,155 @@
         </aside>
 
         <!-- MAIN CONTENT -->
-        <main class="flex-1 dashboard-main w-full">
+        <main class="flex-1 p-6">
 
-            <div class="dashboard-grid">
+            <!-- Top bar -->
+            <div class="mb-6">
 
-                <!-- LEFT SIDE -->
-                <div class="left-section">
+                <!-- First row -->
+                <div class="flex justify-between items-center">
+                    
+                    <!-- Title -->
+                    <h1 class="text-2xl font-bold">Dashboard</h1>
 
-                    <!-- Meeting History -->
-                    <div class="bg-white p-8 rounded-xl">
-                        <h2 class="text-xl font-semibold mb-4">Meeting History</h2>
-                        <p class="text-6xl font-bold">15</p>
-                        <p class="text-gray-500 mt-2">You attended 15 out of 45 meetings</p>
-                        <a href="./Tutor_Meeting.html" class="text-blue-600 mt-4 inline-block">All meeting -></a>
+                    <!-- Right side -->
+                    <div class="flex items-center gap-4">
+                        <i class="bi bi-bell text-xl"></i>
+
+                        <div class="flex items-center gap-2">
+                            <div class="w-10 h-10 bg-blue-200 rounded"><img src="../../Images/profile.jpg"></div>
+                            <div>
+                                <p class="font-semibold">Moe Pale</p>
+                                <p class="text-sm text-gray-500">Staff</p>
+                            </div>
+                        </div>
                     </div>
-
-                    <!-- Blog Comment -->
-                    <div class="bg-white p-8 rounded-xl">
-
-                        <div class="flex justify-between mb-4">
-                            <h2 class="text-xl font-semibold">Blog Comment</h2>
-                            <p class="text-gray-500">Sort by Newest</p>
-                        </div>
-
-                        <div class="space-y-2">
-
-                            <div class="comment-item">
-
-                                <div class="flex items-center gap-3">
-                                    <img src="../../Images/profile.jpg" class="w-10 h-10 rounded-full">
-                                    <p>Hnin Yati</p>
-                                </div>
-
-                                <div class="flex items-center gap-3 text-gray-500">
-                                    <i class="bi bi-chat"></i>
-                                    <div class="w-px h-5 bg-gray-300"></div>
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </div>
-
-                            </div>
-
-                            <div class="comment-item">
-
-                                <div class="flex items-center gap-3">
-                                    <img src="../../Images/profile 2.jpg" class="w-10 h-10 rounded-full">
-                                    <p>Kyaw San Lwin</p>
-                                </div>
-
-                                <div class="flex items-center gap-3 text-gray-500">
-                                    <i class="bi bi-chat"></i>
-                                    <div class="w-px h-5 bg-gray-300"></div>
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </div>
-
-                            </div>
-
-                            <div class="comment-item">
-
-                                <div class="flex items-center gap-3">
-                                    <img src="../../Images/profile.jpg" class="w-10 h-10 rounded-full">
-                                    <p>Sai Thiha Aung</p>
-                                </div>
-
-                                <div class="flex items-center gap-3 text-gray-500">
-                                    <i class="bi bi-chat"></i>
-                                    <div class="w-px h-5 bg-gray-300"></div>
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </div>
-
-                            </div>
-
-                            <div class="comment-item">
-
-                                <div class="flex items-center gap-3">
-                                    <img src="../../Images/profile 2.jpg" class="w-10 h-10 rounded-full">
-                                    <p>Hein Khant Thura</p>
-                                </div>
-
-                                <div class="flex items-center gap-3 text-gray-500">
-                                    <i class="bi bi-chat"></i>
-                                    <div class="w-px h-5 bg-gray-300"></div>
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <a href="./Tutor_Blog.html" class="text-blue-600 mt-4 inline-block">All comments -></a>
-
-                    </div>
-
-                    <!-- Bottom Cards -->
-                    <div class="bottom-cards">
-
-                        <div class="bg-white p-6 rounded-xl chat-card">
-                            <h3 class="text-lg font-semibold">Chats</h3>
-                            <p class="text-gray-500 text-sm mb-6">1 unread messages</p>
-                            <img src="../../Images/profile 2.jpg" class="w-12 h-12 rounded-full">
-                            <div class="mt-auto">
-                                <a href="./Tutor_Messaging.html" class="text-blue-600 block">All messages -></a>
-                            </div>
-                        </div>
-
-                        <div class="bg-white p-6 rounded-xl text-center">
-                            <h3 class="text-lg font-semibold mb-6">Upload Document</h3>
-                            <div class="w-40 h-40 border-8 border-blue-700 rounded-full mx-auto flex items-center justify-center text-3xl font-bold">84%</div>
-                            <a href="./Tutor_Document.html" class="text-blue-600 block mt-6">Check Document -></a>
-                        </div>
-
-                    </div>
-
                 </div>
 
-                <!-- RIGHT SIDE -->
-                <div class="meeting-section">
+                <!-- Second row (welcome message BELOW dashboard) -->
+                <p class="text-gray-500 mt-1">
+                    Welcome to the eTutor Academic Support System
+                </p>
 
-                    <div class="meeting-card">
-                        <img src="../../Images/meeting example pic.jpg">
-                        <div class="meeting-info">
-                            <h3>RM</h3>
-                            <p>1:00 PM - 3:00 PM</p>
-                            <p class="date">5 March</p>
-                            <button class="remind-btn">Remind Me</button>
-                        </div>
-                    </div>
+            </div>
 
-                    <div class="meeting-card">
-                        <img src="../../Images/meeting example pic.jpg">
-                        <div class="meeting-info">
-                            <h3>EWSD</h3>
-                            <p>4:00 PM - 5:00 PM</p>
-                            <p class="date">5 March</p>
-                            <button class="remind-btn">Remind Me</button>
-                        </div>
-                    </div>
+            <!-- Cards -->
+            <div class="grid grid-cols-4 gap-6 mb-6">
 
+                <div class="bg-white p-5 rounded-lg shadow">
+                    <p class="text-gray-500">Active Tutors</p>
+                    <h2 class="text-3xl font-bold">43</h2>
+                    <p class="text-green-500 text-sm">↑ 3 new this month</p>
                 </div>
 
+                <div class="bg-white p-5 rounded-lg shadow">
+                    <p class="text-gray-500">Active Students</p>
+                    <h2 class="text-3xl font-bold">325</h2>
+                    <p class="text-green-500 text-sm">↑ 67 new this month</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-lg shadow">
+                    <p class="text-gray-500">Messages (7 days)</p>
+                    <h2 class="text-3xl font-bold">286</h2>
+                    <p class="text-green-400 text-sm">Avg. 41/day</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-lg shadow">
+                    <p class="text-gray-500">Total Meetings</p>
+                    <h2 class="text-3xl font-bold">124</h2>
+                    <p class="text-green-500 text-sm">↑ 8% from last week</p>
+                </div>
+
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-2 gap-6">
+
+                <!-- Line Chart Placeholder -->
+                <div class="bg-white p-5 rounded-lg shadow">
+                    <h2 class="font-semibold mb-4">Message Activity (Last 7 Days)</h2>
+                    <div class="h-64 flex items-center justify-center text-gray-400">(Chart Placeholder)</div>
+                </div>
+
+                <!-- Bar Chart Placeholder -->
+                <div class="bg-white p-5 rounded-lg shadow">
+                    <h2 class="font-semibold mb-4">Tutor Interaction Statistics</h2>
+                    <div class="h-64 flex items-center justify-center text-gray-400">(Chart Placeholder)</div>
+                </div>
+
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-lg font-semibold mb-4">Recent Activity</h2>
+
+                <table class="w-full text-left">
+                    <thead class="text-gray-500 border-b">
+                        <tr>
+                            <th class="py-2">User</th>
+                            <th>Action</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y">
+                        <tr>
+                            <td class="py-3">Sarah Johnson</td>
+                            <td>Assigned new tutor</td>
+                            <td class="text-gray-500">2 minutes ago</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3">Mike Chen</td>
+                            <td>Completed meeting with tutor</td>
+                            <td class="text-gray-500">15 minutes ago</td>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <td class="py-3">Emma Wilson</td>
+                            <td>Sent message to tutor</td>
+                            <td class="text-gray-500">1 hour ago</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3">James Brown</td>
+                            <td>Updated profile information</td>
+                            <td class="text-gray-500">2 hours ago</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3">Lisa Anderson</td>
+                            <td>Scheduled new meeting</td>
+                            <td class="text-gray-500">3 hours ago</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3">Tom Martinez</td>
+                            <td>Submitted assignment feedback</td>
+                            <td class="text-gray-500">4 hours ago</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
         </main>
 
     </div>
+
+<script>
+
+    document.querySelectorAll(".dropdown-toggle").forEach(item => {
+        item.addEventListener("click", function () {
+            const parent = this.parentElement;
+
+            // Close others
+            document.querySelectorAll(".dropdown").forEach(d => {
+                if (d !== parent) {
+                    d.classList.remove("active");
+                }
+            });
+
+            // Toggle current
+            parent.classList.toggle("active");
+        });
+    });
+
+</script>
 
 </body>
 </html>

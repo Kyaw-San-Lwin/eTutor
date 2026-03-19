@@ -100,6 +100,94 @@
     opacity:1;
 }
 
+/* DROPDOWN */
+.dropdown{
+    display:flex;
+    flex-direction:column;
+    margin: 0;
+}
+
+.dropdown-toggle{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:12px;
+    border-radius:8px;
+    cursor:pointer;
+    transition: 0.2s;
+    white-space: nowrap;
+    color: inherit;
+}
+
+.arrow{
+    margin-left:auto;
+    font-size:12px;
+    transition:0.3s;
+}
+
+/* Dropdown container */
+.dropdown-menu{
+    max-height:0;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    margin-left: 10px;
+    border-radius:10px;
+    transition:max-height 0.3s ease;
+    opacity:0;
+}
+
+.sidebar:hover .dropdown-menu{
+    opacity:1;
+}
+
+/* Dropdown items */
+.dropdown-menu a{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:14px;
+    text-decoration:none;
+    color:inherit;
+    border:1px solid transparent;
+    transition:0.2s;
+}
+
+/* Divider */
+.dropdown-menu a:not(:last-child){
+    border-bottom:1px solid rgba(255,255,255,0.2);
+}
+
+/* Hover */
+.dropdown-menu a:hover{
+    background:#0054a7;
+    color:white;
+    border:1px solid white;
+}
+
+/* Active dropdown */
+.dropdown.active .dropdown-menu{
+    border-radius: 8px;
+    max-height:200px;
+}
+
+.dropdown.active .arrow{
+    transform:rotate(180deg);
+}
+
+.dropdown-toggle:hover{
+    background:#0054a7;
+    color:white;
+}
+
+.dropdown.active .dropdown-toggle{
+    background:#0054a7;
+    color:white;
+}
+
 /* ================= TABLET (1024px) ================= */
 @media (max-width:1024px){
 
