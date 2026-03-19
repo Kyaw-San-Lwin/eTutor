@@ -14,6 +14,16 @@ class UserController
         $this->conn = $conn;
     }
 
+    private function requireAuth(): array
+    {
+        $user = $GLOBALS['auth_user'] ?? null;
+        if (!is_array($user) || empty($user['user_id'])) {
+            Response::json(["success" => false, "message" => "Unauthorized"], 401);
+        }
+
+        return $user;
+    }
+
     private function requireAdmin(): bool
     {
         $user = $GLOBALS['auth_user'] ?? null;
@@ -55,6 +65,91 @@ class UserController
             return (int) $queryId;
         }
         return ValidationService::intField($data['id'] ?? null, 'id');
+    }
+
+    private function fetchProfileByUserId(int $userId): ?array
+    {
+        $stmt = $this->conn->prepare("
+            SELECT
+                u.user_id,
+                u.user_name,
+                u.email,
+                u.account_status,
+                r.role_name,
+                COALESCE(s.full_name, t.full_name) AS full_name,
+                COALESCE(s.contact_number, t.contact_number) AS contact_number,
+                s.programme,
+                t.department,
+                s.student_id,
+                t.tutor_id,
+                COALESCE(st.is_admin, 0) AS is_admin
+            FROM users u
+            JOIN roles r ON u.role_id = r.role_id
+            LEFT JOIN students s ON s.user_id = u.user_id
+            LEFT JOIN tutors t ON t.user_id = u.user_id
+            LEFT JOIN staff st ON st.user_id = u.user_id
+            WHERE u.user_id = ?
+            LIMIT 1
+        ");
+
+        if (!$stmt) {
+            return null;
+        }
+
+        $stmt->bind_param("i", $userId);
+        if (!$stmt->execute()) {
+            return null;
+        }
+
+        $result = $stmt->get_result();
+        if (!$result || $result->num_rows === 0) {
+            return null;
+        }
+
+        return $result->fetch_assoc();
+    }
+
+    public function me()
+    {
+        Request::requireMethod("GET");
+
+        $authUser = $this->requireAuth();
+        $userId = (int) $authUser['user_id'];
+        $row = $this->fetchProfileByUserId($userId);
+
+        if (!$row) {
+            Response::json(["success" => false, "message" => "User profile not found"], 404);
+            return;
+        }
+
+        $displayName = trim((string) ($row['full_name'] ?? ''));
+        if ($displayName === '') {
+            $displayName = (string) ($row['user_name'] ?? '');
+        }
+
+        $studentId = isset($row['student_id']) ? (int) $row['student_id'] : 0;
+        $tutorId = isset($row['tutor_id']) ? (int) $row['tutor_id'] : 0;
+
+        $data = [
+            "user_id" => (int) ($row['user_id'] ?? 0),
+            "user_name" => (string) ($row['user_name'] ?? ''),
+            "email" => (string) ($row['email'] ?? ''),
+            "role" => (string) ($row['role_name'] ?? ''),
+            "account_status" => (string) ($row['account_status'] ?? ''),
+            "is_admin" => (int) ($row['is_admin'] ?? 0) === 1,
+            "profile" => [
+                "display_name" => $displayName,
+                "full_name" => $displayName,
+                "contact_number" => (string) ($row['contact_number'] ?? ''),
+                "programme" => $row['programme'] ?? null,
+                "department" => $row['department'] ?? null,
+                "student_id" => $studentId > 0 ? $studentId : null,
+                "tutor_id" => $tutorId > 0 ? $tutorId : null
+            ]
+        ];
+
+        $this->safeLogActivity("User Me", "Viewed own profile");
+        Response::json(["success" => true, "data" => $data]);
     }
 
     public function list()

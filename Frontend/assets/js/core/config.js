@@ -1,19 +1,20 @@
 (function () {
-  const marker = "/Frontend/";
-  const path = window.location.pathname;
-  const markerIndex = path.indexOf(marker);
-  const projectBase = markerIndex >= 0 ? path.slice(0, markerIndex) : "";
-  const origin = window.location.origin;
+  const protocol = window.location.protocol === "https:" ? "https:" : "http:";
+  const appOrigin = `${protocol}//localhost`;
+  const projectBase = "/eTutor";
+  const frontendBase = `${appOrigin}${projectBase}/Frontend`;
+  const apiBaseUrl = `${appOrigin}${projectBase}/Backend/api/index.php`;
 
   window.AppConfig = {
-    origin,
+    origin: appOrigin,
     projectBase,
-    apiBaseUrl: `${origin}${projectBase}/Backend/api/index.php`,
+    frontendBase,
+    apiBaseUrl,
     pages: {
-      login: `${origin}${projectBase}/Frontend/Pages/Auth/Login.html`,
-      studentDashboard: `${origin}${projectBase}/Frontend/Pages/Student/Student_Dashboard.html`,
-      tutorDashboard: `${origin}${projectBase}/Frontend/Pages/Tutor/Tutor_Dashboard.html`,
-      staffDashboard: `${origin}${projectBase}/Frontend/Pages/Staff/Staff_Dashboard.html`
+      login: `${frontendBase}/Pages/Auth/Login.html`,
+      studentDashboard: `${frontendBase}/Pages/Student/Student_Dashboard.html`,
+      tutorDashboard: `${frontendBase}/Pages/Tutor/Tutor_Dashboard.html`,
+      staffDashboard: `${frontendBase}/Pages/Staff/Staff_Dashboard.html`
     }
   };
 })();

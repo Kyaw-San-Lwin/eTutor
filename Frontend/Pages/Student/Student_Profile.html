@@ -8,9 +8,14 @@
   <link rel="stylesheet" href="../../Css/Sidebar.css">
   <link rel="stylesheet" href="../../Css/Student_Profile.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="../../assets/js/core/config.js"></script>
+  <script src="../../assets/js/core/storage.js"></script>
+  <script src="../../assets/js/core/apiClient.js"></script>
+  <script src="../../assets/js/core/auth.js"></script>
+  <script src="../../assets/js/features/profile-page.js"></script>
 </head>
 
-<body class="bg-gray-200 font-sans">
+<body class="bg-gray-200 font-sans" data-profile-mode="student-self">
 
   <div class="flex min-h-screen">
 
@@ -78,7 +83,7 @@
 
         <div class="last-login">
           <p>Last Login</p>
-          <p>03/07/26</p>
+          <p id="lastLoginValue">Loading...</p>
         </div>
 
       </nav>
@@ -97,24 +102,25 @@
         </div>
 
         <!-- Name -->
-        <h2 class="profile-name">Yun Aeindary Oo</h2>
+        <h2 id="profileName" class="profile-name">Loading...</h2>
+        <p id="profileError" class="text-sm text-red-500 mb-4"></p>
 
         <!-- Information -->
         <div class="profile-info">
 
           <div class="info-box">
             <p class="info-label">Phone Number</p>
-            <p class="info-value">09123456789</p>
+            <p id="profilePhone" class="info-value">Loading...</p>
           </div>
 
           <div class="info-box">
             <p class="info-label">Email</p>
-            <p class="info-value">example@gmail.com</p>
+            <p id="profileEmail" class="info-value">Loading...</p>
           </div>
 
           <div class="info-box">
-            <p class="info-label">Subject</p>
-            <p class="info-value">Enterprise Web Software Development</p>
+            <p class="info-label">Programme</p>
+            <p id="profileThirdValue" class="info-value">Loading...</p>
           </div>
 
         </div>
