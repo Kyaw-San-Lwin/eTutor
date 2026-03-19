@@ -108,6 +108,63 @@ th{
     right:0;
 }
 
+.assign-btn{
+    background:#1e3a8a;
+    color:white;
+    padding:4px 12px;
+    border-radius:5px;
+    font-size:13px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.assign-btn:hover{
+    background:#1e40af;
+}
+
+/* MODAL BACKGROUND */
+.modal{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.4);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+}
+
+/* HIDE */
+.hidden{
+    display:none;
+}
+
+/* MODAL BOX */
+.modal-content{
+    background:white;
+    padding:25px;
+    border-radius:10px;
+    width:90%;
+    max-width:400px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* BUTTONS */
+.confirm-btn{
+    background:#1e3a8a;
+    color:white;
+    padding:6px 15px;
+    border-radius:6px;
+}
+
+.cancel-btn{
+    background:#e5e7eb;
+    padding:6px 15px;
+    border-radius:6px;
+}
+
 /* ================= TABLET (1024px) ================= */
 @media (max-width:1024px){
 
