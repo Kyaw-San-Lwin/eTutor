@@ -7,6 +7,7 @@ class UserController
 {
     private $conn;
     private const DUPLICATE_KEY_ERRNO = 1062;
+    private const PROFILE_PHOTO_DIR = 'profile_photos';
 
     public function __construct()
     {
@@ -69,12 +70,17 @@ class UserController
 
     private function fetchProfileByUserId(int $userId): ?array
     {
+        $profilePhotoSelect = $this->hasColumn('users', 'profile_photo')
+            ? 'u.profile_photo'
+            : 'NULL AS profile_photo';
+
         $stmt = $this->conn->prepare("
             SELECT
                 u.user_id,
                 u.user_name,
                 u.email,
                 u.account_status,
+                {$profilePhotoSelect},
                 r.role_name,
                 COALESCE(s.full_name, t.full_name) AS full_name,
                 COALESCE(s.contact_number, t.contact_number) AS contact_number,
@@ -109,6 +115,108 @@ class UserController
         return $result->fetch_assoc();
     }
 
+    private function hasColumn(string $table, string $column): bool
+    {
+        $tableEscaped = $this->conn->real_escape_string($table);
+        $columnEscaped = $this->conn->real_escape_string($column);
+        $result = $this->conn->query("SHOW COLUMNS FROM `{$tableEscaped}` LIKE '{$columnEscaped}'");
+        return $result && $result->num_rows > 0;
+    }
+
+    private function ensureProfilePhotoColumn(): void
+    {
+        if ($this->hasColumn('users', 'profile_photo')) {
+            return;
+        }
+
+        $sql = "ALTER TABLE users ADD COLUMN profile_photo VARCHAR(255) NULL AFTER email";
+        if (!$this->conn->query($sql) && !$this->hasColumn('users', 'profile_photo')) {
+            Response::json(["success" => false, "message" => "Failed to initialize profile photo storage"], 500);
+        }
+    }
+
+    private function deleteStoredProfilePhoto(?string $webPath): void
+    {
+        $path = (string) $webPath;
+        if ($path === '' || !str_starts_with($path, '/Backend/uploads/' . self::PROFILE_PHOTO_DIR . '/')) {
+            return;
+        }
+
+        $root = realpath(__DIR__ . '/..');
+        if ($root === false) {
+            return;
+        }
+
+        $relative = substr($path, strlen('/Backend/'));
+        $fullPath = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);
+        if (is_file($fullPath)) {
+            @unlink($fullPath);
+        }
+    }
+
+    private function resolveUploadedProfilePhotoPath(?string $oldPath = null): string
+    {
+        if (!isset($_FILES['file'])) {
+            Response::json(["success" => false, "message" => "Photo file is required"], 400);
+        }
+
+        $file = $_FILES['file'];
+        if (!isset($file['error']) || (int) $file['error'] !== UPLOAD_ERR_OK) {
+            Response::json(["success" => false, "message" => "Photo upload failed"], 400);
+        }
+
+        $tmpPath = (string) ($file['tmp_name'] ?? '');
+        $name = (string) ($file['name'] ?? '');
+        $size = (int) ($file['size'] ?? 0);
+        if ($tmpPath === '' || $name === '' || $size <= 0) {
+            Response::json(["success" => false, "message" => "Invalid uploaded photo"], 400);
+        }
+        if ($size > 5 * 1024 * 1024) {
+            Response::json(["success" => false, "message" => "Photo too large (max 5MB)"], 400);
+        }
+
+        $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+        if (!in_array($ext, $allowedExtensions, true)) {
+            Response::json(["success" => false, "message" => "Unsupported image type"], 400);
+        }
+
+        $mimeType = mime_content_type($tmpPath) ?: '';
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!in_array($mimeType, $allowedMimeTypes, true)) {
+            Response::json(["success" => false, "message" => "Invalid image file"], 400);
+        }
+
+        $root = realpath(__DIR__ . '/..');
+        if ($root === false) {
+            Response::json(["success" => false, "message" => "Server storage path error"], 500);
+        }
+
+        $targetDir = $root . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . self::PROFILE_PHOTO_DIR;
+        if (!is_dir($targetDir) && !mkdir($targetDir, 0755, true) && !is_dir($targetDir)) {
+            Response::json(["success" => false, "message" => "Failed to initialize profile photo directory"], 500);
+        }
+
+        $safeName = bin2hex(random_bytes(8)) . '_' . time() . '.' . $ext;
+        $targetPath = $targetDir . DIRECTORY_SEPARATOR . $safeName;
+        if (!move_uploaded_file($tmpPath, $targetPath)) {
+            Response::json(["success" => false, "message" => "Failed to store uploaded photo"], 500);
+        }
+
+        $this->deleteStoredProfilePhoto($oldPath);
+        return '/Backend/uploads/' . self::PROFILE_PHOTO_DIR . '/' . $safeName;
+    }
+
+    private function requireSelfEditableRole(array $user): string
+    {
+        $role = (string) ($user['role'] ?? '');
+        if (!in_array($role, ['student', 'tutor'], true)) {
+            Response::json(["success" => false, "message" => "Only student or tutor profiles can be edited here"], 403);
+        }
+
+        return $role;
+    }
+
     public function me()
     {
         Request::requireMethod("GET");
@@ -141,6 +249,7 @@ class UserController
                 "display_name" => $displayName,
                 "full_name" => $displayName,
                 "contact_number" => (string) ($row['contact_number'] ?? ''),
+                "profile_photo" => (string) ($row['profile_photo'] ?? ''),
                 "programme" => $row['programme'] ?? null,
                 "department" => $row['department'] ?? null,
                 "student_id" => $studentId > 0 ? $studentId : null,
@@ -150,6 +259,175 @@ class UserController
 
         $this->safeLogActivity("User Me", "Viewed own profile");
         Response::json(["success" => true, "data" => $data]);
+    }
+
+    public function updateMe()
+    {
+        Request::requireMethod("PUT");
+
+        $authUser = $this->requireAuth();
+        $role = $this->requireSelfEditableRole($authUser);
+        $data = $this->getRequestData();
+        if ($data === null) {
+            Response::json(["success" => false, "message" => "Invalid JSON body"], 400);
+            return;
+        }
+
+        if (!array_key_exists('contact_number', $data)) {
+            Response::json(["success" => false, "message" => "contact_number is required"], 400);
+            return;
+        }
+
+        $contactNumber = trim((string) $data['contact_number']);
+        if ($contactNumber === '') {
+            Response::json(["success" => false, "message" => "Phone number is required"], 400);
+            return;
+        }
+
+        if (mb_strlen($contactNumber) > 30) {
+            Response::json(["success" => false, "message" => "Phone number is too long"], 400);
+            return;
+        }
+
+        $table = $role === 'student' ? 'students' : 'tutors';
+        $userId = (int) $authUser['user_id'];
+
+        $stmt = $this->conn->prepare("UPDATE {$table} SET contact_number = ? WHERE user_id = ?");
+        if (!$stmt) {
+            Response::json(["success" => false, "message" => "Failed to prepare profile update"], 500);
+            return;
+        }
+
+        $stmt->bind_param("si", $contactNumber, $userId);
+        if (!$stmt->execute()) {
+            Response::json(["success" => false, "message" => "Failed to update profile"], 500);
+            return;
+        }
+
+        $profile = $this->fetchProfileByUserId($userId);
+        if (!$profile) {
+            Response::json(["success" => false, "message" => "User profile not found"], 404);
+            return;
+        }
+
+        $this->safeLogActivity("User Update Me", "Updated own profile");
+        Response::json([
+            "success" => true,
+            "message" => "Profile updated successfully",
+            "data" => [
+                "contact_number" => (string) ($profile['contact_number'] ?? $contactNumber)
+            ]
+        ]);
+    }
+
+    public function uploadMyPhoto()
+    {
+        Request::requireMethod("POST");
+
+        $authUser = $this->requireAuth();
+        $this->requireSelfEditableRole($authUser);
+        $this->ensureProfilePhotoColumn();
+
+        $userId = (int) $authUser['user_id'];
+        $existingProfile = $this->fetchProfileByUserId($userId);
+        if (!$existingProfile) {
+            Response::json(["success" => false, "message" => "User profile not found"], 404);
+            return;
+        }
+
+        $photoPath = $this->resolveUploadedProfilePhotoPath($existingProfile['profile_photo'] ?? null);
+        $stmt = $this->conn->prepare("UPDATE users SET profile_photo = ? WHERE user_id = ?");
+        if (!$stmt) {
+            Response::json(["success" => false, "message" => "Failed to prepare profile photo update"], 500);
+            return;
+        }
+
+        $stmt->bind_param("si", $photoPath, $userId);
+        if (!$stmt->execute()) {
+            Response::json(["success" => false, "message" => "Failed to update profile photo"], 500);
+            return;
+        }
+
+        $this->safeLogActivity("User Upload Photo", "Updated own profile photo");
+        Response::json([
+            "success" => true,
+            "message" => "Profile photo updated successfully",
+            "data" => [
+                "profile_photo" => $photoPath
+            ]
+        ]);
+    }
+
+    public function changeMyPassword()
+    {
+        Request::requireMethod("POST");
+
+        $authUser = $this->requireAuth();
+        $data = $this->getRequestData();
+        if ($data === null) {
+            Response::json(["success" => false, "message" => "Invalid JSON body"], 400);
+            return;
+        }
+
+        ValidationService::requireFields($data, ['old_password', 'new_password']);
+        $oldPassword = (string) $data['old_password'];
+        $newPassword = (string) $data['new_password'];
+
+        if (strlen($newPassword) < 8) {
+            Response::json(["success" => false, "message" => "New password must be at least 8 characters"], 400);
+            return;
+        }
+
+        if ($oldPassword === $newPassword) {
+            Response::json(["success" => false, "message" => "New password must be different from old password"], 400);
+            return;
+        }
+
+        $userId = (int) $authUser['user_id'];
+        $stmt = $this->conn->prepare("SELECT password FROM users WHERE user_id = ? LIMIT 1");
+        if (!$stmt) {
+            Response::json(["success" => false, "message" => "Failed to prepare password lookup"], 500);
+            return;
+        }
+
+        $stmt->bind_param("i", $userId);
+        if (!$stmt->execute()) {
+            Response::json(["success" => false, "message" => "Failed to verify current password"], 500);
+            return;
+        }
+
+        $result = $stmt->get_result();
+        $row = $result ? $result->fetch_assoc() : null;
+        if (!$row || empty($row['password'])) {
+            Response::json(["success" => false, "message" => "User account not found"], 404);
+            return;
+        }
+
+        if (!password_verify($oldPassword, $row['password'])) {
+            Response::json(["success" => false, "message" => "Current password is incorrect"], 400);
+            return;
+        }
+
+        $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+        if ($newHash === false) {
+            Response::json(["success" => false, "message" => "Failed to hash new password"], 500);
+            return;
+        }
+
+        $updateStmt = $this->conn->prepare("UPDATE users SET password = ? WHERE user_id = ?");
+        if (!$updateStmt) {
+            Response::json(["success" => false, "message" => "Failed to prepare password change"], 500);
+            return;
+        }
+
+        $updateStmt->bind_param("si", $newHash, $userId);
+        if (!$updateStmt->execute()) {
+            Response::json(["success" => false, "message" => "Failed to change password"], 500);
+            return;
+        }
+
+        $this->safeLogActivity("User Change Password", "Changed own password");
+        Response::json(["success" => true, "message" => "Password changed successfully"]);
     }
 
     public function list()

@@ -84,6 +84,14 @@ class AllocationController
         return is_array($data) ? $data : null;
     }
 
+    private function hasColumn(string $table, string $column): bool
+    {
+        $tableEscaped = $this->conn->real_escape_string($table);
+        $columnEscaped = $this->conn->real_escape_string($column);
+        $result = $this->conn->query("SHOW COLUMNS FROM `{$tableEscaped}` LIKE '{$columnEscaped}'");
+        return $result && $result->num_rows > 0;
+    }
+
     private function safeLogActivity(string $page, string $activity): void
     {
         if (!isset($GLOBALS['auth_user']['user_id'])) {
@@ -603,10 +611,15 @@ class AllocationController
             Response::json(["success" => false, "message" => "Student profile not found"], 404);
         }
 
+        $photoSelect = $this->hasColumn('users', 'profile_photo')
+            ? ', u.profile_photo AS tutor_profile_photo'
+            : ', NULL AS tutor_profile_photo';
+
         $stmt = $this->conn->prepare("
             SELECT a.allocation_id, a.status, a.allocated_date, a.end_at,
                    t.tutor_id, u.user_id AS tutor_user_id, u.user_name AS tutor_user_name, u.email AS tutor_email,
                    tt.full_name AS tutor_full_name, tt.department AS tutor_department, tt.contact_number AS tutor_contact_number
+                   {$photoSelect}
             FROM allocations a
             JOIN tutors tt ON a.tutor_id = tt.tutor_id
             JOIN users u ON tt.user_id = u.user_id
@@ -647,10 +660,15 @@ class AllocationController
             Response::json(["success" => false, "message" => "Tutor profile not found"], 404);
         }
 
+        $photoSelect = $this->hasColumn('users', 'profile_photo')
+            ? ', u.profile_photo AS student_profile_photo'
+            : ', NULL AS student_profile_photo';
+
         $stmt = $this->conn->prepare("
             SELECT a.allocation_id, a.student_id, a.status, a.allocated_date, a.end_at,
                    u.user_id AS student_user_id, u.user_name AS student_user_name, u.email AS student_email,
                    s.full_name AS student_full_name, s.programme AS student_programme, s.contact_number AS student_contact_number
+                   {$photoSelect}
             FROM allocations a
             JOIN students s ON a.student_id = s.student_id
             JOIN users u ON s.user_id = u.user_id

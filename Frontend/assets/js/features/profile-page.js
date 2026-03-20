@@ -56,6 +56,7 @@ async function loadSelfProfile() {
     setText("profileName", profile.display_name || data.user_name || "N/A");
     setText("profilePhone", profile.contact_number || "N/A");
     setText("profileEmail", data.email || "N/A");
+    setProfileImage(profile.profile_photo || "");
 
     const programmeValue = profile.programme || "N/A";
     const departmentValue = profile.department || "N/A";
@@ -91,6 +92,7 @@ async function loadAllocatedTutorProfile() {
     setText("profileEmail", data.tutor_email || "N/A");
     setText("profileThirdValue", data.tutor_user_name || "N/A");
     setText("profileDepartment", data.tutor_department || "N/A");
+    setProfileImage(data.tutor_profile_photo || "");
   } catch (error) {
     renderProfileError(error.message || "Unable to load tutor profile.");
   }
@@ -106,6 +108,15 @@ function renderProfileError(message) {
   if (note) {
     note.textContent = message;
   }
+}
+
+function setProfileImage(path) {
+  const image = document.getElementById("profileImage");
+  if (!image || !path) {
+    return;
+  }
+
+  image.src = resolveAssetUrl(path);
 }
 
 function setText(id, value) {
@@ -130,4 +141,25 @@ function formatDate(value) {
     month: "2-digit",
     year: "2-digit"
   });
+}
+
+function resolveAssetUrl(path) {
+  if (!path) {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  const base = window.AppConfig.projectBase || "";
+  if (path.startsWith(base + "/")) {
+    return `${window.AppConfig.origin}${path}`;
+  }
+
+  if (path.startsWith("/")) {
+    return `${window.AppConfig.origin}${base}${path}`;
+  }
+
+  return path;
 }
