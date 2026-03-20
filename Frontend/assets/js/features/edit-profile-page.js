@@ -4,13 +4,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     return;
   }
 
-  const allowedRoles = mode === "tutor-edit" ? ["tutor"] : ["student"];
+  const roleMap = {
+    "student-edit": ["student"],
+    "tutor-edit": ["tutor"],
+    "staff-edit": ["staff"]
+  };
+  const allowedRoles = roleMap[mode] || [];
   const user = window.Auth.requireAuth(allowedRoles);
   if (!user) {
     return;
   }
 
   bindLogout();
+  bindDropdowns();
   bindImagePreview();
   bindSaveActions();
   await Promise.allSettled([
@@ -27,6 +33,20 @@ function bindLogout() {
       window.Auth.logout();
     });
   }
+}
+
+function bindDropdowns() {
+  document.querySelectorAll(".dropdown-toggle").forEach(function (item) {
+    item.addEventListener("click", function () {
+      const parent = this.parentElement;
+      document.querySelectorAll(".dropdown").forEach(function (dropdown) {
+        if (dropdown !== parent) {
+          dropdown.classList.remove("active");
+        }
+      });
+      parent.classList.toggle("active");
+    });
+  });
 }
 
 function bindImagePreview() {
@@ -93,13 +113,20 @@ async function loadLastLogin() {
 }
 
 async function loadCurrentProfile() {
+  const mode = document.body.dataset.profileMode || "";
+
   try {
     const response = await window.ApiClient.get("user", "me");
     const data = response.data || {};
     const profile = data.profile || {};
 
     setValue("profileEmail", data.email || "");
-    setValue("profilePhone", profile.contact_number || "");
+    if (mode === "staff-edit") {
+      setValue("profileFullName", profile.display_name || "");
+      setValue("profileDepartmentInput", profile.department || "");
+    } else {
+      setValue("profilePhone", profile.contact_number || "");
+    }
     setProfilePreview(profile.profile_photo || "");
     setMessage("profileEditMessage", "", false);
   } catch (error) {
@@ -108,15 +135,23 @@ async function loadCurrentProfile() {
 }
 
 async function saveProfile() {
+  const mode = document.body.dataset.profileMode || "";
   const button = document.getElementById("profileSaveBtn");
   const phoneInput = document.getElementById("profilePhone");
   const phoneNumber = phoneInput ? phoneInput.value.trim() : "";
+  const fullName = getValue("profileFullName").trim();
+  const department = getValue("profileDepartmentInput").trim();
   const fileInput = document.getElementById("uploadImage");
   const selectedFile = fileInput && fileInput.files ? fileInput.files[0] : null;
 
   setMessage("profileEditMessage", "", false);
 
-  if (!phoneNumber) {
+  if (mode === "staff-edit") {
+    if (!fullName) {
+      setMessage("profileEditMessage", "Full name is required.", true);
+      return;
+    }
+  } else if (!phoneNumber) {
     setMessage("profileEditMessage", "Phone number is required.", true);
     return;
   }
@@ -134,9 +169,15 @@ async function saveProfile() {
   }
 
   try {
-    const response = await window.ApiClient.put("user", "updateMe", {
-      contact_number: phoneNumber
-    });
+    const payload = mode === "staff-edit"
+      ? {
+          full_name: fullName,
+          department
+        }
+      : {
+          contact_number: phoneNumber
+        };
+    const response = await window.ApiClient.put("user", "updateMe", payload);
 
     let photoUpdated = false;
     let photoError = "";
@@ -162,9 +203,14 @@ async function saveProfile() {
       }
     }
 
-    setValue("profilePhone", response.data?.contact_number || phoneNumber);
+    if (mode === "staff-edit") {
+      setValue("profileFullName", response.data?.full_name || fullName);
+      setValue("profileDepartmentInput", response.data?.department || department);
+    } else {
+      setValue("profilePhone", response.data?.contact_number || phoneNumber);
+    }
     if (photoError) {
-      setMessage("profileEditMessage", `Phone updated, but ${photoError}`, true);
+      setMessage("profileEditMessage", `Profile updated, but ${photoError}`, true);
       return;
     }
 

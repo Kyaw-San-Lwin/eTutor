@@ -82,17 +82,19 @@ class UserController
                 u.account_status,
                 {$profilePhotoSelect},
                 r.role_name,
-                COALESCE(s.full_name, t.full_name) AS full_name,
+                COALESCE(s.full_name, t.full_name, sf.full_name) AS full_name,
                 COALESCE(s.contact_number, t.contact_number) AS contact_number,
                 s.programme,
-                t.department,
+                COALESCE(t.department, sf.department) AS department,
                 s.student_id,
                 t.tutor_id,
+                sf.staff_id,
                 COALESCE(st.is_admin, 0) AS is_admin
             FROM users u
             JOIN roles r ON u.role_id = r.role_id
             LEFT JOIN students s ON s.user_id = u.user_id
             LEFT JOIN tutors t ON t.user_id = u.user_id
+            LEFT JOIN staff sf ON sf.user_id = u.user_id
             LEFT JOIN staff st ON st.user_id = u.user_id
             WHERE u.user_id = ?
             LIMIT 1
@@ -210,8 +212,8 @@ class UserController
     private function requireSelfEditableRole(array $user): string
     {
         $role = (string) ($user['role'] ?? '');
-        if (!in_array($role, ['student', 'tutor'], true)) {
-            Response::json(["success" => false, "message" => "Only student or tutor profiles can be edited here"], 403);
+        if (!in_array($role, ['student', 'tutor', 'staff'], true)) {
+            Response::json(["success" => false, "message" => "Only student, tutor, or staff profiles can be edited here"], 403);
         }
 
         return $role;
@@ -253,7 +255,8 @@ class UserController
                 "programme" => $row['programme'] ?? null,
                 "department" => $row['department'] ?? null,
                 "student_id" => $studentId > 0 ? $studentId : null,
-                "tutor_id" => $tutorId > 0 ? $tutorId : null
+                "tutor_id" => $tutorId > 0 ? $tutorId : null,
+                "staff_id" => (int) ($row['staff_id'] ?? 0) > 0 ? (int) $row['staff_id'] : null
             ]
         ];
 
@@ -273,32 +276,62 @@ class UserController
             return;
         }
 
-        if (!array_key_exists('contact_number', $data)) {
-            Response::json(["success" => false, "message" => "contact_number is required"], 400);
-            return;
-        }
-
-        $contactNumber = trim((string) $data['contact_number']);
-        if ($contactNumber === '') {
-            Response::json(["success" => false, "message" => "Phone number is required"], 400);
-            return;
-        }
-
-        if (mb_strlen($contactNumber) > 30) {
-            Response::json(["success" => false, "message" => "Phone number is too long"], 400);
-            return;
-        }
-
-        $table = $role === 'student' ? 'students' : 'tutors';
         $userId = (int) $authUser['user_id'];
 
-        $stmt = $this->conn->prepare("UPDATE {$table} SET contact_number = ? WHERE user_id = ?");
+        if ($role === 'staff') {
+            $fullName = trim((string) ($data['full_name'] ?? ''));
+            $department = trim((string) ($data['department'] ?? ''));
+            if ($fullName === '') {
+                Response::json(["success" => false, "message" => "full_name is required"], 400);
+                return;
+            }
+
+            if (mb_strlen($fullName) > 100) {
+                Response::json(["success" => false, "message" => "full_name is too long"], 400);
+                return;
+            }
+            if (mb_strlen($department) > 100) {
+                Response::json(["success" => false, "message" => "department is too long"], 400);
+                return;
+            }
+
+            $stmt = $this->conn->prepare("UPDATE staff SET full_name = ?, department = ? WHERE user_id = ?");
+            if (!$stmt) {
+                Response::json(["success" => false, "message" => "Failed to prepare profile update"], 500);
+                return;
+            }
+            $stmt->bind_param("ssi", $fullName, $department, $userId);
+        } else {
+            if (!array_key_exists('contact_number', $data)) {
+                Response::json(["success" => false, "message" => "contact_number is required"], 400);
+                return;
+            }
+
+            $contactNumber = trim((string) $data['contact_number']);
+            if ($contactNumber === '') {
+                Response::json(["success" => false, "message" => "Phone number is required"], 400);
+                return;
+            }
+
+            if (mb_strlen($contactNumber) > 30) {
+                Response::json(["success" => false, "message" => "Phone number is too long"], 400);
+                return;
+            }
+
+            $table = $role === 'student' ? 'students' : 'tutors';
+            $stmt = $this->conn->prepare("UPDATE {$table} SET contact_number = ? WHERE user_id = ?");
+            if (!$stmt) {
+                Response::json(["success" => false, "message" => "Failed to prepare profile update"], 500);
+                return;
+            }
+            $stmt->bind_param("si", $contactNumber, $userId);
+        }
+
         if (!$stmt) {
             Response::json(["success" => false, "message" => "Failed to prepare profile update"], 500);
             return;
         }
 
-        $stmt->bind_param("si", $contactNumber, $userId);
         if (!$stmt->execute()) {
             Response::json(["success" => false, "message" => "Failed to update profile"], 500);
             return;
@@ -311,6 +344,18 @@ class UserController
         }
 
         $this->safeLogActivity("User Update Me", "Updated own profile");
+        if ($role === 'staff') {
+            Response::json([
+                "success" => true,
+                "message" => "Profile updated successfully",
+                "data" => [
+                    "full_name" => (string) ($profile['full_name'] ?? ''),
+                    "department" => (string) ($profile['department'] ?? '')
+                ]
+            ]);
+            return;
+        }
+
         Response::json([
             "success" => true,
             "message" => "Profile updated successfully",
@@ -442,9 +487,24 @@ class UserController
         $offset = $pagination['offset'];
 
         $sql = "
-            SELECT u.user_id, u.user_name, u.email, r.role_name, u.account_status
+            SELECT
+                u.user_id,
+                u.user_name,
+                u.email,
+                r.role_name,
+                u.account_status,
+                s2.staff_id,
+                s.student_id,
+                t.tutor_id,
+                COALESCE(s.full_name, t.full_name, s2.full_name, u.user_name) AS full_name,
+                COALESCE(s.contact_number, t.contact_number) AS contact_number,
+                s.programme,
+                COALESCE(t.department, s2.department) AS department
             FROM users u
             JOIN roles r ON u.role_id = r.role_id
+            LEFT JOIN students s ON s.user_id = u.user_id
+            LEFT JOIN tutors t ON t.user_id = u.user_id
+            LEFT JOIN staff s2 ON s2.user_id = u.user_id
         ";
         if (!$includeInactive) {
             $sql .= " WHERE u.account_status = 'active' ";

@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="../../Css/Sidebar.css">
     <link rel="stylesheet" href="../../Css/Student_List.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="../../assets/js/core/config.js"></script>
+    <script src="../../assets/js/core/storage.js"></script>
+    <script src="../../assets/js/core/apiClient.js"></script>
+    <script src="../../assets/js/core/auth.js"></script>
+    <script src="../../assets/js/features/staff-allocation-page.js"></script>
 </head>
 
 <body class="bg-gray-100">
@@ -102,7 +107,7 @@
 
                 <div class="last-login">
                     <p>Last Login</p>
-                    <p>03/07/26</p>
+                    <p id="lastLoginValue">Loading...</p>
                 </div>
 
             </nav>
@@ -113,6 +118,7 @@
 
             <h1 class="text-2xl font-bold mb-2">Tutor Allocation</h1>
             <p class="text-gray-500 mb-4">Assign tutors to students</p>
+            <p id="allocationStatus" class="text-sm mt-2"></p>
 
             <!-- Search Bar -->
             <div class="search-bar">
@@ -171,8 +177,8 @@
 
                     <!-- Buttons -->
                     <div class="flex justify-end gap-3">
-                        <button onclick="closeModal()" class="cancel-btn">Cancel</button>
-                        <button onclick="confirmAssign()" class="confirm-btn">Confirm</button>
+                        <button id="closeAssignModalBtn" type="button" class="cancel-btn">Cancel</button>
+                        <button id="confirmAssignBtn" type="button" class="confirm-btn">Confirm</button>
                     </div>
 
                 </div>
@@ -182,136 +188,6 @@
         </main>
 
     </div>
-
-<script>
-
-    document.querySelectorAll(".dropdown-toggle").forEach(item => {
-        item.addEventListener("click", function () {
-            const parent = this.parentElement;
-
-            // Close others
-            document.querySelectorAll(".dropdown").forEach(d => {
-                if (d !== parent) {
-                    d.classList.remove("active");
-                }
-            });
-
-            // Toggle current
-            parent.classList.toggle("active");
-        });
-    });
-
-    /* Example student data */
-    const students = [
-        {
-            name:"Yun Aeindary Oo",
-            program:"Computing",
-            year:"Year 1",
-            image:"../../Images/profile.jpg"
-        },
-        {
-            name:"Hnin Yati",
-            program:"Business",
-            year:"Year 2",
-            image:"../../Images/profile 2.jpg"
-        },
-        {
-            name:"Tunn Lin Naing",
-            program:"Networking",
-            year:"Year 1",
-            image:"../../Images/profile.jpg"
-        },
-        {
-            name:"Kyaw San Lwin",
-            program:"Cyber Security",
-            year:"Year 3",
-            image:"../../Images/profile 2.jpg"
-        },
-        {
-            name:"Sai Thiha Aung",
-            program:"Computing",
-            year:"Year 2",
-            image:"../../Images/profile.jpg"
-        },
-        {
-            name:"Hein Khant Thura",
-            program:"Business",
-            year:"Year 1",
-            image:"../../Images/profile 2.jpg"
-        }
-    ];
-
-    /* Display students */
-    function displayStudents(){
-
-        const table = document.getElementById("studentTable");
-        const search = document.getElementById("searchInput").value.toLowerCase();
-        const filter = document.getElementById("filterProgram").value.toLowerCase();
-
-        table.innerHTML = "";
-
-        students.forEach(student => {
-
-            if(!student.name.toLowerCase().includes(search) &&
-            !student.program.toLowerCase().includes(search)) return;
-
-            if(filter !== "all" && student.program.toLowerCase() !== filter) return;
-
-            table.innerHTML += `
-                <tr>
-                    <td class="student-name">
-                        <img src="${student.image}" class="student-avatar">
-                        ${student.name}
-                    </td>
-                    <td>${student.program}</td>
-                    <td>${student.year}</td>
-                    <td>
-                        <button class="assign-btn" onclick="openModal('${student.name}','${student.program}')">Assign</button>
-                    </td>
-                </tr>
-            `;
-
-        });
-
-    }
-
-    /* Search event */
-    document.getElementById("searchInput").addEventListener("keyup", displayStudents);
-
-    /* Filter event */
-    document.getElementById("filterProgram").addEventListener("change", displayStudents);
-
-    /* Initial display */
-    displayStudents();
-
-    let currentStudentIndex = null;
-
-    function openModal(name, program){
-        document.getElementById("assignModal").classList.remove("hidden");
-
-        document.getElementById("modalName").textContent = name;
-        document.getElementById("modalProgram").textContent = program;
-    }
-
-    function closeModal(){
-        document.getElementById("assignModal").classList.add("hidden");
-    }
-
-    function confirmAssign(){
-
-        const tutor = document.getElementById("tutorSelect").value;
-
-        if(tutor === ""){
-            alert("Please select a tutor!");
-            return;
-        }
-
-        alert("Tutor assigned successfully!");
-
-        closeModal();
-    }
-
-</script>
 
 </body>
 </html>

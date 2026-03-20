@@ -8,9 +8,14 @@
     <link rel="stylesheet" href="../../Css/Sidebar.css">
     <link rel="stylesheet" href="../../Css/Tutor_Document.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="../../assets/js/core/config.js"></script>
+    <script src="../../assets/js/core/storage.js"></script>
+    <script src="../../assets/js/core/apiClient.js"></script>
+    <script src="../../assets/js/core/auth.js"></script>
+    <script src="../../assets/js/features/document-page.js"></script>
 </head>
 
-<body class="bg-gray-200">
+<body class="bg-gray-200" data-document-role="tutor">
 
     <div class="flex min-h-screen">
 
@@ -71,7 +76,7 @@
 
                 <div class="last-login">
                     <p>Last Login</p>
-                    <p>03/07/26</p>
+                    <p id="lastLoginValue">Loading...</p>
                 </div>
 
             </nav>
@@ -92,6 +97,7 @@
                 <i class="bi bi-search"></i>
                 <input type="text" id="searchInput" placeholder="Search for a file by name or date">
             </div>
+            <p id="documentStatus" class="text-sm mt-2"></p>
 
             <table>
 
@@ -115,9 +121,10 @@
         <div id="studentProfile" class="student-profile">
 
             <div class="profile-card">
-                <img src="../../Images/profile.jpg">
+                <img id="studentProfileImage" src="../../Images/profile.jpg" alt="Student profile">
                 <h3 id="studentName">Student Name</h3>
-                <button onclick="goMessage()" class="message-btn">
+                <p id="studentMeta"></p>
+                <button id="studentMessageBtn" type="button" class="message-btn">
                     <i class="bi bi-chat-dots"></i>
                 </button>
             </div>
@@ -125,119 +132,5 @@
         </div>
 
     </div>
-
-<script>
-
-    /* Default file list */
-    const defaultFiles = [
-
-        {
-            student:"Yun Aeindary Oo",
-            name:"Sample Document.pdf",
-            data:"https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-            date:"09/03/2026",
-            view:false
-        },
-
-        {
-            student:"Hnin Yati",
-            name:"Lecture Notes.docx",
-            data:"https://file-examples.com/wp-content/uploads/2017/02/file-sample_100kB.doc",
-            date:"08/30/2026",
-            view:false
-        },
-
-        {
-            student:"Tunn Lin Naing",
-            name:"Presentation.pptx",
-            data:"https://file-examples.com/wp-content/uploads/2017/08/file_example_PPT_250kB.ppt",
-            date:"09/01/2026",
-            view:false
-        }
-
-    ];
-
-    /* Load saved files */
-    let files = JSON.parse(localStorage.getItem("files"));
-
-    /* If no data OR old data without student field */
-    if(!files || !files[0].student){
-
-        files = defaultFiles;
-        localStorage.setItem("files",JSON.stringify(files));
-
-    }
-
-    /* Display files */
-    function displayFiles(){
-
-        const table = document.getElementById("fileTable");
-        const search = document.getElementById("searchInput").value.toLowerCase();
-        const filter = document.getElementById("filter").value.toLowerCase();
-
-        table.innerHTML="";
-
-            files.forEach((file,index)=>{
-
-                if(!file.name.toLowerCase().includes(search) && !file.date.includes(search)) return;
-                if(filter!=="all" && !file.name.toLowerCase().endsWith(filter)) return;
-
-                table.innerHTML += `
-
-                    <tr>
-                        <td class="student-name" onclick="openProfile('${file.student}')">${file.student}</td>
-                        <td class="file-name" onclick="viewFile(${index})">${file.name}</td>
-                        <td>${file.date}</td>
-                        <td>
-                            <a href="${file.data}" download="${file.name}" class="download-btn">
-                            Download
-                            </a>
-                        </td>
-                        <td>${file.view ? '<i class="bi bi-eye"></i>' : ''}</td>
-                    </tr>
-
-                `;
-
-            });
-
-    }
-
-    /* Mark viewed */
-    function viewFile(index){
-        files[index].view=true;
-        localStorage.setItem("files",JSON.stringify(files));
-        displayFiles();
-    }
-
-    /* Search events */
-    document.getElementById("searchInput").addEventListener("keyup",displayFiles);
-    document.getElementById("filter").addEventListener("change",displayFiles);
-
-    /* Open profile */
-    function openProfile(name){
-        document.getElementById("studentName").innerText=name;
-        document.getElementById("studentProfile").classList.add("show");
-    }
-
-    /* Message button */
-    function goMessage(){
-        window.location.href="./Tutor_Messaging.html";
-    }
-
-    /* Close profile */
-    document.addEventListener("click",function(e){
-
-        const panel=document.getElementById("studentProfile");
-
-        if(!panel.contains(e.target) && !e.target.classList.contains("student-name")){
-            panel.classList.remove("show");
-        }
-
-    });
-
-    displayFiles();
-
-</script>
-
 </body>
 </html>

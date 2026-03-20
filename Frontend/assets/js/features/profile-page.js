@@ -4,16 +4,23 @@ document.addEventListener("DOMContentLoaded", async function () {
     return;
   }
 
-  const allowedRoles = mode === "tutor-self" ? ["tutor"] : ["student"];
+  const roleMap = {
+    "student-self": ["student"],
+    "student-tutor": ["student"],
+    "tutor-self": ["tutor"],
+    "staff-self": ["staff"]
+  };
+  const allowedRoles = roleMap[mode] || [];
   const user = window.Auth.requireAuth(allowedRoles);
   if (!user) {
     return;
   }
 
   bindLogout();
+  bindDropdowns();
   await loadLastLogin();
 
-  if (mode === "student-self" || mode === "tutor-self") {
+  if (mode === "student-self" || mode === "tutor-self" || mode === "staff-self") {
     await loadSelfProfile();
     return;
   }
@@ -33,6 +40,20 @@ function bindLogout() {
   }
 }
 
+function bindDropdowns() {
+  document.querySelectorAll(".dropdown-toggle").forEach(function (item) {
+    item.addEventListener("click", function () {
+      const parent = this.parentElement;
+      document.querySelectorAll(".dropdown").forEach(function (dropdown) {
+        if (dropdown !== parent) {
+          dropdown.classList.remove("active");
+        }
+      });
+      parent.classList.toggle("active");
+    });
+  });
+}
+
 async function loadLastLogin() {
   const target = document.getElementById("lastLoginValue");
   if (!target) {
@@ -48,13 +69,18 @@ async function loadLastLogin() {
 }
 
 async function loadSelfProfile() {
+  const mode = document.body.dataset.profileMode || "";
+
   try {
     const response = await window.ApiClient.get("user", "me");
     const data = response.data || {};
     const profile = data.profile || {};
 
     setText("profileName", profile.display_name || data.user_name || "N/A");
-    setText("profilePhone", profile.contact_number || "N/A");
+    const secondary = mode === "staff-self"
+      ? (data.user_name || "N/A")
+      : (profile.contact_number || "N/A");
+    setText("profilePhone", secondary);
     setText("profileEmail", data.email || "N/A");
     setProfileImage(profile.profile_photo || "");
 
@@ -62,11 +88,13 @@ async function loadSelfProfile() {
     const departmentValue = profile.department || "N/A";
     const userNameValue = data.user_name || "N/A";
 
-    if (document.body.dataset.profileMode === "student-self") {
+    if (mode === "student-self") {
       setText("profileThirdValue", programmeValue);
-    } else {
+    } else if (mode === "tutor-self") {
       setText("profileThirdValue", userNameValue);
       setText("profileDepartment", departmentValue);
+    } else {
+      setText("profileThirdValue", departmentValue);
     }
   } catch (error) {
     renderProfileError(error.message || "Unable to load profile.");

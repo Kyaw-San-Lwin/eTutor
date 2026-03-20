@@ -8,9 +8,14 @@
   <link rel="stylesheet" href="../../Css/Sidebar.css">
   <link rel="stylesheet" href="../../Css/Meeting.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="../../assets/js/core/config.js"></script>
+  <script src="../../assets/js/core/storage.js"></script>
+  <script src="../../assets/js/core/apiClient.js"></script>
+  <script src="../../assets/js/core/auth.js"></script>
+  <script src="../../assets/js/features/meeting-page.js"></script>
 </head>
 
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-100 font-sans" data-meeting-role="student">
 
     <div class="flex min-h-screen">
 
@@ -79,49 +84,14 @@
 
                 <div class="last-login">
                     <p>Last Login</p>
-                    <p>03/07/26</p>
+                    <p id="lastLoginValue">Loading...</p>
                 </div>
 
             </nav>
         </aside>
 
         <!-- Main Content -->
-        <main class="meeting-main flex-1 p-10">
-
-            <!-- Meeting Post Card -->
-            <div class="meeting-card">
-            
-                <div class="flex items-center gap-4 mb-4">
-                    <img src="../../Images/profile 2.jpg" alt="Tutor Profile" class="profile-pic">
-                    <div>
-                        <p class="tutor-name">Moe Thant Oo</p>
-                        <p class="tutor-email">example@gmail.com</p>
-                    </div>
-                </div>
-
-                <!-- Message Section -->
-                <div class="message-section">
-                    <p class="message-text">We will meet at 1:20 PM today!</p>
-                    <p class="message-time">Sent: 09/03/2026 12:45 PM</p>
-                </div>
-
-            </div>
-
-            <div class="meeting-card">
-                <div class="flex items-center gap-4 mb-4">
-                    <img src="../../Images/profile 2.jpg" alt="Tutor Profile" class="profile-pic">
-                    <div>
-                        <p class="tutor-name">Moe Thant Oo</p>
-                        <p class="tutor-email">example@gmail.com</p>
-                    </div>
-                </div>
-                <div class="message-section">
-                    <p class="message-text">We will meet at 3:00 PM! Team Link: https://teams.microsoft.com/meet/47569656290709?p=nlvhhTcptsizbx4ufi</p>
-                    <p class="message-time">Sent: 09/03/2026 10:15 AM</p>
-                </div>
-            </div>
-
-        </main>
+        <main id="meetingContainer" class="meeting-main flex-1 p-10"></main>
 </div>
 
 </body>
