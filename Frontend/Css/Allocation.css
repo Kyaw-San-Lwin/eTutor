@@ -1,95 +1,208 @@
-/* Search Bar */
-.search-bar {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    margin-bottom: 1rem;
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
 }
 
-.search-filter {
-    padding: 0.5rem;
-    border-radius: 0.375rem;
-    border: 1px solid #d1d5db;
+/* MAIN CONTENT */
+.doc-main{
+    flex:1;
+    padding:40px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    align-items:center;
 }
 
-/* Make input stretch */
-.search-input-container {
-    position: relative;
-    flex: 1;
+/* SEARCH BAR */
+.search-bar{
+    width:100%;
+    max-width:1000px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:white;
+    padding:12px;
+    border-radius:6px;
+    border:1px solid #ccc;
 }
 
-.search-input {
-    width: 100%;
-    padding: 0.5rem 2.5rem 0.5rem 0.5rem;
-    border-radius: 0.375rem;
-    border: 1px solid #d1d5db;
+.search-bar select{
+    border:1px solid #ccc;
+    padding:6px;
+    border-radius:4px;
 }
 
-.search-icon {
-    position: absolute;
-    right: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #6b7280;
-    pointer-events: none;
+.search-bar input{
+    flex:1;
+    border:none;
+    outline:none;
+    font-size:14px;
 }
 
-/* Table */
-table {
-    width: 100%;
-    border-collapse: collapse;
+/* TABLE */
+.table-container{
+    width:100%;
+    max-width:1000px;
+    overflow-x:auto;
 }
 
-th, td {
-    padding: 0.75rem;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: left;
+table{
+    width:100%;
+    min-width:700px;
+    background:white;
+    border-collapse:collapse;
+    border:1px solid #ccc;
 }
 
-th { background-color: #f9fafb; }
-
-/* Avatar + Name together */
-td .student-avatar-name {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+thead{
+    background:#879abf;
+    color:black;
 }
 
-.student-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
+th, td{
+    border:1px solid #ccc;
+    padding:10px;
+    text-align:left;
+    white-space:nowrap;
 }
 
-/* Buttons */
-.assign-btn, .confirm-btn, .cancel-btn {
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    cursor: pointer;
+th{
+    font-weight:600;
 }
 
-.cancel-btn { background-color: #ef4444; }
-
-/* Modal */
-.modal {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 50;
+/* NAME + AVATAR */
+.student-name{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:#2563eb;
+    font-weight:500;
 }
 
-.modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 0.5rem;
-    width: 400px;
+.student-name:hover{
+    text-decoration:underline;
 }
 
-.hidden { display: none; }
+/* AVATAR */
+.student-avatar{
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    object-fit:cover;
+}
+
+/* CHECKBOX ALIGN */
+td input[type="checkbox"], th input[type="checkbox"]{
+    transform:scale(1.1);
+    cursor:pointer;
+}
+
+/* MODAL */
+.modal{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.4);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+}
+
+.hidden{
+    display:none;
+}
+
+.modal-content{
+    background:white;
+    padding:25px;
+    border-radius:10px;
+    width:90%;
+    max-width:400px;
+}
+
+/* BUTTONS */
+/* SMALL ASSIGN BUTTONS IN TABLE */
+.assign-btn{
+    background:#1e3a8a;
+    color:white;
+    padding:4px 10px;   /* small padding */
+    border-radius:5px;
+    font-size:12px;     /* small text */
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.assign-btn:hover{
+    background:#1e40af;
+}
+
+/* BIG ASSIGN SELECTED BUTTON */
+.multi-assign-btn{
+    background:#1e3a8a;
+    color:white;
+    padding:10px 20px;  /* bigger padding */
+    border-radius:6px;
+    font-size:16px;     /* bigger text */
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.multi-assign-btn:hover{
+    background:#1e40af;
+}
+
+.confirm-btn{
+    background:#1e3a8a;
+    color:white;
+    padding:6px 15px;
+    border-radius:6px;
+}
+
+.cancel-btn{
+    background:#e5e7eb;
+    padding:6px 15px;
+    border-radius:6px;
+}
+
+/* RESPONSIVE */
+@media (max-width:1024px){
+    .doc-main{
+        padding:25px;
+    }
+
+    th, td{
+        padding:8px;
+        font-size:14px;
+    }
+}
+
+@media (max-width:768px){
+
+    .doc-main{
+        padding:15px;
+    }
+
+    .search-bar{
+        flex-wrap:wrap;
+    }
+
+    th, td{
+        font-size:12px;
+        padding:6px;
+    }
+
+    .student-avatar{
+        width:24px;
+        height:24px;
+    }
+
+    /* Make multi-assign button full width on mobile */
+    .multi-assign-btn{
+        width:100%;
+        text-align:center;
+    }
+}
