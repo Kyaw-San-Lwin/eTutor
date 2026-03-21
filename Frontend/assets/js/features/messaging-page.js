@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", async function () {
-  const user = window.Auth.requireAuth(["student", "tutor"]);
+  const user = window.Auth.requireAuth(["student", "tutor", "staff"]);
   if (!user) {
     return;
   }
@@ -178,6 +178,31 @@ async function loadBaseContacts(user) {
         avatar: index % 2 === 0 ? "../../Images/profile 2.jpg" : "../../Images/profile.jpg"
       };
     });
+  }
+
+  if (user.role === "staff") {
+    const response = await window.ApiClient.get("user", "", { limit: 500, offset: 0 });
+    const rows = Array.isArray(response.data) ? response.data : [];
+
+    return rows
+      .filter(function (row) {
+        const rowUserId = Number(row.user_id);
+        const rowRole = String(row.role_name || "").toLowerCase();
+        return rowUserId > 0 && rowUserId !== Number(user.user_id || user.id || 0)
+          && (rowRole === "student" || rowRole === "tutor");
+      })
+      .map(function (row, index) {
+        const roleLabel = String(row.role_name || "").toLowerCase();
+        return {
+          id: Number(row.user_id),
+          name: row.full_name || row.user_name || "User",
+          email: row.email || "",
+          subtitle: roleLabel === "student"
+            ? (row.programme || "Student")
+            : (row.department || "Tutor"),
+          avatar: index % 2 === 0 ? "../../Images/profile 2.jpg" : "../../Images/profile.jpg"
+        };
+      });
   }
 
   return [];

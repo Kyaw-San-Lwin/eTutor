@@ -7,7 +7,7 @@ if ($dbPass === false) {
     $dbPass = "";
 }
 $dbName = getenv("ETUTOR_DB_NAME") ?: "etutor";
-$dbPort = (int) (getenv("ETUTOR_DB_PORT") ?: 3306);
+$dbPort = (int) (getenv("ETUTOR_DB_PORT") ?: 3307);
 
 $conn = new mysqli($dbHost, $dbUser, $dbPass, $dbName, $dbPort);
 
