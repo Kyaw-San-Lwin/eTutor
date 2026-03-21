@@ -6,12 +6,13 @@
   <title>Create Account</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../../Css/Sidebar.css">
+  <link rel="stylesheet" href="../../Css/Register.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 
 <body class="bg-gray-100 font-sans">
 
-  <div class="flex h-screen">
+  <div class="flex min-h-screen">
 
     <!-- Sidebar -->
     <aside class="sidebar bg-white border-r">
@@ -108,83 +109,93 @@
       </nav>
     </aside>
 
-    <!-- Main Content -->
+    <!-- Main -->
     <div class="flex-1 flex justify-center items-center">
 
-      <!-- Form Container -->
-      <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 mt-16 mb-16">
+      <div class="form-container">
 
-        <!-- Title -->
-        <div class="text-center mb-6">
-            <h1 class="text-3xl font-bold text-indigo-700 flex items-center justify-center gap-2">
-                <img src="../../Images/KMD Logo.jpg" class="w-30 h-20 object-contain"> College
-            </h1>
-            <p class="text-gray-500 text-sm">Create User Account</p>
+        <div class="form-header">
+          <h1>
+            <img src="../../Images/KMD Logo.jpg"> College
+          </h1>
+          <p>Create User Account</p>
         </div>
 
-        <!-- Form -->
         <form id="registerForm">
 
-          <!-- Full Name -->
-          <div class="mb-4">
-            <label class="block text-gray-600 mb-1">Full Name</label>
-            <input type="text" id="name" placeholder="Enter Full Name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0054a7]">
-            <p id="nameError" class="text-red-500 text-sm"></p>
+          <div class="input-group">
+            <label>Full Name</label>
+            <input type="text" id="name" placeholder="Enter full name">
+            <p id="nameError"></p>
           </div>
 
-          <!-- Email -->
-          <div class="mb-4">
-            <label class="block text-gray-600 mb-1">Email</label>
-            <input type="email" id="email" placeholder="Enter Email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0054a7]">
-            <p id="emailError" class="text-red-500 text-sm"></p>
+          <div class="input-group">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="Enter email">
+            <p id="emailError"></p>
           </div>
 
-          <!-- Phone Number -->
-          <div class="mb-4">
-            <label class="block text-gray-600 mb-1">Phone Number</label>
-            <input type="text" id="phNum" placeholder="Enter Phone Number" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0054a7]">
-            <p id="emailError" class="text-red-500 text-sm"></p>
+          <div class="input-group">
+            <label>Phone Number</label>
+            <input type="text" id="phNum" placeholder="Enter phone number">
+            <p id="phoneError"></p>
           </div>
 
-          <!-- Role -->
-          <div class="mb-4">
-            <label class="block text-gray-600 mb-1">Select Role</label>
-            <select id="role" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0054a7]">
+          <!-- ROLE -->
+          <div class="input-group">
+            <label>Role</label>
+            <select id="role">
+              <option value="" disabled selected>Select Role</option>
               <option>Student</option>
               <option>Tutor</option>
               <option>Staff</option>
-              <option>Admin</option>
             </select>
           </div>
 
-          <!-- Department (Hidden by default) -->
-          <div id="departmentContainer" class="mb-4 hidden">
-            <label class="block text-gray-600 mb-1">Department</label>
-            <select id="department" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0054a7]">
+          <!-- PROGRAM -->
+          <div id="programContainer" class="input-group hidden">
+            <label>Program</label>
+            <select id="program">
+              <option value="" disabled selected>Select program</option>
               <option>Computer Science</option>
               <option>Business</option>
               <option>Engineering</option>
               <option>Foundation</option>
             </select>
-            <p id="departmentError" class="text-red-500 text-sm"></p>
           </div>
 
-          <!-- Password -->
-          <div class="mb-4">
-            <label class="block text-gray-600 mb-1">Password</label>
-            <input type="password" id="password" placeholder="Enter Password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0054a7]">
-            <p id="passwordError" class="text-red-500 text-sm"></p>
+          <!-- STAFF TYPE -->
+          <div id="staffTypeContainer" class="input-group hidden">
+            <label>Staff Type</label>
+            <select id="staffType">
+              <option value="" disabled selected>Select staff</option>
+              <option>Staff</option>
+              <option>Authorised Staff</option>
+            </select>
           </div>
 
-          <!-- Confirm Password -->
-          <div class="mb-6">
-            <label class="block text-gray-600 mb-1">Confirm Password</label>
-            <input type="password" id="confirmPassword" placeholder="Enter Confirm password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0054a7]">
-            <p id="confirmError" class="text-red-500 text-sm"></p>
+          <!-- DEPARTMENT -->
+          <div id="departmentContainer" class="input-group hidden">
+            <label>Department</label>
+            <select id="department">
+              <option value="" disabled selected>Select department</option>
+              <option>Computer Science</option>
+              <option>Business</option>
+              <option>Engineering</option>
+            </select>
           </div>
 
-          <!-- Button -->
-          <button class="w-full bg-[#0054a7] text-white py-2 rounded-lg hover:bg-[#003f7d]"> Create <i class="bi bi-box-arrow-in-right text-lg"></i> </button>
+          <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="Enter password">
+          </div>
+
+          <div class="input-group">
+            <label>Confirm Password</label>
+            <input type="password" id="confirmPassword" placeholder="Enter the same password">
+          </div>
+
+          <button class="submit-btn">Create</button>
 
         </form>
 
@@ -196,99 +207,77 @@
 
 <script>
 
-    document.querySelectorAll(".dropdown-toggle").forEach(item => {
-        item.addEventListener("click", function () {
-            const parent = this.parentElement;
+  document.querySelectorAll(".dropdown-toggle").forEach(item => {
+    item.addEventListener("click", function () {
+      const parent = this.parentElement;
 
-            // Close others
-            document.querySelectorAll(".dropdown").forEach(d => {
-                if (d !== parent) {
-                    d.classList.remove("active");
-                }
-            });
+      document.querySelectorAll(".dropdown").forEach(d => {
+        if (d !== parent) d.classList.remove("active");
+      });
 
-            // Toggle current
-            parent.classList.toggle("active");
-        });
+      parent.classList.toggle("active");
     });
+  });
 
   const roleSelect = document.getElementById("role");
+  const programContainer = document.getElementById("programContainer");
+  const staffTypeContainer = document.getElementById("staffTypeContainer");
   const deptContainer = document.getElementById("departmentContainer");
 
   roleSelect.addEventListener("change", function () {
-    const selectedRole = roleSelect.value;
+    const role = roleSelect.value;
 
-    if (selectedRole === "Staff" || selectedRole === "Admin") {
+    programContainer.classList.add("hidden");
+    staffTypeContainer.classList.add("hidden");
+    deptContainer.classList.add("hidden");
+
+    if (role === "Student" || role === "Tutor") {
+      programContainer.classList.remove("hidden");
+    }
+
+    if (role === "Staff") {
+      staffTypeContainer.classList.remove("hidden");
       deptContainer.classList.remove("hidden");
-    } else {
-      deptContainer.classList.add("hidden");
     }
   });
 
-    document.getElementById("registerForm").addEventListener("submit", function(e){
-      e.preventDefault();
+  document.getElementById("registerForm").addEventListener("submit", function(e){
+    e.preventDefault();
 
-      let name = document.getElementById("name").value.trim();
-      let email = document.getElementById("email").value.trim();
-      let role = document.getElementById("role").value;
-      let password = document.getElementById("password").value;
-      let confirmPassword = document.getElementById("confirmPassword").value;
-      let department = document.getElementById("department").value;
+    let name = document.getElementById("name").value.trim();
+    let email = document.getElementById("email").value.trim();
+    let password = document.getElementById("password").value;
+    let confirmPassword = document.getElementById("confirmPassword").value;
 
-      let valid = true;
+    let valid = true;
 
-      // Reset errors
-      document.getElementById("nameError").textContent = "";
-      document.getElementById("emailError").textContent = "";
-      document.getElementById("passwordError").textContent = "";
-      document.getElementById("confirmError").textContent = "";
-      document.getElementById("departmentError").textContent = "";
+    document.getElementById("nameError").textContent = "";
+    document.getElementById("emailError").textContent = "";
 
-      // Name validation
-      if (name === "") {
-        document.getElementById("nameError").textContent = "Please enter your name!";
-        valid = false;
-      }
+    if (name === "") {
+      document.getElementById("nameError").textContent = "Please enter your name!";
+      valid = false;
+    }
 
-      // Email validation
-      if (!email.includes("@")) {
-        document.getElementById("emailError").textContent = "Please enter valid email!";
-        valid = false;
-      }
+    if (!email.includes("@")) {
+      document.getElementById("emailError").textContent = "Please enter valid email!";
+      valid = false;
+    }
 
-      // Password validation
-      if (password.length < 6) {
-        document.getElementById("passwordError").textContent = "Password must be at least 6 characters!";
-        valid = false;
-      }
+    if (password.length < 6) {
+      valid = false;
+    }
 
-      // Confirm password
-      if (password !== confirmPassword) {
-        document.getElementById("confirmError").textContent = "Passwords do not match!";
-        valid = false;
-      }
+    if (password !== confirmPassword) {
+      valid = false;
+    }
 
-      // department validation
-      if ((role === "Staff" || role === "Admin") && department === "") {
-        document.getElementById("departmentError").textContent = "Please select a department!";
-        valid = false;
-      }
+    if (!valid) return;
 
-      if (!valid) return;
-
-      // Save user (for demo purposes)
-      let user = {
-        name: name,
-        email: email,
-        role: role,
-        department: department,
-        password: password
-      };
-
-      alert("User account created successfully!");
-      window.location.href = "./Register.html";
-    });
-  </script>
+    alert("User created!");
+  });
+    
+</script>
 
 </body>
 </html>

@@ -5,312 +5,207 @@
     <title>Tutor Allocation</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../../Css/Sidebar.css">
-    <link rel="stylesheet" href="../../Css/Student_List.css">
+    <link rel="stylesheet" href="../../Css/Allocation.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 
 <body class="bg-gray-100">
 
-    <div class="flex min-h-screen">
+<div class="flex min-h-screen">
 
-        <!-- Sidebar -->
-        <aside class="sidebar bg-white border-r">
+    <!-- Sidebar -->
+    <aside class="sidebar bg-white border-r">
+        <div class="logo-container">
+            <img src="../../Images/KMD Logo.jpg">
+            <h1 class="logo-text">College</h1>
+        </div>
 
-            <!-- Logo -->
-            <div class="logo-container">
-                <img src="../../Images/KMD Logo.jpg">
-                <h1 class="logo-text">College</h1>
+        <nav class="flex-1 p-4 space-y-1 text-black">
+            <a href="./Staff_Dashboard.html" class="nav-item">
+                <i class="bi bi-tv"></i><span class="menu-text">Dashboard</span>
+            </a>
+            <a href="./Staff_Profile.html" class="nav-item">
+                <i class="bi bi-person-circle"></i><span class="menu-text">Profile</span>
+            </a>
+            <a href="./Edit_Profile.html" class="nav-item">
+                <i class="bi bi-pencil-square"></i><span class="menu-text">Edit Profile</span>
+            </a>
+            <a href="../Auth/Register.html" class="nav-item">
+                <i class="bi bi-pencil-square"></i><span class="menu-text">Create Account</span>
+            </a>
+
+            <!-- USERS DROPDOWN -->
+            <div class="dropdown">
+                <div class="nav-item dropdown-toggle">
+                    <i class="bi bi-people-fill"></i><span class="menu-text">Users</span>
+                    <i class="bi bi-chevron-down arrow"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="./Student_List.html"><i class="bi bi-person"></i><span class="menu-text">Students</span></a>
+                    <a href="./Tutor_List.html"><i class="bi bi-person-badge"></i><span class="menu-text">Tutors</span></a>
+                </div>
             </div>
 
-            <!-- Navigation -->
-            <nav class="flex-1 p-4 space-y-1 text-black">
-
-                <a href="./Staff_Dashboard.html" class="nav-item">
-                    <i class="bi bi-tv"></i>
-                    <span class="menu-text">Dashboard</span>
-                </a>
-
-                <a href="./Staff_Profile.html" class="nav-item">
-                    <i class="bi bi-person-circle"></i>
-                    <span class="menu-text">Profile</span>
-                </a>
-
-                <a href="./Edit_Profile.html" class="nav-item">
-                    <i class="bi bi-pencil-square"></i>
-                    <span class="menu-text">Edit Profile</span>
-                </a>
-
-                <a href="../Auth/Register.html" class="nav-item">
-                    <i class="bi bi-pencil-square"></i>
-                    <span class="menu-text">Create Account</span>
-                </a>
-
-                <!-- USERS DROPDOWN -->
-                <div class="dropdown">
-                    <div class="nav-item dropdown-toggle">
-                        <i class="bi bi-people-fill"></i>
-                        <span class="menu-text">Users</span>
-                        <i class="bi bi-chevron-down arrow"></i>
-                    </div>
-
-                    <div class="dropdown-menu">
-                        <a href="./Student_List.html">
-                            <i class="bi bi-person"></i>
-                            <span class="menu-text">Students</span>
-                        </a>
-                        <a href="./Tutor_List.html">
-                            <i class="bi bi-person-badge"></i>
-                            <span class="menu-text">Tutors</span>
-                        </a>
-                    </div>
+            <!-- PERSONAL TUTOR DROPDOWN -->
+            <div class="dropdown">
+                <div class="nav-item active dropdown-toggle">
+                    <i class="bi bi-chat-left-dots"></i><span class="menu-text">Personal Tutor</span>
+                    <i class="bi bi-chevron-down arrow"></i>
                 </div>
-
-                <!-- PERSONAL TUTOR DROPDOWN -->
-                <div class="dropdown">
-                    <div class="nav-item active dropdown-toggle">
-                        <i class="bi bi-chat-left-dots"></i>
-                        <span class="menu-text">Personal Tutor</span>
-                        <i class="bi bi-chevron-down arrow"></i>
-                    </div>
-
-                    <div class="dropdown-menu">
-                        <a href="./Allocation.html">
-                            <i class="bi bi-diagram-3"></i>
-                            <span class="menu-text">Tutor Allocation</span>
-                        </a>
-                        <a href="./Reallocation.html">
-                            <i class="bi bi-arrow-repeat"></i>
-                            <span class="menu-text">Tutor Reallocation</span>
-                        </a>
-                    </div>
+                <div class="dropdown-menu">
+                    <a href="./Allocation.html"><i class="bi bi-diagram-3"></i><span class="menu-text">Tutor Allocation</span></a>
+                    <a href="./Reallocation.html"><i class="bi bi-arrow-repeat"></i><span class="menu-text">Tutor Reallocation</span></a>
                 </div>
+            </div>
 
-                <a href="./Messaging.html" class="nav-item">
-                    <i class="bi bi-chat-left-dots"></i>
-                    <span class="menu-text">Message</span>
-                </a>
+            <a href="./Messaging.html" class="nav-item"><i class="bi bi-chat-left-dots"></i><span class="menu-text">Message</span></a>
+            <a href="./Blog_Post.html" class="nav-item"><i class="bi bi-journal-text"></i><span class="menu-text">Blog Post</span></a>
+            <a href="../Auth/Login.html" class="nav-item logout"><i class="bi bi-box-arrow-right"></i><span class="menu-text">Logout</span></a>
+        </nav>
+    </aside>
 
-                <a href="./Blog_Post.html" class="nav-item">
-                    <i class="bi bi-journal-text"></i>
-                    <span class="menu-text">Blog Post</span>
-                </a>
+    <!-- Main Content -->
+    <main class="doc-main p-6 w-full">
+        <h1 class="text-2xl font-bold mb-2">Tutor Allocation</h1>
+        <h2 class="text-lg font-semibold mb-4">Assign Tutor to Selected Students</h2>
+        <p id="selectedCount" class="mb-2 text-gray-600"></p>
 
-                <a href="../Auth/Login.html" class="nav-item logout">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span class="menu-text">Logout</span>
-                </a>
+        <!-- Search & Filter -->
+        <div class="search-bar mb-4 flex gap-2 items-center">
+            <select id="filterProgram" class="search-filter">
+                <option value="all">All Programs</option>
+                <option value="Computing">Computing</option>
+                <option value="Business">Business</option>
+                <option value="Networking">Networking</option>
+                <option value="Cyber Security">Cyber Security</option>
+            </select>
+            <div class="search-input-container flex-1 relative">
+                <input type="text" id="searchInput" placeholder="Search by student name or program" class="search-input">
+                <i class="bi bi-search search-icon"></i>
+            </div>
+        </div>
 
-                <div class="last-login">
-                    <p>Last Login</p>
-                    <p>03/07/26</p>
-                </div>
+        <!-- Assign Button -->
+        <button onclick="openModalMultiple()" class="confirm-btn mb-4">Assign Tutor to Selected</button>
 
-            </nav>
-        </aside>
+        <!-- Student Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll"></th>
+                        <th>Name</th>
+                        <th>Program</th>
+                        <th>Year</th>
+                        <th>Tutor</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTable"></tbody>
+            </table>
+        </div>
 
-        <!-- Main -->
-        <main class="doc-main">
-
-            <h1 class="text-2xl font-bold mb-2">Tutor Allocation</h1>
-            <p class="text-gray-500 mb-4">Assign tutors to students</p>
-
-            <!-- Search Bar -->
-            <div class="search-bar">
-
-                <select id="filterProgram">
-                    <option value="all">All Programs</option>
-                    <option value="Computing">Computing</option>
-                    <option value="Business">Business</option>
-                    <option value="Networking">Networking</option>
-                    <option value="Cyber Security">Cyber Security</option>
+        <!-- Assign Modal -->
+        <div id="assignModal" class="modal hidden">
+            <div class="modal-content">
+                <h2 class="text-lg font-semibold mb-4">Assign Tutor</h2>
+                <p id="selectedCountModal" class="mb-2 text-gray-600"></p>
+                <label class="block mb-2 font-medium">Select Tutor</label>
+                <select id="tutorSelect" class="w-full p-2 border rounded mb-4">
+                    <option value="">-- Choose Tutor --</option>
+                    <option>Moe Pale</option>
+                    <option>Moe Thant Oo</option>
+                    <option>Aye Aye Kyaw</option>
+                    <option>Hein Sithu Nyunt</option>
                 </select>
-                <i class="bi bi-search"></i>
-                <input type="text" id="searchInput" placeholder="Search by student name or program">
-
-            </div>
-
-            <!-- Table -->
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Program</th>
-                            <th>Year</th>
-                            <th>Tutor</th>
-                        </tr>
-                    </thead>
-                    <tbody id="studentTable"></tbody>
-                </table>
-            </div>
-
-            <!-- ASSIGN MODAL -->
-            <div id="assignModal" class="modal hidden">
-
-                <div class="modal-content">
-
-                    <h2 class="text-lg font-semibold mb-4">Assign Tutor</h2>
-
-                    <!-- Student Info -->
-                    <div class="mb-4">
-                        <p><strong>Name:</strong> <span id="modalName"></span></p>
-                        <p><strong>Program:</strong> <span id="modalProgram"></span></p>
-                    </div>
-
-                    <!-- Tutor Select -->
-                    <div class="mb-4">
-                        <label class="block mb-1 font-medium">Select Tutor</label>
-                        <select id="tutorSelect" class="w-full p-2 border rounded">
-                            <option value="">-- Choose Tutor --</option>
-                            <option>Moe Pale</option>
-                            <option>Moe Thant Oo</option>
-                            <option>Aye Aye Kyaw</option>
-                            <option>Hein Sithu Nyunt</option>
-                        </select>
-                    </div>
-
-                    <!-- Buttons -->
-                    <div class="flex justify-end gap-3">
-                        <button onclick="closeModal()" class="cancel-btn">Cancel</button>
-                        <button onclick="confirmAssign()" class="confirm-btn">Confirm</button>
-                    </div>
-
+                <div class="flex justify-end gap-3">
+                    <button onclick="closeModal()" class="cancel-btn">Cancel</button>
+                    <button onclick="confirmAssignMultiple()" class="confirm-btn">Confirm</button>
                 </div>
-
             </div>
-            
-        </main>
-
-    </div>
+        </div>
+    </main>
+</div>
 
 <script>
-
-    document.querySelectorAll(".dropdown-toggle").forEach(item => {
-        item.addEventListener("click", function () {
+    // Dropdown toggle
+    document.querySelectorAll(".dropdown-toggle").forEach(item=>{
+        item.addEventListener("click", function(){
             const parent = this.parentElement;
-
-            // Close others
-            document.querySelectorAll(".dropdown").forEach(d => {
-                if (d !== parent) {
-                    d.classList.remove("active");
-                }
-            });
-
-            // Toggle current
+            document.querySelectorAll(".dropdown").forEach(d=>{if(d!==parent)d.classList.remove("active");});
             parent.classList.toggle("active");
         });
     });
 
-    /* Example student data */
+    // Student Data
     const students = [
-        {
-            name:"Yun Aeindary Oo",
-            program:"Computing",
-            year:"Year 1",
-            image:"../../Images/profile.jpg"
-        },
-        {
-            name:"Hnin Yati",
-            program:"Business",
-            year:"Year 2",
-            image:"../../Images/profile 2.jpg"
-        },
-        {
-            name:"Tunn Lin Naing",
-            program:"Networking",
-            year:"Year 1",
-            image:"../../Images/profile.jpg"
-        },
-        {
-            name:"Kyaw San Lwin",
-            program:"Cyber Security",
-            year:"Year 3",
-            image:"../../Images/profile 2.jpg"
-        },
-        {
-            name:"Sai Thiha Aung",
-            program:"Computing",
-            year:"Year 2",
-            image:"../../Images/profile.jpg"
-        },
-        {
-            name:"Hein Khant Thura",
-            program:"Business",
-            year:"Year 1",
-            image:"../../Images/profile 2.jpg"
-        }
+        {name:"Yun Aeindary Oo", program:"Computing", year:"Year 1", image:"../../Images/profile.jpg", tutor:""},
+        {name:"Hnin Yati", program:"Business", year:"Year 2", image:"../../Images/profile 2.jpg", tutor:""},
+        {name:"Tunn Lin Naing", program:"Networking", year:"Year 1", image:"../../Images/profile.jpg", tutor:""},
+        {name:"Kyaw San Lwin", program:"Cyber Security", year:"Year 3", image:"../../Images/profile 2.jpg", tutor:""},
+        {name:"Sai Thiha Aung", program:"Computing", year:"Year 2", image:"../../Images/profile.jpg", tutor:""},
+        {name:"Hein Khant Thura", program:"Business", year:"Year 1", image:"../../Images/profile 2.jpg", tutor:""}
     ];
 
-    /* Display students */
-    function displayStudents(){
-
+    // Display students
+    function displayStudents() {
         const table = document.getElementById("studentTable");
         const search = document.getElementById("searchInput").value.toLowerCase();
         const filter = document.getElementById("filterProgram").value.toLowerCase();
-
         table.innerHTML = "";
-
-        students.forEach(student => {
-
-            if(!student.name.toLowerCase().includes(search) &&
-            !student.program.toLowerCase().includes(search)) return;
-
-            if(filter !== "all" && student.program.toLowerCase() !== filter) return;
-
-            table.innerHTML += `
+        students.forEach((s,i)=>{
+            if(!s.name.toLowerCase().includes(search)&&!s.program.toLowerCase().includes(search))return;
+            if(filter!=="all"&&s.program.toLowerCase()!==filter)return;
+            table.innerHTML+=`
                 <tr>
-                    <td class="student-name">
-                        <img src="${student.image}" class="student-avatar">
-                        ${student.name}
-                    </td>
-                    <td>${student.program}</td>
-                    <td>${student.year}</td>
+                    <td><input type="checkbox" class="student-checkbox" data-index="${i}"></td>
                     <td>
-                        <button class="assign-btn" onclick="openModal('${student.name}','${student.program}')">Assign</button>
+                        <div class="student-avatar-name">
+                            <img src="${s.image}" class="student-avatar">
+                            <span>${s.name}</span>
+                        </div>
                     </td>
-                </tr>
-            `;
-
+                    <td>${s.program}</td>
+                    <td>${s.year}</td>
+                    <td class="tutor-cell">${s.tutor}</td>
+                </tr>`;
         });
-
     }
 
-    /* Search event */
-    document.getElementById("searchInput").addEventListener("keyup", displayStudents);
-
-    /* Filter event */
-    document.getElementById("filterProgram").addEventListener("change", displayStudents);
-
-    /* Initial display */
     displayStudents();
 
-    let currentStudentIndex = null;
+    // Search & Filter
+    document.getElementById("searchInput").addEventListener("keyup", displayStudents);
+    document.getElementById("filterProgram").addEventListener("change", displayStudents);
 
-    function openModal(name, program){
-        document.getElementById("assignModal").classList.remove("hidden");
+    // Select All
+    const selectAllCheckbox = document.getElementById("selectAll");
+    selectAllCheckbox.addEventListener("change",()=>document.querySelectorAll(".student-checkbox").forEach(cb=>cb.checked=selectAllCheckbox.checked));
 
-        document.getElementById("modalName").textContent = name;
-        document.getElementById("modalProgram").textContent = program;
+    // Modal
+    const assignModal = document.getElementById("assignModal");
+    const selectedCount = document.getElementById("selectedCount");
+    const selectedCountModal = document.getElementById("selectedCountModal");
+
+    function openModalMultiple(){
+        const selected = Array.from(document.querySelectorAll(".student-checkbox")).filter(cb=>cb.checked);
+        if(selected.length===0){alert("Please select at least one student!"); return;}
+        selectedCount.textContent = `${selected.length} student(s) selected`;
+        selectedCountModal.textContent = `${selected.length} student(s) selected`;
+        assignModal.classList.remove("hidden");
     }
 
-    function closeModal(){
-        document.getElementById("assignModal").classList.add("hidden");
-    }
+    function closeModal(){ assignModal.classList.add("hidden"); }
 
-    function confirmAssign(){
-
+    function confirmAssignMultiple(){
         const tutor = document.getElementById("tutorSelect").value;
-
-        if(tutor === ""){
-            alert("Please select a tutor!");
-            return;
-        }
-
-        alert("Tutor assigned successfully!");
-
-        closeModal();
+        if(tutor===""){ alert("Please select a tutor!"); return;}
+        const selected = Array.from(document.querySelectorAll(".student-checkbox")).filter(cb=>cb.checked);
+        selected.forEach(cb=>{students[cb.dataset.index].tutor=tutor;});
+        alert(`Tutor "${tutor}" assigned to ${selected.length} student(s)!`);
+        assignModal.classList.add("hidden");
+        selectAllCheckbox.checked = false;
+        displayStudents();
     }
-
 </script>
 
 </body>

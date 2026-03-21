@@ -7,8 +7,9 @@
     <title>Staff Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../../Css/Sidebar.css">
-    <link rel="stylesheet" href="../../Css/Tutor_Dashboard.css">
+    <link rel="stylesheet" href="../../Css/Staff_Dashboard.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="bg-gray-100 font-sans">
@@ -20,28 +21,24 @@
 
             <!-- Logo -->
             <div class="logo-container">
-                <img src="../../Images/KMD Logo.jpg">
+                <img src="../../Images/KMD Logo.jpg" alt="Logo">
                 <h1 class="logo-text">College</h1>
             </div>
 
             <!-- Navigation -->
             <nav class="flex-1 p-4 space-y-1 text-black">
-
                 <a href="./Staff_Dashboard.html" class="nav-item active">
                     <i class="bi bi-tv"></i>
                     <span class="menu-text">Dashboard</span>
                 </a>
-
                 <a href="./Staff_Profile.html" class="nav-item">
                     <i class="bi bi-person-circle"></i>
                     <span class="menu-text">Profile</span>
                 </a>
-
                 <a href="./Edit_Profile.html" class="nav-item">
                     <i class="bi bi-pencil-square"></i>
                     <span class="menu-text">Edit Profile</span>
                 </a>
-
                 <a href="../Auth/Register.html" class="nav-item">
                     <i class="bi bi-pencil-square"></i>
                     <span class="menu-text">Create Account</span>
@@ -54,7 +51,6 @@
                         <span class="menu-text">Users</span>
                         <i class="bi bi-chevron-down arrow"></i>
                     </div>
-
                     <div class="dropdown-menu">
                         <a href="./Student_List.html">
                             <i class="bi bi-person"></i>
@@ -74,7 +70,6 @@
                         <span class="menu-text">Personal Tutor</span>
                         <i class="bi bi-chevron-down arrow"></i>
                     </div>
-
                     <div class="dropdown-menu">
                         <a href="./Allocation.html">
                             <i class="bi bi-diagram-3"></i>
@@ -87,10 +82,8 @@
                     </div>
                 </div>
 
-                <a href="./Messaging.html" class="nav-item">
-                    <i class="bi bi-chat-left-dots"></i>
-                    <span class="menu-text">Message</span>
-                </a>
+                <!-- Placeholder for admin-only dropdown -->
+                <div id="admin-reports-placeholder"></div>
 
                 <a href="./Blog_Post.html" class="nav-item">
                     <i class="bi bi-journal-text"></i>
@@ -106,7 +99,6 @@
                     <p>Last Login</p>
                     <p>03/07/26</p>
                 </div>
-
             </nav>
         </aside>
 
@@ -115,19 +107,16 @@
 
             <!-- Top bar -->
             <div class="mb-6">
-
-                <!-- First row -->
                 <div class="flex justify-between items-center">
-                    
-                    <!-- Title -->
                     <h1 class="text-2xl font-bold">Dashboard</h1>
 
-                    <!-- Right side -->
                     <div class="flex items-center gap-4">
                         <i class="bi bi-bell text-xl"></i>
 
                         <div class="flex items-center gap-2">
-                            <div class="w-10 h-10 bg-blue-200 rounded"><img src="../../Images/profile.jpg"></div>
+                            <div class="w-10 h-10 rounded-full overflow-hidden bg-blue-200">
+                                <img src="../../Images/profile.jpg" alt="Profile">
+                            </div>
                             <div>
                                 <p class="font-semibold">Moe Pale</p>
                                 <p class="text-sm text-gray-500">Staff</p>
@@ -135,103 +124,88 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Second row (welcome message BELOW dashboard) -->
                 <p class="text-gray-500 mt-1">
-                    Welcome to the eTutor Academic Support System
+                    Welcome to the KMD eTutor Academic Support System!
                 </p>
-
             </div>
 
             <!-- Cards -->
             <div class="grid grid-cols-4 gap-6 mb-6">
-
+                <div class="bg-white p-5 rounded-lg shadow">
+                    <p class="text-gray-500">Total Users</p>
+                    <h2 class="text-3xl font-bold">3255</h2>
+                    <p class="text-green-500 text-sm">↑ 255 new this month</p>
+                </div>
                 <div class="bg-white p-5 rounded-lg shadow">
                     <p class="text-gray-500">Active Tutors</p>
                     <h2 class="text-3xl font-bold">43</h2>
                     <p class="text-green-500 text-sm">↑ 3 new this month</p>
                 </div>
-
                 <div class="bg-white p-5 rounded-lg shadow">
                     <p class="text-gray-500">Active Students</p>
                     <h2 class="text-3xl font-bold">325</h2>
                     <p class="text-green-500 text-sm">↑ 67 new this month</p>
                 </div>
-
                 <div class="bg-white p-5 rounded-lg shadow">
                     <p class="text-gray-500">Messages (7 days)</p>
                     <h2 class="text-3xl font-bold">286</h2>
                     <p class="text-green-400 text-sm">Avg. 41/day</p>
                 </div>
-
-                <div class="bg-white p-5 rounded-lg shadow">
-                    <p class="text-gray-500">Total Meetings</p>
-                    <h2 class="text-3xl font-bold">124</h2>
-                    <p class="text-green-500 text-sm">↑ 8% from last week</p>
-                </div>
-
             </div>
 
             <!-- Charts Section -->
-            <div class="grid grid-cols-2 gap-6">
-
-                <!-- Line Chart Placeholder -->
-                <div class="bg-white p-5 rounded-lg shadow">
-                    <h2 class="font-semibold mb-4">Message Activity (Last 7 Days)</h2>
-                    <div class="h-64 flex items-center justify-center text-gray-400">(Chart Placeholder)</div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-lg font-semibold mb-4">Message Activity (Last 7 Days)</h2>
+                    <div class="h-64">
+                        <canvas id="messageChart"></canvas>
+                    </div>
                 </div>
 
-                <!-- Bar Chart Placeholder -->
-                <div class="bg-white p-5 rounded-lg shadow">
-                    <h2 class="font-semibold mb-4">Tutor Interaction Statistics</h2>
-                    <div class="h-64 flex items-center justify-center text-gray-400">(Chart Placeholder)</div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-lg font-semibold mb-4">Tutor Interaction Statistics</h2>
+                    <div class="h-64">
+                        <canvas id="tutorChart"></canvas>
+                    </div>
                 </div>
-
             </div>
 
             <!-- Recent Activity -->
-            <div class="bg-white p-6 rounded-lg shadow">
+            <div class="bg-white p-6 rounded-lg shadow mt-6">
                 <h2 class="text-lg font-semibold mb-4">Recent Activity</h2>
-
                 <table class="w-full text-left">
                     <thead class="text-gray-500 border-b">
                         <tr>
-                            <th class="py-2">User</th>
+                            <th class="py-2">Staff</th>
                             <th>Action</th>
                             <th>Time</th>
                         </tr>
                     </thead>
-
                     <tbody class="divide-y">
                         <tr>
-                            <td class="py-3">Sarah Johnson</td>
+                            <td class="py-3">Moe Pale</td>
                             <td>Assigned new tutor</td>
-                            <td class="text-gray-500">2 minutes ago</td>
+                            <td class="text-gray-500">3/21/2026 4:32 PM</td>
                         </tr>
                         <tr>
-                            <td class="py-3">Mike Chen</td>
-                            <td>Completed meeting with tutor</td>
-                            <td class="text-gray-500">15 minutes ago</td>
-                        </tr>
-                        <tr class="bg-gray-50">
-                            <td class="py-3">Emma Wilson</td>
-                            <td>Sent message to tutor</td>
-                            <td class="text-gray-500">1 hour ago</td>
+                            <td class="py-3">Moe Pale</td>
+                            <td>Reallocated a tutor</td>
+                            <td class="text-gray-500">3/21/2026 2:32 PM</td>
                         </tr>
                         <tr>
-                            <td class="py-3">James Brown</td>
-                            <td>Updated profile information</td>
-                            <td class="text-gray-500">2 hours ago</td>
+                            <td class="py-3">Moe Pale</td>
+                            <td>Created new account</td>
+                            <td class="text-gray-500">3/21/2026 1:10 PM</td>
                         </tr>
                         <tr>
-                            <td class="py-3">Lisa Anderson</td>
-                            <td>Scheduled new meeting</td>
-                            <td class="text-gray-500">3 hours ago</td>
+                            <td class="py-3">Aye Thandar</td>
+                            <td>Assigned new tutor</td>
+                            <td class="text-gray-500">3/20/2026 9:30 PM</td>
                         </tr>
                         <tr>
-                            <td class="py-3">Tom Martinez</td>
-                            <td>Submitted assignment feedback</td>
-                            <td class="text-gray-500">4 hours ago</td>
+                            <td class="py-3">Ko Min Htet</td>
+                            <td>Created new account</td>
+                            <td class="text-gray-500">3/20/2026 7:10 PM</td>
                         </tr>
                     </tbody>
                 </table>
@@ -240,6 +214,11 @@
         </main>
 
     </div>
+
+    <script src="../../Js/Staff_Dashboard.js"></script>
+
+</body>
+</html>
 
 <script>
 
@@ -258,6 +237,110 @@
             parent.classList.toggle("active");
         });
     });
+
+    // Example: set user role
+    const userRole = "admin"; // could come from session or backend
+
+    if (userRole === "admin") {
+        const placeholder = document.getElementById("admin-reports-placeholder");
+
+        const reportsDropdown = document.createElement("div");
+        reportsDropdown.classList.add("dropdown");
+        reportsDropdown.innerHTML = `
+            <div class="nav-item dropdown-toggle">
+                <i class="bi bi-file-bar-graph"></i>
+                <span class="menu-text">Reports</span>
+                <i class="bi bi-chevron-down arrow"></i>
+            </div>
+            <div class="dropdown-menu">
+                <a href="./Exception_Report.html">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span class="menu-text">Exception Report</span>
+                </a>
+                <a href="./Statistical_Report.html">
+                    <i class="bi bi-bar-chart-line"></i>
+                    <span class="menu-text">Statistical Report</span>
+                </a>
+            </div>
+        `;
+
+        placeholder.replaceWith(reportsDropdown);
+
+        // Add click event for dropdown toggle
+        reportsDropdown.querySelector(".dropdown-toggle").addEventListener("click", function () {
+            const parent = this.parentElement;
+
+            document.querySelectorAll(".dropdown").forEach(d => {
+                if (d !== parent) d.classList.remove("active");
+            });
+
+            parent.classList.toggle("active");
+        });
+    }
+
+    // ================= LINE CHART =================
+    const messageCtx = document.getElementById('messageChart').getContext('2d');
+
+    new Chart(messageCtx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'messages',
+                data: [45, 52, 38, 61, 48, 23, 19],
+                tension: 0.4,
+                fill: false,
+                borderWidth: 2,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 20
+                    }
+                }
+            }
+        }
+    });
+
+    // ================= BAR CHART =================
+    const tutorCtx = document.getElementById('tutorChart').getContext('2d');
+
+    new Chart(tutorCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Moe Pale', 'Moe Thant Oo', 'Tr Wah'],
+            datasets: [{
+                label: 'interactions',
+                data: [88, 65, 42],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+
 
 </script>
 
