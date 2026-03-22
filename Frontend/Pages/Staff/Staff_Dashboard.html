@@ -13,6 +13,7 @@
     <script src="../../assets/js/core/storage.js"></script>
     <script src="../../assets/js/core/apiClient.js"></script>
     <script src="../../assets/js/core/auth.js"></script>
+    <script src="../../assets/js/features/staff-permissions-page.js"></script>
     <script src="../../assets/js/features/staff-dashboard-page.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -90,7 +91,7 @@
                 <!-- Placeholder for admin-only dropdown -->
                 <div id="admin-reports-placeholder"></div>
 
-                <a href="./Blog_Post.html" class="nav-item">
+                <a href="./Blog_Post.html" class="nav-item" data-admin-only>
                     <i class="bi bi-journal-text"></i>
                     <span class="menu-text">Blog Post</span>
                 </a>
@@ -139,7 +140,7 @@
             <div class="grid grid-cols-4 gap-6 mb-6">
                 <div class="bg-white p-5 rounded-lg shadow">
                     <p class="text-gray-500">Total Users</p>
-                    <h2 class="text-3xl font-bold">3255</h2>
+                    <h2 id="metricTotalUsers" class="text-3xl font-bold">0</h2>
                     <p class="text-green-500 text-sm">↑ 255 new this month</p>
                 </div>
                 <div class="bg-white p-5 rounded-lg shadow">
@@ -163,14 +164,21 @@
             <!-- Charts Section -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="bg-white p-6 rounded-lg shadow">
-                    <h2 class="text-lg font-semibold mb-4">Message Activity (Last 7 Days)</h2>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold">System Activity</h2>
+                        <select id="chartRangeDays" class="border rounded px-2 py-1 text-sm">
+                            <option value="7">Last 7 Days</option>
+                            <option value="30">Last 30 Days</option>
+                            <option value="90">Last 90 Days</option>
+                        </select>
+                    </div>
                     <div class="h-64">
                         <canvas id="messageChart"></canvas>
                     </div>
                 </div>
 
                 <div class="bg-white p-6 rounded-lg shadow">
-                    <h2 class="text-lg font-semibold mb-4">Tutor Interaction Statistics</h2>
+                    <h2 id="activeUsersChartTitle" class="text-lg font-semibold mb-4">Most Active Users (Last 30 Days)</h2>
                     <div class="h-64">
                         <canvas id="tutorChart"></canvas>
                     </div>
@@ -198,50 +206,6 @@
     </div>
 
 <script>
-    /* =================== CHART.JS METRICS =================== */
-    // Message Activity Line Chart
-    document.addEventListener("DOMContentLoaded", function () {
-        const messageCanvas = document.getElementById("messageChart");
-        if (messageCanvas) {
-            const messageCtx = messageCanvas.getContext("2d");
-            new Chart(messageCtx, {
-                type: "line",
-                data: {
-                    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-                    datasets: [{
-                        label: "Messages",
-                        data: [45, 52, 38, 61, 48, 23, 19],
-                        tension: 0.4,
-                        fill: false,
-                        borderWidth: 2,
-                        pointRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: true } },
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 20 } } }
-                }
-            });
-        }
-
-        const tutorCanvas = document.getElementById("tutorChart");
-        if (tutorCanvas) {
-            const tutorCtx = tutorCanvas.getContext("2d");
-            new Chart(tutorCtx, {
-                type: "bar",
-                data: {
-                    labels: ["Tutor A", "Tutor B", "Tutor C"],
-                    datasets: [{ label: "Interactions", data: [88, 65, 42], borderWidth: 1 }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, max: 100 } }
-                }
-            });
-        }
-    });
 </script>
 
 </body>

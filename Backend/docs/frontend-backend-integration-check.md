@@ -1,6 +1,6 @@
 # Frontend-Backend Integration Check
 
-Date: 2026-03-22
+Date: 2026-03-23
 
 ## 1) Backend health
 
@@ -31,30 +31,28 @@ Date: 2026-03-22
   - `Student_List.html` (Tutor) -> `allocation/assignedStudents`
 - Staff:
   - `Staff_Dashboard.html` -> now wired (`staff-dashboard-page.js`)
+  - `Create_user.html` -> now wired to real `user` create API (`create-user-page.js`)
   - `Student_List.html`, `Tutor_List.html` -> `user` list
   - `Staff_Profile.html`, `Edit_Profile.html` -> self-profile APIs
   - `Blog_Post.html` -> blog read flow (staff role)
   - `Allocation.html` -> now wired to `allocation` + `user`
   - `Reallocation.html` -> now wired to `allocation/reallocate` + `user`
+  - `Exception_Report.html` -> now wired to `report&action=exceptions`
+  - `Statistical_Report.html` -> now wired to `report&action=statistics` + `report&action=activityLogs`
+  - `Messaging.html` -> added as non-crashing placeholder page for current policy
 
 ## 3) Gaps still to finish
 
-- `Frontend/Pages/Auth/Register.html`
-  - still uses static inline demo validation/alert
-  - not wired to `UserController::create()`
-  - backend requires payload: `user_name`, `email`, `password`, `role_id`
-- Some staff report pages linked in sidebar are not present in this repo:
-  - `Exception_Report.html`
-  - `Statistical_Report.html`
 - Staff blog permissions:
   - backend allows staff-admin to read blog only; write is student/tutor only
   - if staff should create blog in UI, backend policy must be changed intentionally
+- Optional UX enhancement:
+  - replace static chart values on `Staff_Dashboard.html` with live report data
 
 ## 4) Integration readiness summary
 
 - Core student+tutor flows: integrated
 - Core staff operational flows (list users, allocate/reallocate, profile): integrated
 - Remaining required work before final demo:
-  1. Wire `Register.html` to real `user` create API with `role_id` mapping
-  2. Add/implement staff report pages or remove broken links
-  3. Align blog write permissions with final business rule
+  1. Align blog write permissions with final business rule
+  2. Optional: make staff dashboard charts use live backend data

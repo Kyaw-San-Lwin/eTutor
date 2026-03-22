@@ -457,7 +457,6 @@ class ReportController
             LEFT JOIN users u ON l.user_id = u.user_id
             {$whereSql}
             ORDER BY l.access_time DESC
-            LIMIT ?
         ";
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) {
@@ -501,6 +500,106 @@ class ReportController
         }
         fclose($out);
         exit();
+    }
+
+    public function activityTrend()
+    {
+        if (!$this->requireAdmin()) {
+            return;
+        }
+
+        $days = filter_var($_GET['days'] ?? 7, FILTER_VALIDATE_INT);
+        if ($days === false || $days <= 0 || $days > 365) {
+            Response::json(["success" => false, "message" => "days must be between 1 and 365"], 400);
+        }
+
+        $intervalDays = $days - 1;
+        $stmt = $this->conn->prepare("
+            SELECT DATE(access_time) AS day, COUNT(*) AS total
+            FROM activity_logs
+            WHERE access_time >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+            GROUP BY DATE(access_time)
+            ORDER BY day ASC
+        ");
+        if (!$stmt) {
+            Response::json(["success" => false, "message" => "Failed to prepare activity trend"], 500);
+        }
+
+        $stmt->bind_param("i", $intervalDays);
+        if (!$stmt->execute()) {
+            Response::json(["success" => false, "message" => "Failed to fetch activity trend"], 500);
+        }
+
+        $result = $stmt->get_result();
+        if (!$result) {
+            Response::json(["success" => false, "message" => "Failed to fetch activity trend"], 500);
+        }
+
+        $rows = [];
+        while ($row = $result->fetch_assoc()) {
+            $rows[] = [
+                "day" => (string) ($row['day'] ?? ''),
+                "total" => (int) ($row['total'] ?? 0)
+            ];
+        }
+
+        $this->safeLogActivity("Report ActivityTrend", "Viewed " . $days . "-day activity trend");
+        Response::json(["success" => true, "data" => $rows]);
+    }
+
+    public function activeUsers()
+    {
+        if (!$this->requireAdmin()) {
+            return;
+        }
+
+        $days = filter_var($_GET['days'] ?? 30, FILTER_VALIDATE_INT);
+        $limit = filter_var($_GET['limit'] ?? 5, FILTER_VALIDATE_INT);
+
+        if ($days === false || $days <= 0 || $days > 365) {
+            Response::json(["success" => false, "message" => "days must be between 1 and 365"], 400);
+        }
+        if ($limit === false || $limit <= 0 || $limit > 20) {
+            Response::json(["success" => false, "message" => "limit must be between 1 and 20"], 400);
+        }
+
+        $sql = "
+            SELECT l.user_id, u.user_name, COUNT(*) AS actions
+            FROM activity_logs l
+            LEFT JOIN users u ON u.user_id = l.user_id
+            WHERE l.access_time >= (NOW() - INTERVAL ? DAY)
+            GROUP BY l.user_id, u.user_name
+            ORDER BY actions DESC
+            LIMIT ?
+        ";
+        $stmt = $this->conn->prepare($sql);
+        if (!$stmt) {
+            Response::json(["success" => false, "message" => "Failed to prepare active users report"], 500);
+        }
+
+        $stmt->bind_param("ii", $days, $limit);
+        if (!$stmt->execute()) {
+            Response::json(["success" => false, "message" => "Failed to fetch active users report"], 500);
+        }
+
+        $rows = [];
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $uid = (int) ($row['user_id'] ?? 0);
+            $name = trim((string) ($row['user_name'] ?? ''));
+            if ($name === '') {
+                $name = $uid > 0 ? ("User #" . $uid) : "Unknown";
+            }
+
+            $rows[] = [
+                "user_id" => $uid,
+                "user_name" => $name,
+                "actions" => (int) ($row['actions'] ?? 0)
+            ];
+        }
+
+        $this->safeLogActivity("Report ActiveUsers", "Viewed most active users report");
+        Response::json(["success" => true, "data" => $rows]);
     }
 
     public function create()
