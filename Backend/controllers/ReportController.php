@@ -472,13 +472,20 @@ class ReportController
             Response::json(["success" => false, "message" => "Failed to export activity logs"], 500);
         }
 
+        $result = $stmt->get_result();
+        if (!$result) {
+            Response::json(["success" => false, "message" => "Failed to build activity log export result"], 500);
+        }
+
         $this->safeLogActivity("Report ActivityLogsCsv", "Exported activity logs CSV");
 
-        $result = $stmt->get_result();
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment; filename="activity_logs.csv"');
 
-        $out = fopen('php://output', 'w');
+        $out = fopen('php://output', 'wb');
+        if ($out === false) {
+            Response::json(["success" => false, "message" => "Failed to open output stream for CSV export"], 500);
+        }
         fputcsv($out, ['log_id', 'user_id', 'user_name', 'page_visited', 'activity_type', 'browser_used', 'ip_address', 'access_time']);
         while ($row = $result->fetch_assoc()) {
             fputcsv($out, [

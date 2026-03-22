@@ -38,6 +38,19 @@ class UserController
         return true;
     }
 
+    private function requireStaff(): bool
+    {
+        $user = $GLOBALS['auth_user'] ?? null;
+        $role = is_array($user) ? (string) ($user['role'] ?? '') : '';
+
+        if ($role !== 'staff') {
+            Response::json(["success" => false, "message" => "Staff only access"], 403);
+            return false;
+        }
+
+        return true;
+    }
+
     private function getRequestData()
     {
         $data = json_decode(file_get_contents("php://input"), true);
@@ -477,7 +490,7 @@ class UserController
 
     public function list()
     {
-        if (!$this->requireAdmin()) {
+        if (!$this->requireStaff()) {
             return;
         }
 
@@ -537,7 +550,7 @@ class UserController
 
     public function create()
     {
-        if (!$this->requireAdmin()) {
+        if (!$this->requireStaff()) {
             return;
         }
 

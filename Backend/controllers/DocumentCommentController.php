@@ -7,6 +7,7 @@ class DocumentCommentController
 {
     private $conn;
     private const VIEW_ROLES = ['student', 'tutor', 'staff'];
+    private ?string $commentIdColumn = null;
 
     public function __construct()
     {
@@ -82,6 +83,29 @@ class DocumentCommentController
         return $result && $result->num_rows > 0;
     }
 
+    private function getCommentIdColumn(): string
+    {
+        if ($this->commentIdColumn !== null) {
+            return $this->commentIdColumn;
+        }
+
+        $default = 'doccumentcomment_id';
+        $fallback = 'documentcomment_id';
+        $result = $this->conn->query("SHOW COLUMNS FROM document_comments");
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $field = (string) ($row['Field'] ?? '');
+                if ($field === $default || $field === $fallback) {
+                    $this->commentIdColumn = $field;
+                    return $this->commentIdColumn;
+                }
+            }
+        }
+
+        $this->commentIdColumn = $default;
+        return $this->commentIdColumn;
+    }
+
     public function list()
     {
         $user = $this->requireAuth();
@@ -91,9 +115,10 @@ class DocumentCommentController
         $role = (string) ($user['role'] ?? '');
         $isAdmin = (int) ($user['is_admin'] ?? 0) === 1;
         $documentId = filter_var($_GET['document_id'] ?? null, FILTER_VALIDATE_INT);
+        $commentIdColumn = $this->getCommentIdColumn();
 
         $baseSql = "
-            SELECT dc.doccumentcomment_id, dc.document_id, dc.tutor_id, t.user_id AS tutor_user_id,
+            SELECT dc.{$commentIdColumn} AS document_comment_id, dc.document_id, dc.tutor_id, t.user_id AS tutor_user_id,
                    tu.user_name AS tutor_user_name, dc.comment, dc.created_at
             FROM document_comments dc
             JOIN tutors t ON dc.tutor_id = t.tutor_id
@@ -183,10 +208,9 @@ class DocumentCommentController
         $user = $this->requireAuth();
         $role = (string) ($user['role'] ?? '');
         $userId = (int) $user['user_id'];
-        $isAdmin = (int) ($user['is_admin'] ?? 0) === 1;
 
-        if ($role !== 'tutor' && !($role === 'staff' && $isAdmin)) {
-            Response::json(["success" => false, "message" => "Only tutor or admin staff can comment on documents"], 403);
+        if ($role !== 'tutor') {
+            Response::json(["success" => false, "message" => "Only tutors can comment on documents"], 403);
         }
 
         $data = $this->getRequestData();
@@ -208,13 +232,7 @@ class DocumentCommentController
             Response::json(["success" => false, "message" => "Comment is too long"], 400);
         }
 
-        $tutorId = 0;
-        if ($role === 'tutor') {
-            $tutorId = $this->getTutorIdByUserId($userId);
-        } else {
-            $requestedTutorId = filter_var($data['tutor_id'] ?? null, FILTER_VALIDATE_INT);
-            $tutorId = ($requestedTutorId !== false) ? (int) $requestedTutorId : 0;
-        }
+        $tutorId = $this->getTutorIdByUserId($userId);
 
         if ($tutorId <= 0) {
             Response::json(["success" => false, "message" => "Valid tutor_id is required"], 400);
@@ -269,10 +287,11 @@ class DocumentCommentController
         }
 
         if ($id !== false && $id > 0) {
+            $commentIdColumn = $this->getCommentIdColumn();
             $stmt = $this->conn->prepare("
                 UPDATE document_comments
                 SET comment = ?
-                WHERE doccumentcomment_id = ? AND tutor_id = ?
+                WHERE {$commentIdColumn} = ? AND tutor_id = ?
             ");
             if (!$stmt) {
                 Response::json(["success" => false, "message" => "Failed to prepare document comment update"], 500);
@@ -330,9 +349,10 @@ class DocumentCommentController
         $documentId = filter_var($data['document_id'] ?? null, FILTER_VALIDATE_INT);
 
         if ($id !== false && $id > 0) {
+            $commentIdColumn = $this->getCommentIdColumn();
             $stmt = $this->conn->prepare("
                 DELETE FROM document_comments
-                WHERE doccumentcomment_id = ? AND tutor_id = ?
+                WHERE {$commentIdColumn} = ? AND tutor_id = ?
             ");
             if (!$stmt) {
                 Response::json(["success" => false, "message" => "Failed to prepare document comment delete"], 500);

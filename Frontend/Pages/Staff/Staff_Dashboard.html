@@ -9,11 +9,11 @@
     <link rel="stylesheet" href="../../Css/Sidebar.css">
     <link rel="stylesheet" href="../../Css/Staff_Dashboard.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- <script src="../../assets/js/core/config.js"></script>
+    <script src="../../assets/js/core/config.js"></script>
     <script src="../../assets/js/core/storage.js"></script>
     <script src="../../assets/js/core/apiClient.js"></script>
     <script src="../../assets/js/core/auth.js"></script>
-    <script src="../../assets/js/features/staff-dashboard-page.js"></script> -->
+    <script src="../../assets/js/features/staff-dashboard-page.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -44,7 +44,7 @@
                     <i class="bi bi-pencil-square"></i>
                     <span class="menu-text">Edit Profile</span>
                 </a>
-                <a href="../Auth/Register.html" class="nav-item">
+                <a href="./Create_user.html" class="nav-item">
                     <i class="bi bi-pencil-square"></i>
                     <span class="menu-text">Create Account</span>
                 </a>
@@ -198,101 +198,48 @@
     </div>
 
 <script>
-
-    document.addEventListener("DOMContentLoaded", function() {
-
-        const sidebar = document.querySelector(".sidebar");
-
-        sidebar.addEventListener("click", function(e) {
-            const toggle = e.target.closest(".dropdown-toggle");
-
-            if (toggle) {
-                e.stopPropagation(); // prevent conflicts
-
-                const parent = toggle.parentElement;
-
-                // Close others
-                document.querySelectorAll(".sidebar .dropdown").forEach(d => {
-                    if (d !== parent) d.classList.remove("active");
-                });
-
-                parent.classList.toggle("active");
-            }
-        });
-
-        // Click outside closes all
-        document.addEventListener("click", function(e) {
-            if (!e.target.closest(".sidebar")) {
-                document.querySelectorAll(".sidebar .dropdown")
-                    .forEach(d => d.classList.remove("active"));
-            }
-        });
-
-        /* ADMIN REPORTS */
-        const userRole = "admin";
-
-        if (userRole === "admin") {
-            const placeholder = document.getElementById("admin-reports-placeholder");
-
-            const reportsDropdown = document.createElement("div");
-            reportsDropdown.classList.add("dropdown");
-            reportsDropdown.innerHTML = `
-                <div class="nav-item dropdown-toggle">
-                    <i class="bi bi-file-bar-graph"></i>
-                    <span class="menu-text">Reports</span>
-                    <i class="bi bi-chevron-down arrow"></i>
-                </div>
-                <div class="dropdown-menu">
-                    <a href="./Exception_Report.html">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        <span class="menu-text">Exception Report</span>
-                    </a>
-                    <a href="./Statistical_Report.html">
-                        <i class="bi bi-bar-chart-line"></i>
-                        <span class="menu-text">Statistical Report</span>
-                    </a>
-                </div>
-            `;
-            placeholder.replaceWith(reportsDropdown);
-        }
-
-    });
-
     /* =================== CHART.JS METRICS =================== */
     // Message Activity Line Chart
-    const messageCtx = document.getElementById('messageChart').getContext('2d');
-    new Chart(messageCtx, {
-        type: 'line',
-        data: {
-            labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-            datasets: [{
-                label: 'Messages',
-                data: [45,52,38,61,48,23,19],
-                tension: 0.4,
-                fill: false,
-                borderWidth: 2,
-                pointRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: true } },
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 20 } } }
+    document.addEventListener("DOMContentLoaded", function () {
+        const messageCanvas = document.getElementById("messageChart");
+        if (messageCanvas) {
+            const messageCtx = messageCanvas.getContext("2d");
+            new Chart(messageCtx, {
+                type: "line",
+                data: {
+                    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                    datasets: [{
+                        label: "Messages",
+                        data: [45, 52, 38, 61, 48, 23, 19],
+                        tension: 0.4,
+                        fill: false,
+                        borderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: true } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 20 } } }
+                }
+            });
         }
-    });
 
-    // Tutor Interaction Bar Chart
-    const tutorCtx = document.getElementById('tutorChart').getContext('2d');
-    new Chart(tutorCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Moe Pale','Moe Thant Oo','Tr Wah'],
-            datasets: [{ label:'Interactions', data:[88,65,42], borderWidth:1 }]
-        },
-        options: {
-            responsive:true,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero:true, max:100 } }
+        const tutorCanvas = document.getElementById("tutorChart");
+        if (tutorCanvas) {
+            const tutorCtx = tutorCanvas.getContext("2d");
+            new Chart(tutorCtx, {
+                type: "bar",
+                data: {
+                    labels: ["Tutor A", "Tutor B", "Tutor C"],
+                    datasets: [{ label: "Interactions", data: [88, 65, 42], borderWidth: 1 }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 100 } }
+                }
+            });
         }
     });
 </script>

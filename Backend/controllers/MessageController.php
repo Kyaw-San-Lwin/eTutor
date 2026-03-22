@@ -6,7 +6,7 @@ require_once __DIR__ . '/../services/ValidationService.php';
 class MessageController
 {
     private $conn;
-    private const ALLOWED_ROLES = ['student', 'tutor', 'staff'];
+    private const ALLOWED_ROLES = ['student', 'tutor'];
 
     public function __construct()
     {

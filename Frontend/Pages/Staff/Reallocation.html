@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="../../Css/Sidebar.css">
     <link rel="stylesheet" href="../../Css/Allocation.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="../../assets/js/core/config.js"></script>
+    <script src="../../assets/js/core/storage.js"></script>
+    <script src="../../assets/js/core/apiClient.js"></script>
+    <script src="../../assets/js/core/auth.js"></script>
+    <script src="../../assets/js/features/staff-reallocation-page.js"></script>
 </head>
 
 <body class="bg-gray-100">
@@ -34,7 +39,7 @@
                     <i class="bi bi-pencil-square"></i>
                     <span class="menu-text">Edit Profile</span>
                 </a>
-                <a href="../Auth/Register.html" class="nav-item">
+                <a href="./Create_user.html" class="nav-item">
                     <i class="bi bi-pencil-square"></i>
                     <span class="menu-text">Create Account</span>
                 </a>
@@ -102,6 +107,7 @@
             
             <h1 class="text-xl font-bold">Tutor Reallocation</h1>
             <h2 class="text-l font">Change / reallocate tutor from student!</h2>
+            <p id="reallocationStatus" class="text-sm mt-2"></p>
 
             <!-- SEARCH + MULTI ASSIGN -->
             <div class="search-assign-container w-full max-w-[1000px] flex justify-between items-center mb-4">
@@ -116,7 +122,7 @@
                     <i class="bi bi-search"></i>
                     <input type="text" id="searchInput" placeholder="Search by student name or program">
                 </div>
-                <button onclick="openModalMultiple()" class="multi-assign-btn">
+                <button type="button" class="multi-assign-btn hidden">
                     Change Selected
                 </button>
             </div>
@@ -126,199 +132,18 @@
                 <table>
                     <thead>
                         <tr>
-                            <th><input type="checkbox" id="selectAll"></th>
                             <th>Name</th>
                             <th>Program</th>
-                            <th>Year</th>
-                            <th>Tutor</th>
+                            <th>Current Tutor</th>
+                            <th>New Tutor</th>
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody id="studentTable"></tbody>
+                    <tbody id="reallocationTable"></tbody>
                 </table>
-            </div>
-
-            <!-- MODAL -->
-            <div id="assignModal" class="modal hidden">
-                <div class="modal-content max-w-md bg-white rounded-lg shadow-lg p-6">
-
-                    <!-- Header -->
-                    <div class="flex items-center gap-3 mb-4">
-                        <span class="text-orange-500 text-2xl">!</span>
-                        <h2 class="text-lg font-semibold">Confirm Tutor Reallocation</h2>
-                        <button onclick="closeModal()" class="ml-auto text-gray-400 hover:text-gray-700 text-xl">&times;</button>
-                    </div>
-
-                    <!-- Confirmation text -->
-                    <p class="mb-4 text-gray-700">Are you sure you want to change the tutor assigned to this student?</p>
-
-                    <!-- Student info -->
-                    <div class="mb-4 text-gray-700">
-                        <div class="flex justify-between"><span class="font-semibold">Student :</span> <span id="modalStudentName"></span></div>
-                        <div class="flex justify-between"><span class="font-semibold">Programme :</span> <span id="modalStudentProgram"></span></div>
-                        <div class="flex justify-between border-b mt-2 pb-2"><span class="font-semibold">Year :</span> <span id="modalStudentYear"></span></div>
-                        <div class="flex justify-between mt-2"><span class="font-semibold">Current Tutor :</span> <span id="modalCurrentTutor"></span></div>
-                        <div class="flex justify-between mt-1"><span class="font-semibold">New Tutor :</span> <span id="modalNewTutor"></span></div>
-                    </div>
-
-                    <!-- Note -->
-                    <div class="bg-blue-100 text-blue-800 p-3 rounded mb-4 text-sm">
-                        <strong>Note:</strong> The system will automatically update the database, record the allocation history, and send notification emails to both the student and the new tutor.
-                    </div>
-
-                    <!-- Tutor select -->
-                    <select id="tutorSelect" class="w-full p-2 border rounded mb-4">
-                        <option value="" disabled selected>Select Tutor</option>
-                        <option>Moe Pale</option>
-                        <option>Moe Thant Oo</option>
-                        <option>Aye Aye Kyaw</option>
-                    </select>
-
-                    <!-- Buttons -->
-                    <div class="flex justify-end gap-2">
-                        <button onclick="closeModal()" class="cancel-btn px-4 py-2">Cancel</button>
-                        <button onclick="confirmAssign()" class="confirm-btn px-4 py-2">Confirm</button>
-                    </div>
-
-                </div>
             </div>
 
         </main>
     </div>
-
-<script>
-
-    document.addEventListener("DOMContentLoaded", function() {
-        const sidebar = document.querySelector(".sidebar");
-        sidebar.addEventListener("click", function(e) {
-            const toggle = e.target.closest(".dropdown-toggle");
-            if (toggle) {
-                e.stopPropagation();
-                const parent = toggle.parentElement;
-                document.querySelectorAll(".sidebar .dropdown").forEach(d => { if(d!==parent)d.classList.remove("active") });
-                parent.classList.toggle("active");
-            }
-        });
-        document.addEventListener("click", function(e) {
-            if (!e.target.closest(".sidebar")) document.querySelectorAll(".sidebar .dropdown").forEach(d => d.classList.remove("active"));
-        });
-
-        const userRole = "admin";
-        if (userRole === "admin") {
-            const placeholder = document.getElementById("admin-reports-placeholder");
-            const reportsDropdown = document.createElement("div");
-            reportsDropdown.classList.add("dropdown");
-            reportsDropdown.innerHTML = `
-                <div class="nav-item dropdown-toggle">
-                    <i class="bi bi-file-bar-graph"></i>
-                    <span class="menu-text">Reports</span>
-                    <i class="bi bi-chevron-down arrow"></i>
-                </div>
-                <div class="dropdown-menu">
-                    <a href="./Exception_Report.html">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        <span class="menu-text">Exception Report</span>
-                    </a>
-                    <a href="./Statistical_Report.html">
-                        <i class="bi bi-bar-chart-line"></i>
-                        <span class="menu-text">Statistical Report</span>
-                    </a>
-                </div>
-            `;
-            placeholder.replaceWith(reportsDropdown);
-        }
-    });
-
-    /* DATA */
-    const students = [
-        {name:"Yun Aeindary Oo", program:"Computing", year:"Year 1", image:"../../Images/profile.jpg", tutor:"Moe Pale"},
-        {name:"Hnin Yati", program:"Business", year:"Year 2", image:"../../Images/profile 2.jpg", tutor:"Moe Thant Oo"},
-        {name:"Tunn Lin Naing", program:"Networking", year:"Year 1", image:"../../Images/profile.jpg", tutor:"Aye Aye Kyaw"},
-        {name:"Kyaw San Lwin", program:"Cyber Security", year:"Year 3", image:"../../Images/profile 2.jpg", tutor:"Moe Pale"}
-    ];
-
-    let selectedStudents = [];
-
-    /* DISPLAY */
-    function displayStudents(){
-        const table = document.getElementById("studentTable");
-        const search = document.getElementById("searchInput").value.toLowerCase();
-        const filter = document.getElementById("filterProgram").value.toLowerCase();
-        table.innerHTML = "";
-        students.forEach((s) => {
-            if(!s.name.toLowerCase().includes(search) && !s.program.toLowerCase().includes(search)) return;
-            if(filter!=="all" && s.program.toLowerCase()!==filter) return;
-
-            table.innerHTML += `
-            <tr>
-                <td><input type="checkbox" class="student-checkbox" value="${s.name}"></td>
-                <td class="student-name"><img src="${s.image}" class="student-avatar">${s.name}</td>
-                <td>${s.program}</td>
-                <td>${s.year}</td>
-                <td>${s.tutor}</td>
-                <td><button class="assign-btn" onclick="openModalSingle('${s.name}')">Change</button></td>
-            </tr>
-            `;
-        });
-    }
-
-    /* SELECT ALL */
-    document.getElementById("selectAll").addEventListener("change", function(){
-        document.querySelectorAll(".student-checkbox").forEach(cb=>cb.checked=this.checked);
-    });
-
-    /* OPEN SINGLE */
-    function openModalSingle(name){
-        selectedStudents = [name];
-        const student = students.find(s=>s.name===name);
-        document.getElementById("modalStudentName").innerText = student.name;
-        document.getElementById("modalStudentProgram").innerText = student.program;
-        document.getElementById("modalStudentYear").innerText = student.year;
-        document.getElementById("modalCurrentTutor").innerText = student.tutor;
-        document.getElementById("modalNewTutor").innerText = "";
-        document.getElementById("tutorSelect").value = "";
-        document.getElementById("assignModal").classList.remove("hidden");
-    }
-
-    /* OPEN MULTIPLE */
-    function openModalMultiple(){
-        selectedStudents = [...document.querySelectorAll(".student-checkbox:checked")].map(cb=>cb.value);
-        if(selectedStudents.length===0){ alert("Please select at least one student!"); return; }
-        document.getElementById("modalStudentName").innerText = selectedStudents.join(", ");
-        document.getElementById("modalStudentProgram").innerText = "-";
-        document.getElementById("modalStudentYear").innerText = "-";
-        document.getElementById("modalCurrentTutor").innerText = "-";
-        document.getElementById("modalNewTutor").innerText = "";
-        document.getElementById("tutorSelect").value = "";
-        document.getElementById("assignModal").classList.remove("hidden");
-    }
-
-    /* CLOSE */
-    function closeModal(){ document.getElementById("assignModal").classList.add("hidden"); }
-
-    /* UPDATE NEW TUTOR DISPLAY */
-    document.getElementById("tutorSelect").addEventListener("change", function(){
-        document.getElementById("modalNewTutor").innerText = this.value;
-    });
-
-    /* CONFIRM */
-    function confirmAssign(){
-        const tutor = document.getElementById("tutorSelect").value;
-        if(!tutor){ alert("Please select a tutor!"); return; }
-        students.forEach(s => { if(selectedStudents.includes(s.name)) s.tutor=tutor; });
-        alert("Tutor assigned successfully!");
-        closeModal();
-        displayStudents();
-    }
-
-    /* EVENTS */
-    document.getElementById("searchInput").addEventListener("keyup", displayStudents);
-    document.getElementById("filterProgram").addEventListener("change", displayStudents);
-
-    /* INIT */
-    displayStudents();
-
-</script>
-
 </body>
 </html>

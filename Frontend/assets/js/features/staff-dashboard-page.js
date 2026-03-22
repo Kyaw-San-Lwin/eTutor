@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   bindStaffShell();
   setHeaderUser(user);
+  renderAdminMenu(user);
 
   await Promise.allSettled([
     loadLastLogin(),
@@ -34,6 +35,40 @@ function bindStaffShell() {
       parent.classList.toggle("active");
     });
   });
+}
+
+function renderAdminMenu(user) {
+  const placeholder = document.getElementById("admin-reports-placeholder");
+  if (!placeholder) {
+    return;
+  }
+
+  if (!user || !user.is_admin) {
+    placeholder.innerHTML = "";
+    return;
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "dropdown";
+  wrapper.innerHTML = `
+    <div class="nav-item dropdown-toggle">
+      <i class="bi bi-file-bar-graph"></i>
+      <span class="menu-text">Reports</span>
+      <i class="bi bi-chevron-down arrow"></i>
+    </div>
+    <div class="dropdown-menu">
+      <a href="./Exception_Report.html">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span class="menu-text">Exception Report</span>
+      </a>
+      <a href="./Statistical_Report.html">
+        <i class="bi bi-bar-chart-line"></i>
+        <span class="menu-text">Statistical Report</span>
+      </a>
+    </div>
+  `;
+
+  placeholder.replaceWith(wrapper);
 }
 
 function setHeaderUser(user) {

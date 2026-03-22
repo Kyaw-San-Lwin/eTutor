@@ -5,7 +5,7 @@ require_once __DIR__ . '/../middleware/activityMiddleware.php';
 class BlogCommentController
 {
     private $conn;
-    private const ALLOWED_ROLES = ['student', 'tutor', 'staff'];
+    private const ALLOWED_ROLES = ['student', 'tutor'];
 
     public function __construct()
     {
