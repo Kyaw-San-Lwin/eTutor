@@ -9,8 +9,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     return;
   }
 
+  listState.isAdmin = Boolean(user.is_admin);
+
   bindStaffShell();
   setupListLabels(roleFilter);
+  toggleAdminActions();
 
   await Promise.allSettled([
     loadLastLogin(),
@@ -20,7 +23,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 const listState = {
   roleFilter: "",
-  users: []
+  users: [],
+  isAdmin: false
 };
 
 function bindStaffShell() {
@@ -82,6 +86,19 @@ function setupListLabels(roleFilter) {
   }
 }
 
+function toggleAdminActions() {
+  const actionHeader = document.getElementById("adminActionHeader");
+  if (!actionHeader) {
+    return;
+  }
+
+  if (listState.isAdmin) {
+    actionHeader.classList.remove("hidden");
+  } else {
+    actionHeader.classList.add("hidden");
+  }
+}
+
 async function loadLastLogin() {
   const target = document.getElementById("lastLoginValue");
   if (!target) {
@@ -100,7 +117,7 @@ async function loadUsers(roleFilter) {
   listState.roleFilter = roleFilter;
   const table = document.getElementById("studentTable");
   if (table) {
-    table.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+    table.innerHTML = `<tr><td colspan="${listState.isAdmin ? 5 : 4}">Loading...</td></tr>`;
   }
 
   try {
@@ -114,7 +131,7 @@ async function loadUsers(roleFilter) {
     renderUsers();
   } catch (error) {
     if (table) {
-      table.innerHTML = `<tr><td colspan="4">${escapeHtml(error.message || "Unable to load users.")}</td></tr>`;
+      table.innerHTML = `<tr><td colspan="${listState.isAdmin ? 5 : 4}">${escapeHtml(error.message || "Unable to load users.")}</td></tr>`;
     }
   }
 }
@@ -181,7 +198,7 @@ function renderUsers() {
   });
 
   if (!filteredUsers.length) {
-    table.innerHTML = '<tr><td colspan="4">No records found.</td></tr>';
+    table.innerHTML = `<tr><td colspan="${listState.isAdmin ? 5 : 4}">No records found.</td></tr>`;
     return;
   }
 
@@ -193,6 +210,10 @@ function renderUsers() {
       : (user.programme || "N/A");
     const avatar = index % 2 === 0 ? "../../Images/profile.jpg" : "../../Images/profile 2.jpg";
 
+    const actionCell = listState.isAdmin
+      ? `<td><button type="button" class="assign-btn" data-reset-user-id="${Number(user.user_id || 0)}">Reset Password</button></td>`
+      : "";
+
     return `
       <tr>
         <td class="student-name">
@@ -202,9 +223,48 @@ function renderUsers() {
         <td>${escapeHtml(phone)}</td>
         <td>${escapeHtml(category)}</td>
         <td>${escapeHtml(user.email || "N/A")}</td>
+        ${actionCell}
       </tr>
     `;
   }).join("");
+
+  if (listState.isAdmin) {
+    table.querySelectorAll("[data-reset-user-id]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const userId = Number(button.getAttribute("data-reset-user-id") || 0);
+        if (!userId) {
+          return;
+        }
+        resetUserPassword(userId, button);
+      });
+    });
+  }
+}
+
+async function resetUserPassword(userId, button) {
+  const newPassword = window.prompt("Enter a new password (minimum 8 characters):");
+  if (newPassword === null) {
+    return;
+  }
+
+  const trimmed = newPassword.trim();
+  if (trimmed.length < 8) {
+    window.alert("Password must be at least 8 characters.");
+    return;
+  }
+
+  button.disabled = true;
+  try {
+    const response = await window.ApiClient.post("user", "resetPassword", {
+      id: userId,
+      new_password: trimmed
+    });
+    window.alert(response.message || "Password reset successful.");
+  } catch (error) {
+    window.alert(error.message || "Failed to reset password.");
+  } finally {
+    button.disabled = false;
+  }
 }
 
 function formatDate(value) {

@@ -158,7 +158,7 @@ class AllocationController
 
     public function list()
     {
-        if (!$this->requireAdmin()) {
+        if (!$this->requireStaff()) {
             return;
         }
 
@@ -181,7 +181,7 @@ class AllocationController
 
     public function create()
     {
-        if (!$this->requireAdmin()) {
+        if (!$this->requireStaff()) {
             return;
         }
 

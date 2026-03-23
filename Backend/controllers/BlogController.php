@@ -6,7 +6,7 @@ require_once __DIR__ . '/../services/ValidationService.php';
 class BlogController
 {
     private $conn;
-    private const ALLOWED_ROLES = ['student', 'tutor', 'staff'];
+    private const WRITE_ROLES = ['student', 'tutor'];
     public function __construct()
     {
         global $conn;
@@ -22,10 +22,26 @@ class BlogController
         return $user;
     }
 
-    private function requireBlogRole(array $user): void
+    private function requireBlogReadRole(array $user): void
     {
         $role = (string) ($user['role'] ?? '');
-        if (!in_array($role, self::ALLOWED_ROLES, true)) {
+        $isAdmin = !empty($user['is_admin']);
+
+        if (in_array($role, self::WRITE_ROLES, true)) {
+            return;
+        }
+
+        if ($role === 'staff' && $isAdmin) {
+            return;
+        }
+
+        Response::json(["success" => false, "message" => "Access denied"], 403);
+    }
+
+    private function requireBlogWriteRole(array $user): void
+    {
+        $role = (string) ($user['role'] ?? '');
+        if (!in_array($role, self::WRITE_ROLES, true)) {
             Response::json(["success" => false, "message" => "Access denied"], 403);
         }
     }
@@ -67,7 +83,7 @@ class BlogController
     public function list()
     {
         $user = $this->requireAuth();
-        $this->requireBlogRole($user);
+        $this->requireBlogReadRole($user);
 
         $pagination = ValidationService::paginationFromQuery(20, 100);
         $authorId = filter_var($_GET['author_id'] ?? null, FILTER_VALIDATE_INT);
@@ -145,7 +161,7 @@ class BlogController
     public function create()
     {
         $user = $this->requireAuth();
-        $this->requireBlogRole($user);
+        $this->requireBlogWriteRole($user);
 
         $data = $this->getRequestData();
         if ($data === null) {
@@ -181,9 +197,9 @@ class BlogController
     public function update()
     {
         $user = $this->requireAuth();
-        $this->requireBlogRole($user);
+        $this->requireBlogWriteRole($user);
         $authUserId = (int) ($user['user_id'] ?? 0);
-        $isAdmin = !empty($user['is_admin']);
+        $isAdmin = false;
 
         $data = $this->getRequestData();
         if ($data === null) {
@@ -251,9 +267,9 @@ class BlogController
     public function delete()
     {
         $user = $this->requireAuth();
-        $this->requireBlogRole($user);
+        $this->requireBlogWriteRole($user);
         $authUserId = (int) ($user['user_id'] ?? 0);
-        $isAdmin = !empty($user['is_admin']);
+        $isAdmin = false;
 
         $data = $this->getRequestData();
         if ($data === null) {

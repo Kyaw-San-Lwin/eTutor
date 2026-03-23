@@ -12,6 +12,7 @@
   <script src="../../assets/js/core/storage.js"></script>
   <script src="../../assets/js/core/apiClient.js"></script>
   <script src="../../assets/js/core/auth.js"></script>
+  <script src="../../assets/js/features/staff-permissions-page.js"></script>
   <script src="../../assets/js/features/profile-page.js"></script>
 </head>
 
@@ -41,7 +42,7 @@
           <span class="menu-text">Edit Profile</span>
         </a>
 
-        <a href="../Auth/Register.html" class="nav-item">
+        <a href="./Create_user.html" class="nav-item">
           <i class="bi bi-pencil-square"></i>
           <span class="menu-text">Create Account</span>
         </a>
@@ -82,7 +83,7 @@
           </div>
         </div>
 
-        <a href="./Blog_Post.html" class="nav-item">
+        <a href="./Blog_Post.html" class="nav-item" data-admin-only>
           <i class="bi bi-journal-text"></i>
           <span class="menu-text">Blog Post</span>
         </a>

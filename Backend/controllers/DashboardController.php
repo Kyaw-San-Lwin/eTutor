@@ -106,6 +106,9 @@ class DashboardController
             $data["metrics"]["total_users"] = $this->scalar("SELECT COUNT(*) FROM users");
             $data["metrics"]["total_students"] = $this->scalar("SELECT COUNT(*) FROM students");
             $data["metrics"]["total_tutors"] = $this->scalar("SELECT COUNT(*) FROM tutors");
+            $data["metrics"]["messages_last_7_days"] = $this->scalar(
+                "SELECT COUNT(*) FROM messages WHERE sent_at >= (NOW() - INTERVAL 7 DAY)"
+            );
             $data["metrics"]["active_allocations"] = $this->scalar("SELECT COUNT(*) FROM allocations WHERE status = 'active'");
             $data["metrics"]["scheduled_meetings"] = $this->scalar("SELECT COUNT(*) FROM meetings WHERE status = 'scheduled'");
             $data["metrics"]["total_documents"] = $this->scalar("SELECT COUNT(*) FROM documents");

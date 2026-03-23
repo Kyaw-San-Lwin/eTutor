@@ -38,6 +38,19 @@ class UserController
         return true;
     }
 
+    private function requireStaff(): bool
+    {
+        $user = $GLOBALS['auth_user'] ?? null;
+        $role = is_array($user) ? (string) ($user['role'] ?? '') : '';
+
+        if ($role !== 'staff') {
+            Response::json(["success" => false, "message" => "Staff only access"], 403);
+            return false;
+        }
+
+        return true;
+    }
+
     private function getRequestData()
     {
         $data = json_decode(file_get_contents("php://input"), true);
@@ -66,6 +79,140 @@ class UserController
             return (int) $queryId;
         }
         return ValidationService::intField($data['id'] ?? null, 'id');
+    }
+
+    private function getRoleNameById(int $roleId): ?string
+    {
+        $stmt = $this->conn->prepare("SELECT role_name FROM roles WHERE role_id = ? LIMIT 1");
+        if (!$stmt) {
+            return null;
+        }
+
+        $stmt->bind_param("i", $roleId);
+        if (!$stmt->execute()) {
+            return null;
+        }
+
+        $result = $stmt->get_result();
+        $row = $result ? $result->fetch_assoc() : null;
+        return $row ? strtolower((string) ($row['role_name'] ?? '')) : null;
+    }
+
+    private function getRoleIdByName(string $roleName): int
+    {
+        $stmt = $this->conn->prepare("SELECT role_id FROM roles WHERE LOWER(role_name) = ? LIMIT 1");
+        if (!$stmt) {
+            return 0;
+        }
+
+        $stmt->bind_param("s", $roleName);
+        if (!$stmt->execute()) {
+            return 0;
+        }
+
+        $result = $stmt->get_result();
+        $row = $result ? $result->fetch_assoc() : null;
+        return (int) ($row['role_id'] ?? 0);
+    }
+
+    private function resolveRoleInput(array $data): array
+    {
+        if (array_key_exists('role_id', $data) && $data['role_id'] !== null && $data['role_id'] !== '') {
+            $roleId = ValidationService::intField($data['role_id'], 'role_id');
+            $roleName = $this->getRoleNameById($roleId);
+            if ($roleName === null || $roleName === '') {
+                Response::json(["success" => false, "message" => "Invalid role_id"], 400);
+            }
+            return [$roleId, $roleName];
+        }
+
+        if (array_key_exists('role_name', $data) && trim((string) $data['role_name']) !== '') {
+            $roleName = strtolower(ValidationService::sanitizeString($data['role_name'], 30));
+            $roleId = $this->getRoleIdByName($roleName);
+            if ($roleId <= 0) {
+                Response::json(["success" => false, "message" => "Invalid role_name"], 400);
+            }
+            return [$roleId, $roleName];
+        }
+
+        Response::json(["success" => false, "message" => "role_id or role_name is required"], 400);
+        return [0, ''];
+    }
+
+    private function insertRoleProfile(int $userId, string $roleName, array $data): void
+    {
+        if (!in_array($roleName, ['student', 'tutor', 'staff'], true)) {
+            return;
+        }
+
+        $table = $roleName === 'student' ? 'students' : ($roleName === 'tutor' ? 'tutors' : 'staff');
+        $columns = ['user_id'];
+        $types = 'i';
+        $values = [$userId];
+
+        $fullNameRaw = $data['full_name'] ?? ($data['name'] ?? '');
+        $fullName = trim((string) $fullNameRaw);
+        if ($fullName !== '' && $this->hasColumn($table, 'full_name')) {
+            $columns[] = 'full_name';
+            $types .= 's';
+            $values[] = ValidationService::sanitizeString($fullName, 100);
+        }
+
+        if ($this->hasColumn($table, 'contact_number')) {
+            $contactNumber = trim((string) ($data['contact_number'] ?? ($data['phone_number'] ?? '')));
+            if ($contactNumber !== '') {
+                $columns[] = 'contact_number';
+                $types .= 's';
+                $values[] = ValidationService::sanitizeString($contactNumber, 30);
+            }
+        }
+
+        if ($roleName === 'student' && $this->hasColumn($table, 'programme')) {
+            $programme = trim((string) ($data['programme'] ?? ''));
+            if ($programme !== '') {
+                $columns[] = 'programme';
+                $types .= 's';
+                $values[] = ValidationService::sanitizeString($programme, 100);
+            }
+        }
+
+        if (($roleName === 'tutor' || $roleName === 'staff') && $this->hasColumn($table, 'department')) {
+            $department = trim((string) ($data['department'] ?? ''));
+            if ($department !== '') {
+                $columns[] = 'department';
+                $types .= 's';
+                $values[] = ValidationService::sanitizeString($department, 100);
+            }
+        }
+
+        if ($roleName === 'staff' && $this->hasColumn($table, 'is_admin')) {
+            $isAdminInput = $data['is_admin'] ?? 0;
+            if (is_string($isAdminInput)) {
+                $isAdminInput = strtolower(trim($isAdminInput));
+                $isAdmin = in_array($isAdminInput, ['1', 'true', 'yes', 'authorized', 'authorised', 'admin'], true) ? 1 : 0;
+            } else {
+                $isAdmin = (int) ((bool) $isAdminInput);
+            }
+            $columns[] = 'is_admin';
+            $types .= 'i';
+            $values[] = $isAdmin;
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($columns), '?'));
+        $columnSql = implode(', ', $columns);
+        $sql = "INSERT INTO {$table} ({$columnSql}) VALUES ({$placeholders})";
+        $stmt = $this->conn->prepare($sql);
+        if (!$stmt) {
+            Response::json(["success" => false, "message" => "Failed to prepare {$roleName} profile creation"], 500);
+        }
+
+        $stmt->bind_param($types, ...$values);
+        if (!$stmt->execute()) {
+            if ($this->isDuplicateKeyError($stmt)) {
+                Response::json(["success" => false, "message" => ucfirst($roleName) . " profile already exists"], 409);
+            }
+            Response::json(["success" => false, "message" => "Failed to create {$roleName} profile"], 500);
+        }
     }
 
     private function fetchProfileByUserId(int $userId): ?array
@@ -477,7 +624,7 @@ class UserController
 
     public function list()
     {
-        if (!$this->requireAdmin()) {
+        if (!$this->requireStaff()) {
             return;
         }
 
@@ -537,7 +684,7 @@ class UserController
 
     public function create()
     {
-        if (!$this->requireAdmin()) {
+        if (!$this->requireStaff()) {
             return;
         }
 
@@ -547,11 +694,11 @@ class UserController
             return;
         }
 
-        ValidationService::requireFields($data, ['user_name', 'email', 'password', 'role_id']);
+        ValidationService::requireFields($data, ['user_name', 'email', 'password']);
         $userName = ValidationService::sanitizeString($data['user_name'], 30);
         $email = ValidationService::sanitizeEmail($data['email']);
         $password = (string) ($data['password'] ?? '');
-        $roleId = ValidationService::intField($data['role_id'], 'role_id');
+        [$roleId, $roleName] = $this->resolveRoleInput($data);
         if (strlen($password) < 8) {
             Response::json(["success" => false, "message" => "password must be at least 8 characters"], 400);
             return;
@@ -563,27 +710,42 @@ class UserController
             return;
         }
 
-        $stmt = $this->conn->prepare(
-            "INSERT INTO users (user_name, email, password, role_id) VALUES (?, ?, ?, ?)"
-        );
+        $stmt = $this->conn->prepare("INSERT INTO users (user_name, email, password, role_id) VALUES (?, ?, ?, ?)");
         if (!$stmt) {
             Response::json(["success" => false, "message" => "Failed to prepare user creation"], 500);
             return;
         }
 
-        $stmt->bind_param("sssi", $userName, $email, $hashedPassword, $roleId);
-        if (!$stmt->execute()) {
-            if ($this->isDuplicateKeyError($stmt)) {
-                Response::json(["success" => false, "message" => "Username or email already exists"], 409);
-                return;
+        $this->conn->begin_transaction();
+        try {
+            $stmt->bind_param("sssi", $userName, $email, $hashedPassword, $roleId);
+            if (!$stmt->execute()) {
+                if ($this->isDuplicateKeyError($stmt)) {
+                    $this->conn->rollback();
+                    Response::json(["success" => false, "message" => "Username or email already exists"], 409);
+                }
+                $this->conn->rollback();
+                Response::json(["success" => false, "message" => "Failed to create user"], 500);
             }
+
+            $newUserId = (int) $this->conn->insert_id;
+            $this->insertRoleProfile($newUserId, $roleName, $data);
+            $this->conn->commit();
+        } catch (Throwable $e) {
+            $this->conn->rollback();
             Response::json(["success" => false, "message" => "Failed to create user"], 500);
-            return;
         }
 
         $this->safeLogActivity("User Create", "Created user: " . $userName);
-
-        Response::json(["success" => true, "message" => "User created"], 201);
+        Response::json([
+            "success" => true,
+            "message" => "User created",
+            "data" => [
+                "user_name" => $userName,
+                "email" => $email,
+                "role_name" => $roleName
+            ]
+        ], 201);
     }
 
     public function update()
