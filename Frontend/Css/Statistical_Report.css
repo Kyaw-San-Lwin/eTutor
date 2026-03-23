@@ -1,0 +1,116 @@
+.main-content {
+    padding: 30px;
+    width: 100%;
+}
+
+.title {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.subtitle {
+    color: gray;
+    margin-bottom: 20px;
+}
+
+/* STATS */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.card h1 {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.card-subtext {
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 5px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-icon {
+    width: 45px;
+    height: 45px;
+    background: #e0edff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-icon i {
+    font-size: 20px;
+    color: #2563eb;
+}
+
+/* CHART GRID */
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+/* CHART BOX */
+.chart-box {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.chart-box h3 {
+    margin-bottom: 15px;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* SMALL CHARTS */
+.chart-small canvas {
+    width: 100% !important;
+    height: 250px !important;
+}
+
+/* WIDE */
+.chart-wide {
+    grid-column: span 1;
+}
+
+.chart-wide canvas {
+    width: 100% !important;
+    height: 300px !important;
+}
+
+/* PIE */
+.chart-pie {
+    text-align: center;
+}
+
+.chart-pie canvas {
+    display: block;
+    margin: 0 auto;
+    width: 220px !important;
+    height: 220px !important;
+}
+
+.pie-info {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #374151;
+}

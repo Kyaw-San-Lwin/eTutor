@@ -1,0 +1,80 @@
+.main-content {
+    padding: 30px;
+    width: 100%;
+}
+
+.title {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.subtitle {
+    color: gray;
+    margin-bottom: 20px;
+}
+
+.severity-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.card h1 {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.bar {
+    height: 6px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.red { background: red; }
+.orange { background: orange; }
+.green { background: green; }
+
+.table-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.badge.high {
+    background: #ffd6d6;
+    color: red;
+}
+
+.badge.medium {
+    background: #fff3cd;
+    color: orange;
+}

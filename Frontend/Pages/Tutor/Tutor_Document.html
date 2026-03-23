@@ -127,10 +127,50 @@
                 <button id="studentMessageBtn" type="button" class="message-btn">
                     <i class="bi bi-chat-dots"></i>
                 </button>
+
+                <div class="comment-box">
+                    <textarea id="tutorComment" placeholder="Write a comment..."></textarea>
+                    
+                    <button id="sendCommentBtn" class="send-btn">
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
             </div>
 
         </div>
 
     </div>
+
+<script>
+
+    document.getElementById("sendCommentBtn").addEventListener("click", async () => {
+        const commentInput = document.getElementById("tutorComment");
+        const comment = commentInput.value.trim();
+
+        if (!comment) {
+            alert("Please write a comment first.");
+            return;
+        }
+
+        try {
+            // Example API call (adjust endpoint)
+            const response = await apiClient.post("/comments", {
+                studentId: currentStudentId, // make sure this exists
+                comment: comment
+            });
+
+            if (response.success) {
+                alert("Comment sent!");
+                commentInput.value = ""; // clear box
+            } else {
+                alert("Failed to send comment.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Error sending comment.");
+        }
+    });
+
+</script>
 </body>
 </html>

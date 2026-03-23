@@ -207,6 +207,36 @@ tbody tr:hover{
     object-fit:cover;
 }
 
+.comment-box {
+    margin-top: 15px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.comment-box textarea {
+    flex: 1;
+    resize: none;
+    height: 60px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+.send-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.send-btn:hover {
+    background: #45a049;
+}
+
 /* ================= TABLET (1024px) ================= */
 @media (max-width:1024px){
 
