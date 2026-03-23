@@ -163,6 +163,20 @@ textarea{
     border-radius:6px;
 }
 
+.delete-btn {
+    margin-top: 10px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background: #c0392b;
+}
+
 /* ================= TABLET (1024px) ================= */
 @media (max-width: 1024px) {
 

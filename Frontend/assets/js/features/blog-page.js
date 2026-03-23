@@ -10,8 +10,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   bindLogout();
-  bindComposerActions();
+  //bindComposerActions();
   bindCommentActions();
+  bindDeleteActions();
 
   await Promise.allSettled([
     loadLastLogin(),
@@ -177,6 +178,10 @@ function renderBlogs() {
         <p class="post-text">${escapeHtml(blog.content || "")}</p>
         <p class="post-time">${escapeHtml(formatDateTime(blog.created_at))}</p>
 
+        <button class="delete-btn" data-delete-id="${Number(blog.blog_id)}">
+          <i class="bi bi-trash"></i> Delete
+        </button>
+
         <div class="comment-list">
           ${commentsHtml}
         </div>
@@ -188,6 +193,33 @@ function renderBlogs() {
       </div>
     `;
   }).join("");
+}
+
+function bindDeleteActions() {
+  const posts = document.getElementById("posts");
+  if (!posts) return;
+
+  posts.addEventListener("click", async function (event) {
+    const btn = event.target.closest("[data-delete-id]");
+    if (!btn) return;
+
+    const postId = Number(btn.dataset.deleteId || 0);
+    if (!postId) return;
+
+    if (!confirm("Are you sure you want to delete this blog?")) return;
+
+    btn.disabled = true;
+
+    try {
+      await window.ApiClient.delete("blog", `/${postId}`);
+      setStatus("Blog deleted successfully.", false);
+      await loadBlogs(); // refresh list
+    } catch (error) {
+      setStatus(error.message || "Unable to delete blog.", true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
 }
 
 function renderComment(comment) {
