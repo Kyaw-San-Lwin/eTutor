@@ -9,24 +9,55 @@ require_once __DIR__ . '/activityMiddleware.php';
 
 class AuthMiddleware
 {
-    public static function handle()
+    private static function hasColumn(mysqli $conn, string $table, string $column): bool
     {
-        global $access_secret;
-        $headers = getallheaders();
+        $tableEscaped = $conn->real_escape_string($table);
+        $columnEscaped = $conn->real_escape_string($column);
+        $result = $conn->query("SHOW COLUMNS FROM `{$tableEscaped}` LIKE '{$columnEscaped}'");
+        return $result && $result->num_rows > 0;
+    }
 
-        if (!isset($headers['Authorization'])) {
-            Response::json(["message" => "No token provided"], 401);
+    private static function ensureTokenVersionColumn(mysqli $conn): void
+    {
+        if (self::hasColumn($conn, 'users', 'token_version')) {
+            return;
         }
 
-        $parts = explode(" ", $headers['Authorization']);
+        $sql = "ALTER TABLE users ADD COLUMN token_version INT NOT NULL DEFAULT 0 AFTER password";
+        if (!$conn->query($sql) && !self::hasColumn($conn, 'users', 'token_version')) {
+            Response::json(["message" => "Failed to initialize token version"], 500);
+        }
+    }
 
-        if (count($parts) !== 2) {
-            Response::json(["message" => "Invalid token format"], 401);
+    private static function getBearerTokenFromHeaders(array $headers): ?string
+    {
+        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+        if (!$authHeader) {
+            return null;
+        }
+
+        $parts = explode(" ", trim($authHeader), 2);
+        if (count($parts) !== 2 || strcasecmp($parts[0], "Bearer") !== 0) {
+            return null;
+        }
+
+        return trim($parts[1]);
+    }
+
+    public static function handle()
+    {
+        global $access_secret, $conn;
+        $headers = getallheaders();
+        self::ensureTokenVersionColumn($conn);
+
+        $bearerToken = self::getBearerTokenFromHeaders($headers);
+        if (!$bearerToken) {
+            Response::json(["message" => "No token provided"], 401);
         }
 
         try {
             $decoded = JWT::decode(
-                $parts[1],
+                $bearerToken,
                 new Key($access_secret, 'HS256')
             );
 
@@ -34,17 +65,48 @@ class AuthMiddleware
                 throw new Exception("Invalid token");
             }
 
+            $userId = (int) ($decoded->user_id ?? 0);
+            if ($userId <= 0) {
+                Response::json(["message" => "TOKEN_EXPIRED_OR_INVALID"], 401);
+            }
+
+            $stmt = $conn->prepare("
+                SELECT u.account_status, u.token_version, r.role_name, COALESCE(s.is_admin, 0) AS is_admin
+                FROM users u
+                JOIN roles r ON r.role_id = u.role_id
+                LEFT JOIN staff s ON s.user_id = u.user_id
+                WHERE u.user_id = ?
+                LIMIT 1
+            ");
+            if (!$stmt) {
+                Response::json(["message" => "Authentication check failed"], 500);
+            }
+            $stmt->bind_param("i", $userId);
+            if (!$stmt->execute()) {
+                Response::json(["message" => "Authentication check failed"], 500);
+            }
+            $result = $stmt->get_result();
+            $dbUser = $result ? $result->fetch_assoc() : null;
+            if (!$dbUser || (string) ($dbUser['account_status'] ?? '') !== 'active') {
+                Response::json(["message" => "TOKEN_EXPIRED_OR_INVALID"], 401);
+            }
+
+            $jwtTokenVersion = (int) ($decoded->token_version ?? 0);
+            $dbTokenVersion = (int) ($dbUser['token_version'] ?? 0);
+            if ($jwtTokenVersion !== $dbTokenVersion) {
+                Response::json(["message" => "TOKEN_REVOKED"], 401);
+            }
+
             $GLOBALS['auth_user'] = [
-                "user_id" => $decoded->user_id,
-                "role" => $decoded->role ?? null,
-                "is_admin" => $decoded->is_admin ?? 0
+                "user_id" => $userId,
+                "role" => $dbUser['role_name'] ?? ($decoded->role ?? null),
+                "is_admin" => (int) ($dbUser['is_admin'] ?? ($decoded->is_admin ?? 0))
             ];
 
-            global $conn;
             $page = $_GET['controller'] ?? 'unknown';
             $action = $_GET['action'] ?? '';
             $pageWithAction = $action ? ($page . ':' . $action) : $page;
-            logActivity($conn, (int) $decoded->user_id, $pageWithAction, 'API access');
+            logActivity($conn, $userId, $pageWithAction, 'API access');
 
         } catch (Exception $e) {
             Response::json(["message" => "TOKEN_EXPIRED_OR_INVALID"], 401);

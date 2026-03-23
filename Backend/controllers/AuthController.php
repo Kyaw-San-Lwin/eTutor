@@ -10,6 +10,42 @@ use Firebase\JWT\Key;
 
 class AuthController
 {
+    private function hasColumn(mysqli $conn, string $table, string $column): bool
+    {
+        $tableEscaped = $conn->real_escape_string($table);
+        $columnEscaped = $conn->real_escape_string($column);
+        $result = $conn->query("SHOW COLUMNS FROM `{$tableEscaped}` LIKE '{$columnEscaped}'");
+        return $result && $result->num_rows > 0;
+    }
+
+    private function ensureTokenVersionColumn(mysqli $conn): void
+    {
+        if ($this->hasColumn($conn, 'users', 'token_version')) {
+            return;
+        }
+
+        $sql = "ALTER TABLE users ADD COLUMN token_version INT NOT NULL DEFAULT 0 AFTER password";
+        if (!$conn->query($sql) && !$this->hasColumn($conn, 'users', 'token_version')) {
+            Response::json(["message" => "Failed to initialize token version"], 500);
+        }
+    }
+
+    private function getBearerTokenFromHeaders(): ?string
+    {
+        $headers = getallheaders();
+        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+        if (!$authHeader) {
+            return null;
+        }
+
+        $parts = explode(" ", trim($authHeader), 2);
+        if (count($parts) !== 2 || strcasecmp($parts[0], "Bearer") !== 0) {
+            return null;
+        }
+
+        return trim($parts[1]);
+    }
+
     private function getRequestData(): ?array
     {
         $data = json_decode(file_get_contents("php://input"), true);
@@ -38,6 +74,7 @@ class AuthController
     {
         Request::requireMethod("POST");
         global $conn;
+        $this->ensureTokenVersionColumn($conn);
 
         $data = $this->getRequestData();
         if ($data === null) {
@@ -54,8 +91,10 @@ class AuthController
         users.user_name,
         users.email,
         users.password,
+        users.account_status,
+        users.token_version,
         roles.role_name,
-        staff.is_admin
+        COALESCE(staff.is_admin, 0) AS is_admin
     FROM users
     JOIN roles ON users.role_id = roles.role_id
     LEFT JOIN staff ON users.user_id = staff.user_id
@@ -69,6 +108,10 @@ class AuthController
         if ($result->num_rows > 0) {
 
             $user = $result->fetch_assoc();
+
+            if ((string) ($user['account_status'] ?? '') !== 'active') {
+                Response::json(["message" => "Account is inactive"], 403);
+            }
 
             if (password_verify($password, $user['password'])) {
                 $updateLastLogin = $conn->prepare("UPDATE users SET last_login = NOW() WHERE user_id = ?");
@@ -108,7 +151,8 @@ class AuthController
     public function refresh()
     {
         Request::requireMethod("POST");
-        global $refresh_secret;
+        global $refresh_secret, $conn;
+        $this->ensureTokenVersionColumn($conn);
 
         $data = $this->getRequestData();
         if ($data === null) {
@@ -124,20 +168,76 @@ class AuthController
 
             if ($decoded->type !== "refresh") throw new Exception("Invalid token type");
 
-            $user_id = $decoded->user_id;
-            $role = $decoded->role;
-            $is_admin = $decoded->is_admin;
+            $user_id = (int) ($decoded->user_id ?? 0);
+            $role = (string) ($decoded->role ?? '');
+            $is_admin = (int) ($decoded->is_admin ?? 0);
+            $tokenVersion = (int) ($decoded->token_version ?? 0);
+
+            $stmt = $conn->prepare("
+                SELECT account_status, token_version
+                FROM users
+                WHERE user_id = ?
+                LIMIT 1
+            ");
+            if (!$stmt) {
+                Response::json(["message" => "Failed to validate refresh token"], 500);
+            }
+            $stmt->bind_param("i", $user_id);
+            if (!$stmt->execute()) {
+                Response::json(["message" => "Failed to validate refresh token"], 500);
+            }
+            $result = $stmt->get_result();
+            $row = $result ? $result->fetch_assoc() : null;
+            if (!$row || (string) ($row['account_status'] ?? '') !== 'active') {
+                Response::json(["message" => "Invalid or expired refresh token"], 401);
+            }
+
+            if ((int) ($row['token_version'] ?? 0) !== $tokenVersion) {
+                Response::json(["message" => "Refresh token revoked"], 401);
+            }
 
             // Generate new access token
             $new_access_token = generateAccessToken([
                 "user_id" => $user_id,
                 "role_name" => $role,
-                "is_admin" => $is_admin
+                "is_admin" => $is_admin,
+                "token_version" => $tokenVersion
             ]);
             Response::json(data: ["access_token" => $new_access_token]);
         } catch (Exception $e) {
             Response::json(["message" => "Invalid or expired refresh token"], 401);
         }
+    }
+
+    public function logout()
+    {
+        Request::requireMethod("POST");
+        global $conn;
+        $this->ensureTokenVersionColumn($conn);
+
+        AuthMiddleware::handle();
+        $authUser = $GLOBALS['auth_user'] ?? null;
+        $currentUserId = (int) ($authUser['user_id'] ?? 0);
+
+        if ($currentUserId <= 0) {
+            Response::json(["message" => "Invalid user"], 401);
+        }
+
+        $stmt = $conn->prepare("
+            UPDATE users
+            SET token_version = token_version + 1
+            WHERE user_id = ? AND account_status = 'active'
+        ");
+        if (!$stmt) {
+            Response::json(["message" => "Failed to logout"], 500);
+        }
+        $stmt->bind_param("i", $currentUserId);
+        if (!$stmt->execute()) {
+            Response::json(["message" => "Failed to logout"], 500);
+        }
+
+        logActivity($conn, $currentUserId, "Logout", "User Logged out");
+        Response::json(["message" => "Logged out successfully"]);
     }
 
     public function requestPasswordReset()

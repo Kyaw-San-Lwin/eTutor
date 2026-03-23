@@ -860,7 +860,7 @@ class UserController
             return;
         }
 
-        $stmt = $this->conn->prepare("UPDATE users SET password = ? WHERE user_id = ?");
+        $stmt = $this->conn->prepare("UPDATE users SET password = ?, token_version = token_version + 1 WHERE user_id = ?");
         if (!$stmt) {
             Response::json(["success" => false, "message" => "Failed to prepare password reset"], 500);
             return;
@@ -876,7 +876,7 @@ class UserController
             return;
         }
 
-        $this->safeLogActivity("User Reset Password", "Reset password for user ID: " . $id);
-        Response::json(["success" => true, "message" => "Password reset successfully"]);
+        $this->safeLogActivity("User Reset Password", "Reset password and revoked sessions for user ID: " . $id);
+        Response::json(["success" => true, "message" => "Password reset successfully. Existing sessions have been invalidated."]);
     }
 }

@@ -43,9 +43,24 @@
     return user;
   }
 
-  function logout() {
-    window.AuthStorage.clear();
-    window.location.replace(window.AppConfig.pages.login);
+  async function logout() {
+    const refreshToken = window.AuthStorage.getRefreshToken();
+
+    try {
+      if (window.ApiClient) {
+        await window.ApiClient.post(
+          "auth",
+          "logout",
+          { refresh_token: refreshToken || null },
+          { useAuth: true, retry: false }
+        );
+      }
+    } catch (error) {
+      // Continue local logout even if API logout fails.
+    } finally {
+      window.AuthStorage.clear();
+      window.location.replace(window.AppConfig.pages.login);
+    }
   }
 
   function requireAuth(allowedRoles) {

@@ -38,7 +38,8 @@ function generateAccessToken($user)
         "type" => "access",
         "user_id" => $user['user_id'],
         "role" => $user['role_name'],
-        "is_admin" => $user['is_admin'] ?? 0
+        "is_admin" => $user['is_admin'] ?? 0,
+        "token_version" => (int) ($user['token_version'] ?? 0)
 
     ];
 
@@ -56,7 +57,8 @@ function generateRefreshToken($user)
         "type" => "refresh",
         "user_id" => $user['user_id'],
         "role" => $user['role_name'],
-        "is_admin" => $user['is_admin'] ?? 0
+        "is_admin" => $user['is_admin'] ?? 0,
+        "token_version" => (int) ($user['token_version'] ?? 0)
 
     ];
 
