@@ -168,26 +168,95 @@ td input[type="checkbox"], th input[type="checkbox"]{
     border-radius:6px;
 }
 
-/* RESPONSIVE */
+/* ================= TABLET (≤1024px) ================= */
 @media (max-width:1024px){
+
     .doc-main{
         padding:25px;
+        gap:16px;
+    }
+
+    .search-bar{
+        padding:10px;
+        gap:8px;
+    }
+
+    .search-bar input{
+        font-size:13px;
+    }
+
+    .modal-content{
+        padding:20px;
+        max-width:350px;
+    }
+
+    .multi-assign-btn{
+        font-size:14px;
+        padding:8px 16px;
+    }
+
+    .assign-btn{
+        font-size:11px;
+        padding:3px 8px;
     }
 
     th, td{
         padding:8px;
         font-size:14px;
     }
+
+    .student-avatar{
+        width:28px;
+        height:28px;
+    }
 }
 
+/* ================= MOBILE (≤768px) ================= */
 @media (max-width:768px){
 
     .doc-main{
         padding:15px;
+        gap:12px;
     }
 
     .search-bar{
-        flex-wrap:wrap;
+        flex-direction:column;
+        align-items:stretch;
+        gap:8px;
+        padding:10px;
+    }
+
+    .search-bar input,
+    .search-bar select{
+        width:100%;
+        font-size:13px;
+        padding:6px;
+    }
+
+    .modal-content{
+        width:95%;
+        padding:18px;
+        border-radius:8px;
+    }
+
+    .multi-assign-btn{
+        width:100%;
+        font-size:14px;
+        padding:10px;
+        text-align:center;
+    }
+
+    .confirm-btn,
+    .cancel-btn{
+        width:100%;
+        margin-top:8px;
+        text-align:center;
+    }
+
+    .modal-content div{
+        display:flex;
+        flex-direction:column;
+        gap:8px;
     }
 
     th, td{
@@ -198,11 +267,5 @@ td input[type="checkbox"], th input[type="checkbox"]{
     .student-avatar{
         width:24px;
         height:24px;
-    }
-
-    /* Make multi-assign button full width on mobile */
-    .multi-assign-btn{
-        width:100%;
-        text-align:center;
     }
 }

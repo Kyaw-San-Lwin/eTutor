@@ -5,207 +5,110 @@
     height: 100%;
 }
 
-/* Extra padding for charts and recent activity */
-main > .grid + .grid {
-    margin-bottom: 2rem;
-}
-
-/* Optional: adjust table row spacing */
 table tbody tr td {
     padding-top: 0.75rem;
     padding-bottom: 0.75rem;
 }
 
 /* MAIN DASHBOARD AREA */
-.dashboard-main{
-    padding:40px;
-    width:100%;
+.dashboard-main {
+    padding: 40px;
+    width: 100%;
 }
 
-
-/* DASHBOARD GRID */
-.dashboard-grid{
-    display:grid;
-    grid-template-columns:2fr 1fr;
-    gap:32px;
+/* DASHBOARD GRID (Top metric cards) */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
 }
 
-/* LEFT SIDE SECTION */
-.left-section{
-    display:flex;
-    flex-direction:column;
-    gap:32px;
+/* Metric card styles */
+.dashboard-grid > div {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    text-align: center;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-/* BLOG COMMENT ITEMS */
-.comment-item{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:12px;
-    border-radius:8px;
-    transition:0.2s;
+/* Metric card text */
+.dashboard-grid > div p.text-gray-500 {
+    font-size: 0.875rem; /* label */
 }
 
-.comment-item:hover{
-    background:#f3f4f6;
+.dashboard-grid > div h2 {
+    font-size: 2rem; /* number */
+    font-weight: bold;
 }
 
-/* BOTTOM CARDS */
-.bottom-cards{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:24px;
+.dashboard-grid > div p.text-green-500,
+.dashboard-grid > div p.text-green-400 {
+    font-size: 0.75rem; /* trend */
 }
 
-/* CHAT CARD */
-.chat-card{
-    display:flex;
-    flex-direction:column;
-    min-height:190px;
+/* Charts Section */
+.grid > .bg-white.p-6.rounded-lg.shadow {
+    padding: 20px;
 }
 
-/* MEETING SECTION */
-.meeting-section{
-    display:flex;
-    flex-direction:column;
-    gap:24px;
-}
-
-/* MEETING CARD */
-.meeting-card{
-    background:white;
-    border-radius:12px;
-    overflow:hidden;
-    box-shadow:0 2px 6px rgba(0,0,0,0.05);
-}
-
-.meeting-card img{
-    width:100%;
-    height:160px;
-    object-fit:cover;
-}
-
-.meeting-info{
-    padding:16px;
-}
-
-.date{
-    color:gray;
-    font-size:14px;
-}
-
-/* REMIND BUTTON */
-.remind-btn{
-    background:#1d4ed8;
-    color:white;
-    padding:8px 16px;
-    border-radius:6px;
-    margin-top:10px;
-    transition:0.2s;
-}
-
-.remind-btn:hover{
-    background:#1e40af;
-}
-
+/* Fade-in animation for popup */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
 }
-
 .animate-fadeIn {
     animation: fadeIn 0.3s ease;
 }
 
-/* TABLET RESPONSIVE (1024px) */
-@media (max-width:1024px){
+@media (max-width: 1024px) {
 
-    .dashboard-main{
-        padding:30px;
+    .dashboard-main {
+        padding: 24px;
     }
 
-    .dashboard-grid{
-        grid-template-columns:1fr;
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
     }
 
-    /* bottom cards stay 2 per row */
-    .bottom-cards{
-        grid-template-columns:1fr 1fr;
+    .dashboard-grid > div {
+        padding: 16px;
+        min-height: 120px;
     }
 
-    /* meeting cards side by side */
-    .meeting-section{
-        flex-direction:row;
-        flex-wrap:wrap;
-        gap:20px;
+    .dashboard-grid > div h2 {
+        font-size: 1.75rem;
     }
 
-    .meeting-card{
-        width:48%;
+    .grid.grid-cols-1.md\:grid-cols-2 {
+        grid-template-columns: 1fr 1fr;
     }
-
 }
 
-/* MOBILE RESPONSIVE (768px) */
-@media (max-width:768px){
+/* MOBILE(768px) */
+@media (max-width: 768px) {
 
-    .dashboard-main{
-        padding:20px;
+    .dashboard-grid > div {
+        padding: 10px;
+        min-height: 90px;
     }
 
-    /* EVERYTHING STACKS */
-    .dashboard-grid{
-        grid-template-columns:1fr;
-        gap:20px;
+    .dashboard-grid > div p.text-gray-500 {
+        font-size: 0.7rem;
     }
 
-    /* cards one by one */
-    .bottom-cards{
-        grid-template-columns:1fr;
+    .dashboard-grid > div h2 {
+        font-size: 1.25rem;
+        line-height: 1.2;
     }
 
-    /* meeting cards stacked */
-    .meeting-section{
-        flex-direction:column;
+    .dashboard-grid > div p.text-green-500,
+    .dashboard-grid > div p.text-green-400 {
+        font-size: 0.6rem;
     }
-
-    .meeting-card{
-        width:100%;
-    }
-
-    /* smaller meeting image */
-    .meeting-card img{
-        height:140px;
-    }
-
-    /* smaller sidebar for mobile */
-    .sidebar{
-        width:70px;
-    }
-
-    /* hide text until hover */
-    .menu-text{
-        display:none;
-    }
-
-    .sidebar:hover .menu-text{
-        display:inline;
-    }
-
-    /* hide logo text */
-    .logo-text{
-        display:none;
-    }
-
-    .sidebar:hover .logo-text{
-        display:block;
-    }
-
 }
