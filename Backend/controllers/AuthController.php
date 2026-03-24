@@ -10,7 +10,7 @@ use Firebase\JWT\Key;
 
 class AuthController
 {
-    private function isFirstLoginUser(mysqli $conn, int $userId): bool
+    private function isFirstLoginUser(mysqli $conn, int $userId, $lastLogin = null): bool
     {
         $stmt = $conn->prepare("
             SELECT COUNT(*) AS total
@@ -19,12 +19,12 @@ class AuthController
               AND activity_type = 'User Logged in'
         ");
         if (!$stmt) {
-            return false;
+            return empty($lastLogin);
         }
 
         $stmt->bind_param("i", $userId);
         if (!$stmt->execute()) {
-            return false;
+            return empty($lastLogin);
         }
 
         $result = $stmt->get_result();
@@ -138,7 +138,7 @@ class AuthController
             }
 
             if (password_verify($password, $user['password'])) {
-                $isFirstLogin = $this->isFirstLoginUser($conn, (int) $user['user_id']);
+                $isFirstLogin = $this->isFirstLoginUser($conn, (int) $user['user_id'], $user['last_login'] ?? null);
                 $updateLastLogin = $conn->prepare("UPDATE users SET last_login = NOW() WHERE user_id = ?");
                 if ($updateLastLogin) {
                     $updateLastLogin->bind_param("i", $user['user_id']);

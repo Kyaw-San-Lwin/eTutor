@@ -18,12 +18,21 @@
       return;
     }
 
+    const user = window.AuthStorage?.getUser?.() || {};
     const welcomeKey = getWelcomeKey();
-    if (sessionStorage.getItem(welcomeKey) === "1") {
+    const fromSession = sessionStorage.getItem(welcomeKey) === "1";
+    const fromUserFlag = user.is_first_login === true || user.is_first_login === 1 || user.is_first_login === "1";
+
+    if (fromSession || fromUserFlag) {
       setTimeout(function () {
         modal.classList.remove("hidden");
       }, 300);
       sessionStorage.removeItem(welcomeKey);
+
+      if (fromUserFlag && window.AuthStorage?.setAuth) {
+        const nextUser = Object.assign({}, user, { is_first_login: false });
+        window.AuthStorage.setAuth({ user: nextUser });
+      }
     }
 
     modal.addEventListener("click", function (event) {
@@ -36,4 +45,3 @@
   window.closeWelcomeModal = closeWelcomeModal;
   window.initDashboardWelcome = initDashboardWelcome;
 })();
-
