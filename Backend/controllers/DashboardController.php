@@ -221,24 +221,54 @@ class DashboardController
 
         $userId = (int) $user['user_id'];
 
-        $stmt = $this->conn->prepare("SELECT last_login FROM users WHERE user_id = ? LIMIT 1");
-        if (!$stmt) {
+        // Previous login time (not current session login):
+        // second most recent "User Logged in" event for this user.
+        $previousStmt = $this->conn->prepare("
+            SELECT access_time
+            FROM activity_logs
+            WHERE user_id = ?
+              AND activity_type = 'User Logged in'
+            ORDER BY access_time DESC
+            LIMIT 1 OFFSET 1
+        ");
+        if (!$previousStmt) {
             Response::json(["success" => false, "message" => "Failed to fetch last login"], 500);
         }
 
-        $stmt->bind_param("i", $userId);
-        if (!$stmt->execute()) {
+        $previousStmt->bind_param("i", $userId);
+        if (!$previousStmt->execute()) {
             Response::json(["success" => false, "message" => "Failed to fetch last login"], 500);
         }
 
-        $result = $stmt->get_result();
-        $row = $result ? $result->fetch_assoc() : null;
+        $previousResult = $previousStmt->get_result();
+        $previousRow = $previousResult ? $previousResult->fetch_assoc() : null;
+        $previousLogin = $previousRow['access_time'] ?? null;
+
+        // Current login timestamp from users table.
+        $currentStmt = $this->conn->prepare("
+            SELECT last_login
+            FROM users
+            WHERE user_id = ?
+            LIMIT 1
+        ");
+        if (!$currentStmt) {
+            Response::json(["success" => false, "message" => "Failed to fetch current login"], 500);
+        }
+        $currentStmt->bind_param("i", $userId);
+        if (!$currentStmt->execute()) {
+            Response::json(["success" => false, "message" => "Failed to fetch current login"], 500);
+        }
+        $currentResult = $currentStmt->get_result();
+        $currentRow = $currentResult ? $currentResult->fetch_assoc() : null;
+        $currentLogin = $currentRow['last_login'] ?? null;
 
         Response::json([
             "success" => true,
             "data" => [
                 "user_id" => $userId,
-                "last_login" => $row['last_login'] ?? null
+                "last_login" => $previousLogin, // backward compatible alias
+                "previous_login" => $previousLogin,
+                "current_login" => $currentLogin
             ]
         ]);
     }

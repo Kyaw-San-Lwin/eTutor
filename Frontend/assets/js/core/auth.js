@@ -40,6 +40,11 @@
       refreshToken
     });
 
+    const userId = user.id || user.user_id || "";
+    if (user.is_first_login && userId) {
+      sessionStorage.setItem(`etutor_show_welcome_${userId}`, "1");
+    }
+
     return user;
   }
 

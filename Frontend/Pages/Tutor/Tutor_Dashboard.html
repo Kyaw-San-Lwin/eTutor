@@ -13,6 +13,8 @@
     <script src="../../assets/js/core/storage.js"></script>
     <script src="../../assets/js/core/apiClient.js"></script>
     <script src="../../assets/js/core/auth.js"></script>
+    <script src="../../assets/js/core/welcome.js"></script>
+    <script src="../../assets/js/core/toast.js"></script>
     <script src="../../assets/js/features/tutor-dashboard-page.js"></script>
 </head>
 
@@ -171,7 +173,7 @@
             </p>
 
             <!-- 🔥 UPDATED BUTTON -->
-            <a href="./Edit_Profile.html">
+            <a href="./Edit_Profile.html#passwordChange">
                 <button 
                     class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition">
                     Change Password Now
@@ -183,28 +185,8 @@
     </div>
 
 <script>
-    //to test the pop up works or not
-    localStorage.removeItem("welcomeShown");
-    document.addEventListener("DOMContentLoaded", () => {
-        const modal = document.getElementById("welcomeModal");
-
-        if (!localStorage.getItem("welcomeShown")) {
-            setTimeout(() => {
-                modal.classList.remove("hidden");
-            }, 300);
-
-            localStorage.setItem("welcomeShown", "true");
-        }
-    });
-
-    function closeWelcomeModal() {
-        document.getElementById("welcomeModal").classList.add("hidden");
-    }
-
-    document.getElementById("welcomeModal").addEventListener("click", function(e) {
-        if (e.target === this) {
-            this.classList.add("hidden");
-        }
+    document.addEventListener("DOMContentLoaded", function () {
+        window.initDashboardWelcome?.();
     });
 </script>
 

@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/jwt.php';
 function pickUsers(mysqli $conn): array
 {
     $sql = "
-        SELECT u.user_id, r.role_name, COALESCE(s.is_admin, 0) AS is_admin
+        SELECT u.user_id, u.token_version, r.role_name, COALESCE(s.is_admin, 0) AS is_admin
         FROM users u
         JOIN roles r ON u.role_id = r.role_id
         LEFT JOIN staff s ON s.user_id = u.user_id
@@ -26,13 +26,13 @@ function pickUsers(mysqli $conn): array
             $uid = (int) ($row['user_id'] ?? 0);
 
             if ($role === 'staff' && $isAdmin && $users['admin'] === null) {
-                $users['admin'] = $uid;
+                $users['admin'] = ['user_id' => $uid, 'token_version' => (int) ($row['token_version'] ?? 0)];
             } elseif ($role === 'staff' && !$isAdmin && $users['staff'] === null) {
-                $users['staff'] = $uid;
+                $users['staff'] = ['user_id' => $uid, 'token_version' => (int) ($row['token_version'] ?? 0)];
             } elseif ($role === 'student' && $users['student'] === null) {
-                $users['student'] = $uid;
+                $users['student'] = ['user_id' => $uid, 'token_version' => (int) ($row['token_version'] ?? 0)];
             } elseif ($role === 'tutor' && $users['tutor'] === null) {
-                $users['tutor'] = $uid;
+                $users['tutor'] = ['user_id' => $uid, 'token_version' => (int) ($row['token_version'] ?? 0)];
             }
         }
     }
@@ -40,12 +40,13 @@ function pickUsers(mysqli $conn): array
     return $users;
 }
 
-function tokenFor(int $userId, string $role, int $isAdmin): string
+function tokenFor(int $userId, string $role, int $isAdmin, int $tokenVersion): string
 {
     return generateAccessToken([
         'user_id' => $userId,
         'role_name' => $role,
-        'is_admin' => $isAdmin
+        'is_admin' => $isAdmin,
+        'token_version' => $tokenVersion
     ]);
 }
 
@@ -100,10 +101,10 @@ if (count($missing) > 0) {
 }
 
 $tokens = [
-    'admin' => tokenFor($users['admin'], 'staff', 1),
-    'staff' => tokenFor($users['staff'], 'staff', 0),
-    'student' => tokenFor($users['student'], 'student', 0),
-    'tutor' => tokenFor($users['tutor'], 'tutor', 0)
+    'admin' => tokenFor($users['admin']['user_id'], 'staff', 1, $users['admin']['token_version']),
+    'staff' => tokenFor($users['staff']['user_id'], 'staff', 0, $users['staff']['token_version']),
+    'student' => tokenFor($users['student']['user_id'], 'student', 0, $users['student']['token_version']),
+    'tutor' => tokenFor($users['tutor']['user_id'], 'tutor', 0, $users['tutor']['token_version'])
 ];
 
 $base = 'http://localhost:80/eTutor/Backend/api/index.php';
@@ -112,8 +113,8 @@ $tests = [
     ['name' => 'dashboard_get_student', 'role' => 'student', 'method' => 'GET', 'url' => $base . '?controller=dashboard', 'expect' => [200]],
     ['name' => 'dashboard_get_tutor', 'role' => 'tutor', 'method' => 'GET', 'url' => $base . '?controller=dashboard', 'expect' => [200]],
     ['name' => 'dashboard_get_staff', 'role' => 'staff', 'method' => 'GET', 'url' => $base . '?controller=dashboard', 'expect' => [200]],
-    ['name' => 'dashboard_userDashboard_admin', 'role' => 'admin', 'method' => 'GET', 'url' => $base . '?controller=dashboard&action=userDashboard&user_id=' . $users['student'], 'expect' => [200]],
-    ['name' => 'dashboard_userDashboard_staff', 'role' => 'staff', 'method' => 'GET', 'url' => $base . '?controller=dashboard&action=userDashboard&user_id=' . $users['student'], 'expect' => [200]],
+    ['name' => 'dashboard_userDashboard_admin', 'role' => 'admin', 'method' => 'GET', 'url' => $base . '?controller=dashboard&action=userDashboard&user_id=' . $users['student']['user_id'], 'expect' => [200]],
+    ['name' => 'dashboard_userDashboard_staff', 'role' => 'staff', 'method' => 'GET', 'url' => $base . '?controller=dashboard&action=userDashboard&user_id=' . $users['student']['user_id'], 'expect' => [200]],
     ['name' => 'report_statistics_admin', 'role' => 'admin', 'method' => 'GET', 'url' => $base . '?controller=report&action=statistics', 'expect' => [200]],
     ['name' => 'report_statistics_staff', 'role' => 'staff', 'method' => 'GET', 'url' => $base . '?controller=report&action=statistics', 'expect' => [403]],
     ['name' => 'report_activityLogs_admin', 'role' => 'admin', 'method' => 'GET', 'url' => $base . '?controller=report&action=activityLogs&limit=5', 'expect' => [200]],

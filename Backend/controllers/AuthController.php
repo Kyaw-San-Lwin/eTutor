@@ -10,6 +10,29 @@ use Firebase\JWT\Key;
 
 class AuthController
 {
+    private function isFirstLoginUser(mysqli $conn, int $userId, $lastLogin = null): bool
+    {
+        $stmt = $conn->prepare("
+            SELECT COUNT(*) AS total
+            FROM activity_logs
+            WHERE user_id = ?
+              AND activity_type = 'User Logged in'
+        ");
+        if (!$stmt) {
+            return empty($lastLogin);
+        }
+
+        $stmt->bind_param("i", $userId);
+        if (!$stmt->execute()) {
+            return empty($lastLogin);
+        }
+
+        $result = $stmt->get_result();
+        $row = $result ? $result->fetch_assoc() : null;
+        $total = (int) ($row['total'] ?? 0);
+        return $total === 0;
+    }
+
     private function hasColumn(mysqli $conn, string $table, string $column): bool
     {
         $tableEscaped = $conn->real_escape_string($table);
@@ -93,6 +116,7 @@ class AuthController
         users.password,
         users.account_status,
         users.token_version,
+        users.last_login,
         roles.role_name,
         COALESCE(staff.is_admin, 0) AS is_admin
     FROM users
@@ -114,6 +138,7 @@ class AuthController
             }
 
             if (password_verify($password, $user['password'])) {
+                $isFirstLogin = $this->isFirstLoginUser($conn, (int) $user['user_id'], $user['last_login'] ?? null);
                 $updateLastLogin = $conn->prepare("UPDATE users SET last_login = NOW() WHERE user_id = ?");
                 if ($updateLastLogin) {
                     $updateLastLogin->bind_param("i", $user['user_id']);
@@ -138,7 +163,8 @@ class AuthController
                         "name" => $user['user_name'],
                         "email" => $user['email'],
                         "role" => $user['role_name'],
-                        "is_admin" => $user['is_admin']
+                        "is_admin" => $user['is_admin'],
+                        "is_first_login" => $isFirstLogin
                     ]
                 ]);
             } else {
