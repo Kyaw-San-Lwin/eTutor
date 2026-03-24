@@ -92,15 +92,37 @@ function bindResetForm() {
       }
     }
   });
+
+  const toggle = document.getElementById("toggleResetPasswords");
+  if (toggle) {
+    toggle.addEventListener("change", function () {
+      const newPasswordInput = document.getElementById("resetNewPassword");
+      const confirmPasswordInput = document.getElementById("resetConfirmPassword");
+      const type = toggle.checked ? "text" : "password";
+
+      if (newPasswordInput) {
+        newPasswordInput.type = type;
+      }
+      if (confirmPasswordInput) {
+        confirmPasswordInput.type = type;
+      }
+    });
+  }
 }
 
 function setStatus(node, message, isError) {
   if (!node) {
+    if (window.Toast?.show && message) {
+      window.Toast.show(message, isError ? "error" : "success");
+    }
     return;
   }
 
   node.textContent = message || "";
   node.className = `text-sm mt-2 ${isError ? "text-red-500" : "text-green-600"}`;
+  if (window.Toast?.show && message) {
+    window.Toast.show(message, isError ? "error" : "success");
+  }
 }
 
 async function loadLastLogin() {

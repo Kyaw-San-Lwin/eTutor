@@ -457,6 +457,7 @@ class ReportController
             LEFT JOIN users u ON l.user_id = u.user_id
             {$whereSql}
             ORDER BY l.access_time DESC
+            LIMIT ?
         ";
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) {
