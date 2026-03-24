@@ -29,7 +29,7 @@ async function loadLastLogin() {
 
   try {
     const response = await window.ApiClient.get("dashboard", "lastLogin");
-    target.textContent = formatDate(response.data?.last_login) || "N/A";
+    target.textContent = formatDateTime(response.data?.last_login) || "N/A";
   } catch (error) {
     target.textContent = "N/A";
   }
@@ -130,10 +130,11 @@ function formatDateTime(value) {
 
   return date.toLocaleString("en-GB", {
     day: "2-digit",
-    month: "2-digit",
+    month: "short",
     year: "numeric",
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
+    hour12: false
   });
 }
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -194,43 +195,43 @@
 
     </div>
 
-<script>
+    <script>
 
-    document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function () {
 
-        const sidebar = document.querySelector(".sidebar");
+            const sidebar = document.querySelector(".sidebar");
 
-        sidebar.addEventListener("click", function(e) {
-            const toggle = e.target.closest(".dropdown-toggle");
+            sidebar.addEventListener("click", function (e) {
+                const toggle = e.target.closest(".dropdown-toggle");
 
-            if (toggle) {
-                e.stopPropagation();
-                const parent = toggle.parentElement;
+                if (toggle) {
+                    e.stopPropagation();
+                    const parent = toggle.parentElement;
 
-                document.querySelectorAll(".sidebar .dropdown").forEach(d => {
-                    if (d !== parent) d.classList.remove("active");
-                });
+                    document.querySelectorAll(".sidebar .dropdown").forEach(d => {
+                        if (d !== parent) d.classList.remove("active");
+                    });
 
-                parent.classList.toggle("active");
-            }
-        });
+                    parent.classList.toggle("active");
+                }
+            });
 
-        document.addEventListener("click", function(e) {
-            if (!e.target.closest(".sidebar")) {
-                document.querySelectorAll(".sidebar .dropdown")
-                    .forEach(d => d.classList.remove("active"));
-            }
-        });
+            document.addEventListener("click", function (e) {
+                if (!e.target.closest(".sidebar")) {
+                    document.querySelectorAll(".sidebar .dropdown")
+                        .forEach(d => d.classList.remove("active"));
+                }
+            });
 
-        /* ADMIN REPORTS */
-        const userRole = "admin";
+            /* ADMIN REPORTS */
+            const userRole = "admin";
 
-        if (userRole === "admin") {
-            const placeholder = document.getElementById("admin-reports-placeholder");
+            if (userRole === "admin") {
+                const placeholder = document.getElementById("admin-reports-placeholder");
 
-            const reportsDropdown = document.createElement("div");
-            reportsDropdown.classList.add("dropdown");
-            reportsDropdown.innerHTML = `
+                const reportsDropdown = document.createElement("div");
+                reportsDropdown.classList.add("dropdown");
+                reportsDropdown.innerHTML = `
                 <div class="nav-item active dropdown-toggle">
                     <i class="bi bi-file-bar-graph"></i>
                     <span class="menu-text">Reports</span>
@@ -247,125 +248,174 @@
                     </a>
                 </div>
             `;
-            placeholder.replaceWith(reportsDropdown);
-        }
-
-    });
-
-    // COLOR THEME
-    const primary = "#3b82f6";
-    const secondary = "#6366f1";
-    const danger = "#ef4444";
-
-    /* ===================== BAR CHART ===================== */
-    new Chart(document.getElementById("programChart"), {
-        type: "bar",
-        data: {
-            labels: ["CS", "GED", "HND", "ENG", "CB", "CN"],
-            datasets: [{
-                label: "Students",
-                data: [200, 300, 150, 240, 260, 80],
-                backgroundColor: primary,
-                borderRadius: 8,
-                barThickness: 40
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: "#e5e7eb" }
-                },
-                x: { grid: { display: false } }
+                placeholder.replaceWith(reportsDropdown);
             }
+
+        });
+
+        // COLOR THEME
+        const primary = "#3b82f6";
+        const secondary = "#6366f1";
+        const danger = "#ef4444";
+
+        /* ===================== BAR CHART ===================== */
+        new Chart(document.getElementById("programChart"), {
+            type: "bar",
+            data: {
+                labels: ["CS", "GED", "HND", "ENG", "CB", "CN"],
+                datasets: [{
+                    label: "Students",
+                    data: [200, 300, 150, 240, 260, 80],
+                    backgroundColor: primary,
+                    borderRadius: 8,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: "#e5e7eb" }
+                    },
+                    x: { grid: { display: false } }
+                }
             }
-    });
+        });
 
-    /* ===================== WORKLOAD ===================== */
-    const workloadCtx = document.getElementById("workloadChart").getContext("2d");
+        /* ===================== WORKLOAD ===================== */
+        const workloadCtx = document.getElementById("workloadChart").getContext("2d");
 
-    const gradient = workloadCtx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, secondary);
-    gradient.addColorStop(1, primary);
+        const gradient = workloadCtx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, secondary);
+        gradient.addColorStop(1, primary);
 
-    new Chart(workloadCtx, {
-        type: "bar",
-        data: {
-            labels: ["CS", "GED", "HND", "ENG", "CB", "CN"],
-            datasets: [{
-                label: "Workload",
-                data: [190, 300, 160, 230, 260, 70],
-                backgroundColor: gradient,
-                borderRadius: 8
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true },
-                x: { grid: { display: false } }
+        new Chart(workloadCtx, {
+            type: "bar",
+            data: {
+                labels: ["CS", "GED", "HND", "ENG", "CB", "CN"],
+                datasets: [{
+                    label: "Workload",
+                    data: [190, 300, 160, 230, 260, 70],
+                    backgroundColor: gradient,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true },
+                    x: { grid: { display: false } }
+                }
             }
-        }
-    });
+        });
 
-    /* ===================== PIE (DONUT) ===================== */
-    new Chart(document.getElementById("pieChart"), {
-        type: "doughnut",
-        data: {
-            labels: ["Allocated", "Pending"],
-            datasets: [{
-                data: [1087, 161],
-                backgroundColor: [primary, danger],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            cutout: "70%",
-            plugins: {
-                legend: {
-                    position: "bottom",
-                    labels: {
-                        boxWidth: 12,
-                        padding: 15
+        /* ===================== PIE (DONUT) ===================== */
+        new Chart(document.getElementById("pieChart"), {
+            type: "doughnut",
+            data: {
+                labels: ["Allocated", "Pending"],
+                datasets: [{
+                    data: [1087, 161],
+                    backgroundColor: [primary, danger],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                cutout: "70%",
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: {
+                            boxWidth: 12,
+                            padding: 15
+                        }
                     }
                 }
             }
-        }
-    });
+        });
 
-    /* ===================== LINE CHART ===================== */
-    const lineCtx = document.getElementById("lineChart").getContext("2d");
+        /* ===================== LINE CHART ===================== */
+        const lineCtx = document.getElementById("lineChart").getContext("2d");
 
-    const lineGradient = lineCtx.createLinearGradient(0, 0, 0, 300);
-    lineGradient.addColorStop(0, "rgba(59,130,246,0.4)");
-    lineGradient.addColorStop(1, "rgba(59,130,246,0)");
+        const lineGradient = lineCtx.createLinearGradient(0, 0, 0, 300);
+        lineGradient.addColorStop(0, "rgba(59,130,246,0.4)");
+        lineGradient.addColorStop(1, "rgba(59,130,246,0)");
 
-    new Chart(lineCtx, {
-        type: "line",
-        data: {
-            labels: ["Jan","Feb","Mar","Apr","May","Jun"],
-            datasets: [{
-                label: "Meetings",
-                data: [10, 20, 15, 30, 25, 40],
-                borderColor: primary,
-                backgroundColor: lineGradient,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: primary,
-                pointRadius: 5
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true },
-                x: { grid: { display: false } }
+        new Chart(lineCtx, {
+            type: "line",
+            data: {
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+                datasets: [{
+                    label: "Meetings",
+                    data: [10, 20, 15, 30, 25, 40],
+                    borderColor: primary,
+                    backgroundColor: lineGradient,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: primary,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true },
+                    x: { grid: { display: false } }
+                }
             }
-        }
-    });
+        });
 
-</script>
+    </script>
 
 </body>
+<<<<<<< HEAD
+
+</html>
+
+</aside>
+
+<main class="flex-1 p-6">
+    <h1 class="text-2xl font-bold mb-2">Statistical Report</h1>
+    <p id="reportStatus" class="text-sm mb-4"></p>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow p-4">
+            <p class="text-gray-500">Messages (7 days)</p>
+            <p id="messagesLast7Days" class="text-2xl font-bold">0</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <p class="text-gray-500">Average Messages / Tutor</p>
+            <p id="avgMessagesPerTutor" class="text-2xl font-bold">0</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <p class="text-gray-500">Active Allocations</p>
+            <p id="activeAllocations" class="text-2xl font-bold">0</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <p class="text-gray-500">Scheduled Meetings</p>
+            <p id="scheduledMeetings" class="text-2xl font-bold">0</p>
+        </div>
+    </div>
+
+    <section class="bg-white rounded-lg shadow p-4">
+        <h2 class="font-semibold mb-3">Recent Activity Logs</h2>
+        <table class="w-full text-left text-sm">
+            <thead class="border-b text-gray-500">
+                <tr>
+                    <th class="py-2">User</th>
+                    <th>Activity</th>
+                    <th>Page</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody id="activityRows"></tbody>
+        </table>
+    </section>
+</main>
+</div>
+</body>
+
+=======
+>>>>>>> 6db3737a15342637c3c707c6023b09bc6b394dbf
 </html>
