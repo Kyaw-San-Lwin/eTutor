@@ -59,7 +59,7 @@ async function loadLastLogin() {
   try {
     const response = await window.ApiClient.get("dashboard", "lastLogin");
     const lastLogin = response.data?.last_login || null;
-    setText("lastLoginValue", formatDate(lastLogin) || "N/A");
+    setText("lastLoginValue", formatDateTime(lastLogin) || "N/A");
   } catch (error) {
     setText("lastLoginValue", "N/A");
   }
@@ -216,4 +216,25 @@ function escapeAttribute(value) {
     .replace(/"/g, "&quot;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
+
+
+function formatDateTime(value) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
 }

@@ -81,6 +81,28 @@ class UserController
         return ValidationService::intField($data['id'] ?? null, 'id');
     }
 
+    private function resolveUserIdByLogin(string $login): int
+    {
+        $stmt = $this->conn->prepare("
+            SELECT user_id
+            FROM users
+            WHERE user_name = ? OR email = ?
+            LIMIT 1
+        ");
+        if (!$stmt) {
+            return 0;
+        }
+
+        $stmt->bind_param("ss", $login, $login);
+        if (!$stmt->execute()) {
+            return 0;
+        }
+
+        $result = $stmt->get_result();
+        $row = $result ? $result->fetch_assoc() : null;
+        return (int) ($row['user_id'] ?? 0);
+    }
+
     private function getRoleNameById(int $roleId): ?string
     {
         $stmt = $this->conn->prepare("SELECT role_name FROM roles WHERE role_id = ? LIMIT 1");
@@ -842,10 +864,21 @@ class UserController
             return;
         }
 
-        $id = ValidationService::intField($data['id'] ?? null, 'id');
+        $id = 0;
+        if (array_key_exists('id', $data) && $data['id'] !== null && $data['id'] !== '') {
+            $id = ValidationService::intField($data['id'], 'id');
+        } elseif (array_key_exists('login', $data) && trim((string) $data['login']) !== '') {
+            $login = ValidationService::sanitizeString($data['login'], 100);
+            $id = $this->resolveUserIdByLogin($login);
+            if ($id <= 0) {
+                Response::json(["success" => false, "message" => "User not found"], 404);
+                return;
+            }
+        }
+
         $newPassword = (string) ($data['new_password'] ?? '');
-        if (trim($newPassword) === '') {
-            Response::json(["success" => false, "message" => "Valid id and new_password are required"], 400);
+        if ($id <= 0 || trim($newPassword) === '') {
+            Response::json(["success" => false, "message" => "Provide id or login, and new_password"], 400);
             return;
         }
 
