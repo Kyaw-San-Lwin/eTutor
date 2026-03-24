@@ -214,7 +214,7 @@
     <!-- WELCOME POPUP -->
     <div id="welcomeModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 hidden z-50">
 
-        <div class="bg-white rounded-2xl shadow-lg p-8 w-[400px] text-center animate-fadeIn">
+        <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg text-center animate-fadeIn">
 
             <!-- Icon -->
             <div class="text-indigo-600 text-5xl mb-4">
@@ -225,15 +225,23 @@
             <h2 class="text-2xl font-bold mb-2">Welcome to KMD eTutor System!</h2>
 
             <!-- Message -->
-            <p class="text-gray-600 mb-6">
+            <p class="text-gray-600 mb-4">
                 We're glad to have you here. Start exploring your dashboard.
             </p>
 
-            <!-- Button -->
-            <button onclick="closeWelcomeModal()" 
-                class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition">
-                Get Started
-            </button>
+            <!-- 🔥 NEW SECURITY MESSAGE -->
+            <p class="text-red-500 text-sm mb-6">
+                ⚠️ For security reasons, please change your password immediately. 
+                Your current password was set by staff and is not secure.
+            </p>
+
+            <!-- 🔥 UPDATED BUTTON -->
+            <a href="./Edit_Profile.html">
+                <button 
+                    class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition">
+                    Change Password Now
+                </button>
+            </a>
 
         </div>
 
