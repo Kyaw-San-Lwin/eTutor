@@ -17,8 +17,10 @@ const allocationState = {
   students: [],
   tutors: [],
   activeByStudentId: new Map(),
-  selectedStudentId: 0
+  selectedStudentId: 0,
+  selectedStudentIds: []
 };
+const MAX_BULK_SELECTION = 10;
 
 function bindStaffShell() {
   const logoutLink = document.querySelector(".logout");
@@ -48,6 +50,8 @@ function bindAllocationActions() {
   const cancelBtn = document.getElementById("closeAssignModalBtn");
   const confirmBtn = document.getElementById("confirmAssignBtn");
   const modal = document.getElementById("assignModal");
+  const openBulkBtn = document.getElementById("openAssignModalBtn");
+  const selectAll = document.getElementById("selectAllStudents");
 
   if (searchInput) {
     searchInput.addEventListener("input", renderStudents);
@@ -62,6 +66,29 @@ function bindAllocationActions() {
   if (confirmBtn) {
     confirmBtn.addEventListener("click", confirmAssign);
   }
+  if (openBulkBtn) {
+    openBulkBtn.addEventListener("click", function () {
+      if (!allocationState.selectedStudentIds.length) {
+        setStatus("Please select at least one student.", true);
+        return;
+      }
+      openModal(0, allocationState.selectedStudentIds.slice());
+    });
+  }
+  if (selectAll) {
+    selectAll.addEventListener("change", function () {
+      const checked = !!selectAll.checked;
+      const visibleStudentIds = getVisibleStudents().map(function (s) {
+        return Number(s.student_id || 0);
+      }).filter(Boolean);
+
+      allocationState.selectedStudentIds = checked ? visibleStudentIds.slice(0, MAX_BULK_SELECTION) : [];
+      if (checked && visibleStudentIds.length > MAX_BULK_SELECTION) {
+        setStatus(`Bulk allocation is limited to ${MAX_BULK_SELECTION} students at one time.`, true);
+      }
+      renderStudents();
+    });
+  }
 
   if (modal) {
     modal.addEventListener("click", function (event) {
@@ -73,6 +100,34 @@ function bindAllocationActions() {
 
   const table = document.getElementById("studentTable");
   if (table) {
+    table.addEventListener("change", function (event) {
+      const checkbox = event.target.closest("[data-select-student-id]");
+      if (!checkbox) {
+        return;
+      }
+      const studentId = Number(checkbox.dataset.selectStudentId || 0);
+      if (!studentId) {
+        return;
+      }
+
+      if (checkbox.checked) {
+        if (allocationState.selectedStudentIds.length >= MAX_BULK_SELECTION) {
+          checkbox.checked = false;
+          setStatus(`You can select maximum ${MAX_BULK_SELECTION} students for bulk allocation.`, true);
+          return;
+        }
+        if (!allocationState.selectedStudentIds.includes(studentId)) {
+          allocationState.selectedStudentIds.push(studentId);
+        }
+      } else {
+        allocationState.selectedStudentIds = allocationState.selectedStudentIds.filter(function (id) {
+          return id !== studentId;
+        });
+      }
+      updateBulkButtonVisibility();
+      syncSelectAllCheckbox();
+    });
+
     table.addEventListener("click", function (event) {
       const assignBtn = event.target.closest("[data-assign-student-id]");
       if (!assignBtn) {
@@ -82,7 +137,7 @@ function bindAllocationActions() {
       if (!studentId) {
         return;
       }
-      openModal(studentId);
+      openModal(studentId, []);
     });
   }
 }
@@ -109,7 +164,7 @@ async function loadAllocationData() {
 
   try {
     const [usersResponse, allocationsResponse] = await Promise.all([
-      window.ApiClient.get("user", "", { limit: 500, offset: 0 }),
+      window.ApiClient.get("user", "", { limit: 100, offset: 0 }),
       window.ApiClient.get("allocation")
     ]);
 
@@ -132,6 +187,8 @@ async function loadAllocationData() {
 
     populateTutorSelect();
     renderStudents();
+    updateBulkButtonVisibility();
+    syncSelectAllCheckbox();
   } catch (error) {
     if (table) {
       table.innerHTML = `<tr><td colspan="4">${escapeHtml(error.message || "Unable to load allocations.")}</td></tr>`;
@@ -149,7 +206,58 @@ function renderStudents() {
   const search = String(document.getElementById("searchInput")?.value || "").trim().toLowerCase();
   const filter = String(document.getElementById("filterProgram")?.value || "all").toLowerCase();
 
-  const filtered = allocationState.students.filter(function (student) {
+  const filtered = getVisibleStudents();
+
+  if (!filtered.length) {
+    table.innerHTML = '<tr><td colspan="5">No unallocated students found.</td></tr>';
+    updateBulkButtonVisibility();
+    syncSelectAllCheckbox();
+    return;
+  }
+
+  table.innerHTML = filtered.map(function (student, index) {
+    const studentId = Number(student.student_id || 0);
+    const isChecked = allocationState.selectedStudentIds.includes(studentId);
+    const activeTutorId = allocationState.activeByStudentId.get(studentId) || 0;
+    const tutor = allocationState.tutors.find(function (item) {
+      return Number(item.tutor_id) === activeTutorId;
+    });
+    const tutorName = tutor ? (tutor.full_name || tutor.user_name || "Assigned Tutor") : "Not assigned";
+
+    return `
+      <tr>
+        <td>
+          <input type="checkbox" data-select-student-id="${studentId}" ${isChecked ? "checked" : ""} aria-label="Select student ${escapeHtml(student.full_name || student.user_name || "Student")}">
+        </td>
+        <td class="student-name">
+          <img src="${index % 2 === 0 ? "../../Images/profile.jpg" : "../../Images/profile 2.jpg"}" class="student-avatar" alt="Avatar">
+          ${escapeHtml(student.full_name || student.user_name || "Student")}
+        </td>
+        <td>${escapeHtml(student.programme || "N/A")}</td>
+        <td>${escapeHtml(tutorName)}</td>
+        <td>
+          <button class="assign-btn" type="button" data-assign-student-id="${studentId}">
+            Assign
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  updateBulkButtonVisibility();
+  syncSelectAllCheckbox();
+}
+
+function getVisibleStudents() {
+  const search = String(document.getElementById("searchInput")?.value || "").trim().toLowerCase();
+  const filter = String(document.getElementById("filterProgram")?.value || "all").toLowerCase();
+
+  return allocationState.students.filter(function (student) {
+    const studentId = Number(student.student_id || 0);
+    if (allocationState.activeByStudentId.has(studentId)) {
+      return false;
+    }
+
     const name = String(student.full_name || student.user_name || "").toLowerCase();
     const programme = String(student.programme || "").toLowerCase();
     if (search && !name.includes(search) && !programme.includes(search)) {
@@ -160,36 +268,38 @@ function renderStudents() {
     }
     return true;
   });
+}
 
-  if (!filtered.length) {
-    table.innerHTML = '<tr><td colspan="4">No students found.</td></tr>';
+function updateBulkButtonVisibility() {
+  const openBulkBtn = document.getElementById("openAssignModalBtn");
+  if (!openBulkBtn) {
     return;
   }
 
-  table.innerHTML = filtered.map(function (student, index) {
-    const studentId = Number(student.student_id || 0);
-    const activeTutorId = allocationState.activeByStudentId.get(studentId) || 0;
-    const tutor = allocationState.tutors.find(function (item) {
-      return Number(item.tutor_id) === activeTutorId;
-    });
-    const tutorName = tutor ? (tutor.full_name || tutor.user_name || "Assigned Tutor") : "Not assigned";
+  if (allocationState.selectedStudentIds.length > 0) {
+    openBulkBtn.classList.remove("hidden");
+    openBulkBtn.textContent = `Assign Selected (${allocationState.selectedStudentIds.length}/${MAX_BULK_SELECTION})`;
+  } else {
+    openBulkBtn.classList.add("hidden");
+    openBulkBtn.textContent = "Assign Selected";
+  }
+}
 
-    return `
-      <tr>
-        <td class="student-name">
-          <img src="${index % 2 === 0 ? "../../Images/profile.jpg" : "../../Images/profile 2.jpg"}" class="student-avatar" alt="Avatar">
-          ${escapeHtml(student.full_name || student.user_name || "Student")}
-        </td>
-        <td>${escapeHtml(student.programme || "N/A")}</td>
-        <td>-</td>
-        <td>
-          <button class="assign-btn" type="button" data-assign-student-id="${studentId}">
-            ${activeTutorId ? `Reassign (${escapeHtml(tutorName)})` : "Assign"}
-          </button>
-        </td>
-      </tr>
-    `;
-  }).join("");
+function syncSelectAllCheckbox() {
+  const selectAll = document.getElementById("selectAllStudents");
+  if (!selectAll) {
+    return;
+  }
+  const visibleStudentIds = getVisibleStudents().map(function (s) {
+    return Number(s.student_id || 0);
+  }).filter(Boolean);
+  if (!visibleStudentIds.length) {
+    selectAll.checked = false;
+    return;
+  }
+  selectAll.checked = visibleStudentIds.every(function (id) {
+    return allocationState.selectedStudentIds.includes(id);
+  });
 }
 
 function populateTutorSelect() {
@@ -207,22 +317,64 @@ function populateTutorSelect() {
   });
 }
 
-function openModal(studentId) {
+function openModal(studentId, studentIds) {
   const modal = document.getElementById("assignModal");
-  const student = allocationState.students.find(function (item) {
-    return Number(item.student_id) === studentId;
-  });
-  if (!modal || !student) {
+  if (!modal) {
     return;
   }
 
-  allocationState.selectedStudentId = studentId;
-  document.getElementById("modalName").textContent = student.full_name || student.user_name || "Student";
-  document.getElementById("modalProgram").textContent = student.programme || "N/A";
+  const selectedIds = Array.isArray(studentIds) && studentIds.length
+    ? studentIds.filter(Boolean)
+    : [Number(studentId || 0)].filter(Boolean);
+  if (!selectedIds.length) {
+    return;
+  }
 
-  const activeTutorId = allocationState.activeByStudentId.get(studentId) || 0;
-  document.getElementById("tutorSelect").value = activeTutorId ? String(activeTutorId) : "";
+  allocationState.selectedStudentIds = selectedIds.slice();
+  allocationState.selectedStudentId = selectedIds.length === 1 ? selectedIds[0] : 0;
+
+  const modalName = document.getElementById("modalName");
+  const modalProgram = document.getElementById("modalProgram");
+  const selectedStudentsList = document.getElementById("selectedStudentsList");
+  const tutorSelect = document.getElementById("tutorSelect");
+
+  if (selectedIds.length === 1) {
+    const selectedStudent = allocationState.students.find(function (item) {
+      return Number(item.student_id) === selectedIds[0];
+    });
+    if (!selectedStudent) {
+      return;
+    }
+    if (modalName) modalName.textContent = selectedStudent.full_name || selectedStudent.user_name || "Student";
+    if (modalProgram) modalProgram.textContent = selectedStudent.programme || "N/A";
+    if (selectedStudentsList) {
+      selectedStudentsList.classList.add("hidden");
+      selectedStudentsList.innerHTML = "";
+    }
+    if (tutorSelect) {
+      const activeTutorId = allocationState.activeByStudentId.get(selectedIds[0]) || 0;
+      tutorSelect.value = activeTutorId ? String(activeTutorId) : "";
+    }
+  } else {
+    if (modalName) modalName.textContent = `${selectedIds.length} students selected`;
+    if (modalProgram) modalProgram.textContent = "Multiple programmes";
+    if (selectedStudentsList) {
+      selectedStudentsList.classList.remove("hidden");
+      selectedStudentsList.innerHTML = selectedIds.map(function (id) {
+        const student = allocationState.students.find(function (item) {
+          return Number(item.student_id) === id;
+        });
+        return `<div>${escapeHtml(student?.full_name || student?.user_name || `Student ${id}`)}</div>`;
+      }).join("");
+    }
+    if (tutorSelect) {
+      tutorSelect.value = "";
+    }
+  }
+
   modal.classList.remove("hidden");
+  updateBulkButtonVisibility();
+  syncSelectAllCheckbox();
 }
 
 function closeModal() {
@@ -235,20 +387,20 @@ function closeModal() {
 async function confirmAssign() {
   const select = document.getElementById("tutorSelect");
   const selectedTutorId = Number(select?.value || 0);
-  const studentId = Number(allocationState.selectedStudentId || 0);
+  const selectedIds = allocationState.selectedStudentIds.length
+    ? allocationState.selectedStudentIds.slice()
+    : [Number(allocationState.selectedStudentId || 0)].filter(Boolean);
 
-  if (!studentId) {
-    setStatus("Please select a student first.", true);
+  if (!selectedIds.length) {
+    setStatus("Please select at least one student first.", true);
+    return;
+  }
+  if (selectedIds.length > MAX_BULK_SELECTION) {
+    setStatus(`Bulk allocation supports maximum ${MAX_BULK_SELECTION} students at one time.`, true);
     return;
   }
   if (!selectedTutorId) {
     setStatus("Please select a tutor.", true);
-    return;
-  }
-
-  const currentTutorId = allocationState.activeByStudentId.get(studentId) || 0;
-  if (currentTutorId === selectedTutorId) {
-    setStatus("Selected tutor is already assigned to this student.", true);
     return;
   }
 
@@ -258,21 +410,44 @@ async function confirmAssign() {
   }
 
   try {
-    if (currentTutorId) {
-      await window.ApiClient.post("allocation", "reallocate", {
-        student_id: studentId,
-        new_tutor_id: selectedTutorId
-      });
-      setStatus("Tutor reallocated successfully.", false);
-    } else {
-      await window.ApiClient.post("allocation", "", {
-        student_id: studentId,
-        tutor_id: selectedTutorId,
-        status: "active"
-      });
-      setStatus("Tutor allocated successfully.", false);
+    const createItems = [];
+    const alreadyAssigned = [];
+
+    selectedIds.forEach(function (studentId) {
+      const currentTutorId = allocationState.activeByStudentId.get(studentId) || 0;
+      if (!currentTutorId) {
+        createItems.push({ student_id: studentId, tutor_id: selectedTutorId });
+      } else {
+        alreadyAssigned.push(studentId);
+      }
+    });
+
+    if (!createItems.length) {
+      setStatus("Selected students already have active tutor allocation.", true);
+      return;
     }
 
+    let createCount = 0;
+
+    if (createItems.length === 1) {
+      await window.ApiClient.post("allocation", "", {
+        student_id: createItems[0].student_id,
+        tutor_id: createItems[0].tutor_id,
+        status: "active"
+      });
+      createCount += 1;
+    } else if (createItems.length > 1) {
+      await window.ApiClient.post("allocation", "bulk", {
+        status: "active",
+        allocations: createItems
+      });
+      createCount += createItems.length;
+    }
+
+    setStatus(`Done. Allocated: ${createCount}, Skipped (already assigned): ${alreadyAssigned.length}.`, false);
+
+    allocationState.selectedStudentIds = [];
+    allocationState.selectedStudentId = 0;
     closeModal();
     await loadAllocationData();
   } catch (error) {

@@ -121,7 +121,7 @@ async function loadUsers(roleFilter) {
   }
 
   try {
-    const response = await window.ApiClient.get("user", "", { limit: 500, offset: 0 });
+    const response = await window.ApiClient.get("user", "", { limit: 100, offset: 0 });
     const rows = Array.isArray(response.data) ? response.data : [];
     listState.users = rows.filter(function (row) {
       return String(row.role_name || "").toLowerCase() === roleFilter;

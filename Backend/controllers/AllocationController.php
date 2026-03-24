@@ -78,6 +78,36 @@ class AllocationController
         return (int) ($row['tutor_id'] ?? 0);
     }
 
+    private function getStaffIdByUserId(int $userId): int
+    {
+        $stmt = $this->conn->prepare("SELECT staff_id FROM staff WHERE user_id = ? LIMIT 1");
+        if (!$stmt) {
+            return 0;
+        }
+        $stmt->bind_param("i", $userId);
+        if (!$stmt->execute()) {
+            return 0;
+        }
+        $row = $stmt->get_result()->fetch_assoc();
+        return (int) ($row['staff_id'] ?? 0);
+    }
+
+    private function resolveAuthenticatedStaffId(): int
+    {
+        $auth = $GLOBALS['auth_user'] ?? [];
+        $staffId = (int) ($auth['staff_id'] ?? 0);
+        if ($staffId > 0) {
+            return $staffId;
+        }
+
+        $staffUserId = (int) ($auth['user_id'] ?? 0);
+        if ($staffUserId <= 0) {
+            return 0;
+        }
+
+        return $this->getStaffIdByUserId($staffUserId);
+    }
+
     private function getRequestData()
     {
         $data = json_decode(file_get_contents("php://input"), true);
@@ -193,11 +223,16 @@ class AllocationController
 
         $studentId = filter_var($data['student_id'] ?? null, FILTER_VALIDATE_INT);
         $tutorId = filter_var($data['tutor_id'] ?? null, FILTER_VALIDATE_INT);
-        $staffId = (int) ($GLOBALS['auth_user']['user_id'] ?? 0);
+        $staffId = $this->resolveAuthenticatedStaffId();
         $status = trim((string) ($data['status'] ?? 'active'));
 
-        if ($studentId === false || $studentId <= 0 || $tutorId === false || $tutorId <= 0 || $staffId <= 0) {
+        if ($studentId === false || $studentId <= 0 || $tutorId === false || $tutorId <= 0) {
             Response::json(["success" => false, "message" => "Valid student_id and tutor_id required"], 400);
+            return;
+        }
+
+        if ($staffId <= 0) {
+            Response::json(["success" => false, "message" => "Staff profile not found for current account"], 400);
             return;
         }
 
@@ -356,8 +391,8 @@ class AllocationController
             return;
         }
 
-        if (count($items) > 100) {
-            Response::json(["success" => false, "message" => "Maximum 100 allocations per request"], 400);
+        if (count($items) > 10) {
+            Response::json(["success" => false, "message" => "Maximum 10 allocations per request"], 400);
             return;
         }
 
@@ -367,9 +402,9 @@ class AllocationController
             return;
         }
 
-        $staffId = (int) ($GLOBALS['auth_user']['user_id'] ?? 0);
+        $staffId = $this->resolveAuthenticatedStaffId();
         if ($staffId <= 0) {
-            Response::json(["success" => false, "message" => "Invalid authenticated staff"], 401);
+            Response::json(["success" => false, "message" => "Staff profile not found for current account"], 400);
             return;
         }
 
@@ -500,10 +535,15 @@ class AllocationController
 
         $studentId = filter_var($data['student_id'] ?? null, FILTER_VALIDATE_INT);
         $newTutorId = filter_var($data['new_tutor_id'] ?? null, FILTER_VALIDATE_INT);
-        $staffId = (int) ($GLOBALS['auth_user']['user_id'] ?? 0);
+        $staffId = $this->resolveAuthenticatedStaffId();
 
-        if ($studentId === false || $studentId <= 0 || $newTutorId === false || $newTutorId <= 0 || $staffId <= 0) {
+        if ($studentId === false || $studentId <= 0 || $newTutorId === false || $newTutorId <= 0) {
             Response::json(["success" => false, "message" => "Valid student_id and new_tutor_id are required"], 400);
+            return;
+        }
+
+        if ($staffId <= 0) {
+            Response::json(["success" => false, "message" => "Staff profile not found for current account"], 400);
             return;
         }
 

@@ -71,7 +71,7 @@ class AuthMiddleware
             }
 
             $stmt = $conn->prepare("
-                SELECT u.account_status, u.token_version, r.role_name, COALESCE(s.is_admin, 0) AS is_admin
+                SELECT u.account_status, u.token_version, r.role_name, COALESCE(s.is_admin, 0) AS is_admin, s.staff_id
                 FROM users u
                 JOIN roles r ON r.role_id = u.role_id
                 LEFT JOIN staff s ON s.user_id = u.user_id
@@ -100,7 +100,8 @@ class AuthMiddleware
             $GLOBALS['auth_user'] = [
                 "user_id" => $userId,
                 "role" => $dbUser['role_name'] ?? ($decoded->role ?? null),
-                "is_admin" => (int) ($dbUser['is_admin'] ?? ($decoded->is_admin ?? 0))
+                "is_admin" => (int) ($dbUser['is_admin'] ?? ($decoded->is_admin ?? 0)),
+                "staff_id" => (int) ($dbUser['staff_id'] ?? 0)
             ];
 
             $page = $_GET['controller'] ?? 'unknown';

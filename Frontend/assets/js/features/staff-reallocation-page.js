@@ -107,7 +107,7 @@ async function loadReallocationData() {
 
   try {
     const [usersResponse, allocationsResponse] = await Promise.all([
-      window.ApiClient.get("user", "", { limit: 500, offset: 0 }),
+      window.ApiClient.get("user", "", { limit: 100, offset: 0 }),
       window.ApiClient.get("allocation")
     ]);
 
