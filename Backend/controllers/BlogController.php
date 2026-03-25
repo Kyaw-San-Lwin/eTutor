@@ -124,9 +124,25 @@ class BlogController
         $whereSql = count($where) > 0 ? (' WHERE ' . implode(' AND ', $where)) : '';
 
         $sql = "
-            SELECT p.blog_id, p.user_id, u.user_name, u.email, p.title, p.content, p.created_at
+            SELECT
+                p.blog_id,
+                p.user_id,
+                u.user_name,
+                COALESCE(
+                    NULLIF(s.full_name, ''),
+                    NULLIF(t.full_name, ''),
+                    NULLIF(sf.full_name, ''),
+                    u.user_name
+                ) AS display_name,
+                u.email,
+                p.title,
+                p.content,
+                p.created_at
             FROM blog_posts p
             JOIN users u ON p.user_id = u.user_id
+            LEFT JOIN students s ON s.user_id = u.user_id
+            LEFT JOIN tutors t ON t.user_id = u.user_id
+            LEFT JOIN staff sf ON sf.user_id = u.user_id
             {$whereSql}
             ORDER BY p.created_at DESC
             LIMIT ? OFFSET ?

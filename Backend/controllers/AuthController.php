@@ -282,7 +282,7 @@ class AuthController
         $this->ensurePasswordResetTable($conn);
 
         $stmt = $conn->prepare("
-            SELECT user_id
+            SELECT user_id, user_name, email
             FROM users
             WHERE (email = ? OR user_name = ?) AND account_status = 'active'
             LIMIT 1
@@ -305,6 +305,8 @@ class AuthController
 
         $row = $result->fetch_assoc();
         $userId = (int) ($row['user_id'] ?? 0);
+        $userName = (string) ($row['user_name'] ?? 'User');
+        $email = (string) ($row['email'] ?? '');
 
         $rawToken = bin2hex(random_bytes(32));
         $tokenHash = hash('sha256', $rawToken);
@@ -321,13 +323,20 @@ class AuthController
             Response::json(["message" => "Failed to process reset request"], 500);
         }
 
-        Response::json([
-            "message" => "Reset token generated",
-            "data" => [
-                "reset_token" => $rawToken,
-                "expires_in_minutes" => 30
-            ]
-        ]);
+        $exposeToken = strtolower((string) getenv('ETUTOR_MAIL_EXPOSE_RESET_TOKEN')) === 'true'
+            || strtolower((string) getenv('ETUTOR_MAIL_ENABLED')) !== 'true';
+
+        if ($exposeToken) {
+            Response::json([
+                "message" => "Reset token generated",
+                "data" => [
+                    "reset_token" => $rawToken,
+                    "expires_in_minutes" => 30
+                ]
+            ]);
+        }
+
+        Response::json(["message" => "Reset token generated"]);
     }
 
     public function resetPasswordByToken()

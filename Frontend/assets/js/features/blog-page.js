@@ -8,11 +8,14 @@ document.addEventListener("DOMContentLoaded", async function () {
   if (!user) {
     return;
   }
+  const canManagePosts = role === "student" || role === "tutor";
 
   bindLogout();
   //bindComposerActions();
-  bindCommentActions();
-  bindDeleteActions();
+  if (canManagePosts) {
+    bindCommentActions();
+    bindDeleteActions();
+  }
 
   await Promise.allSettled([
     loadLastLogin(),
@@ -159,6 +162,9 @@ function renderBlogs() {
     return;
   }
 
+  const role = document.body.dataset.blogRole || "";
+  const canManagePosts = role === "student" || role === "tutor";
+
   postsContainer.innerHTML = blogState.blogs.map(function (blog) {
     const comments = blogState.commentsByPostId.get(Number(blog.blog_id)) || [];
     const commentsHtml = comments.length
@@ -170,7 +176,7 @@ function renderBlogs() {
         <div class="post-header">
           <img src="${getDefaultAvatar()}" alt="Author avatar">
           <div>
-            <h2>${escapeHtml(blog.user_name || "Unknown user")}</h2>
+            <h2>${escapeHtml(blog.display_name || blog.user_name || "Unknown user")}</h2>
             <p>${escapeHtml(blog.email || "")}</p>
           </div>
         </div>
@@ -178,18 +184,22 @@ function renderBlogs() {
         <p class="post-text">${escapeHtml(blog.content || "")}</p>
         <p class="post-time">${escapeHtml(formatDateTime(blog.created_at))}</p>
 
+        ${canManagePosts ? `
         <button class="delete-btn" data-delete-id="${Number(blog.blog_id)}">
           <i class="bi bi-trash"></i> Delete
         </button>
+        ` : ``}
 
         <div class="comment-list">
           ${commentsHtml}
         </div>
 
+        ${canManagePosts ? `
         <div class="comment-box">
           <input id="comment-${Number(blog.blog_id)}" placeholder="Write a comment...">
           <button type="button" data-comment-post-id="${Number(blog.blog_id)}">Send</button>
         </div>
+        ` : ``}
       </div>
     `;
   }).join("");
@@ -226,7 +236,7 @@ function renderComment(comment) {
   return `
     <div class="comment">
       <div class="comment-header">
-        <span class="comment-user">${escapeHtml(comment.user_name || "Unknown user")}</span>
+        <span class="comment-user">${escapeHtml(comment.display_name || comment.user_name || "Unknown user")}</span>
         <span class="comment-time">${escapeHtml(formatDateTime(comment.created_at))}</span>
       </div>
       <p>${escapeHtml(comment.comment || "")}</p>

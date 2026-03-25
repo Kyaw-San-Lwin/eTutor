@@ -5,7 +5,7 @@ require_once __DIR__ . '/../middleware/activityMiddleware.php';
 class BlogCommentController
 {
     private $conn;
-    private const ALLOWED_ROLES = ['student', 'tutor'];
+    private const WRITE_ROLES = ['student', 'tutor'];
 
     public function __construct()
     {
@@ -13,17 +13,37 @@ class BlogCommentController
         $this->conn = $conn;
     }
 
-    private function requireRole(): array
+    private function requireAuth(): array
     {
         $user = $GLOBALS['auth_user'] ?? null;
         if (!is_array($user) || empty($user['user_id'])) {
             Response::json(["success" => false, "message" => "Unauthorized"], 401);
         }
+        return $user;
+    }
+
+    private function requireReadRole(array $user): void
+    {
         $role = (string) ($user['role'] ?? '');
-        if (!in_array($role, self::ALLOWED_ROLES, true)) {
+        $isAdmin = !empty($user['is_admin']);
+
+        if (in_array($role, self::WRITE_ROLES, true)) {
+            return;
+        }
+
+        if ($role === 'staff' && $isAdmin) {
+            return;
+        }
+
+        Response::json(["success" => false, "message" => "Access denied"], 403);
+    }
+
+    private function requireWriteRole(array $user): void
+    {
+        $role = (string) ($user['role'] ?? '');
+        if (!in_array($role, self::WRITE_ROLES, true)) {
             Response::json(["success" => false, "message" => "Access denied"], 403);
         }
-        return $user;
     }
 
     private function getRequestData()
@@ -56,15 +76,31 @@ class BlogCommentController
 
     public function list()
     {
-        $user = $this->requireRole();
+        $user = $this->requireAuth();
+        $this->requireReadRole($user);
         $userId = (int) $user['user_id'];
 
         $postId = filter_var($_GET['post_id'] ?? null, FILTER_VALIDATE_INT);
         if ($postId !== false && $postId > 0) {
             $stmt = $this->conn->prepare("
-                SELECT c.blogcomment_id, c.post_id, c.user_id, u.user_name, c.comment, c.created_at
+                SELECT
+                    c.blogcomment_id,
+                    c.post_id,
+                    c.user_id,
+                    u.user_name,
+                    COALESCE(
+                        NULLIF(s.full_name, ''),
+                        NULLIF(t.full_name, ''),
+                        NULLIF(sf.full_name, ''),
+                        u.user_name
+                    ) AS display_name,
+                    c.comment,
+                    c.created_at
                 FROM blog_comments c
                 JOIN users u ON c.user_id = u.user_id
+                LEFT JOIN students s ON s.user_id = u.user_id
+                LEFT JOIN tutors t ON t.user_id = u.user_id
+                LEFT JOIN staff sf ON sf.user_id = u.user_id
                 WHERE c.post_id = ?
                 ORDER BY c.created_at DESC
             ");
@@ -74,9 +110,24 @@ class BlogCommentController
             $stmt->bind_param("i", $postId);
         } else {
             $stmt = $this->conn->prepare("
-                SELECT c.blogcomment_id, c.post_id, c.user_id, u.user_name, c.comment, c.created_at
+                SELECT
+                    c.blogcomment_id,
+                    c.post_id,
+                    c.user_id,
+                    u.user_name,
+                    COALESCE(
+                        NULLIF(s.full_name, ''),
+                        NULLIF(t.full_name, ''),
+                        NULLIF(sf.full_name, ''),
+                        u.user_name
+                    ) AS display_name,
+                    c.comment,
+                    c.created_at
                 FROM blog_comments c
                 JOIN users u ON c.user_id = u.user_id
+                LEFT JOIN students s ON s.user_id = u.user_id
+                LEFT JOIN tutors t ON t.user_id = u.user_id
+                LEFT JOIN staff sf ON sf.user_id = u.user_id
                 ORDER BY c.created_at DESC
                 LIMIT 200
             ");
@@ -101,7 +152,8 @@ class BlogCommentController
 
     public function create()
     {
-        $user = $this->requireRole();
+        $user = $this->requireAuth();
+        $this->requireWriteRole($user);
         $userId = (int) $user['user_id'];
 
         $data = $this->getRequestData();
@@ -144,7 +196,8 @@ class BlogCommentController
 
     public function update()
     {
-        $user = $this->requireRole();
+        $user = $this->requireAuth();
+        $this->requireWriteRole($user);
         $userId = (int) $user['user_id'];
 
         $data = $this->getRequestData();
@@ -184,7 +237,8 @@ class BlogCommentController
 
     public function delete()
     {
-        $user = $this->requireRole();
+        $user = $this->requireAuth();
+        $this->requireWriteRole($user);
         $userId = (int) $user['user_id'];
 
         $data = $this->getRequestData();

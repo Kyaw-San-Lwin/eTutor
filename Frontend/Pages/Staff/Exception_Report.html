@@ -80,38 +80,56 @@
             </nav>
         </aside>
 
-        <main class="flex-1 p-6">
-            <div class="bg-white rounded-lg shadow-sm p-4 mb-4 border border-gray-100">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Exception Report</h1>
-                        <p class="text-sm text-gray-500">Operational risk indicators and unmatched records</p>
-                        <p class="text-xs text-gray-400 mt-1">Generated at: <span id="reportGeneratedAt">-</span></p>
-                    </div>
-                    <button id="printReportBtn" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700">
-                        <i class="bi bi-printer"></i>
-                        Export / Print
-                    </button>
+        <main class="main-content">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-2">
+                <div>
+                    <h1 class="title">Exception Report</h1>
+                    <p class="subtitle">Operational risk indicators and unmatched records</p>
+                    <p class="text-xs text-gray-500">Generated at: <span id="reportGeneratedAt">-</span></p>
                 </div>
+                <button id="printReportBtn" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700">
+                    <i class="bi bi-printer"></i>
+                    Export / Print
+                </button>
             </div>
 
             <p id="reportStatus" class="text-sm mb-4"></p>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <section class="bg-white rounded-lg shadow p-4 border border-gray-100">
-                    <h2 class="font-semibold mb-3">Students Without Personal Tutor</h2>
-                    <ul id="studentsWithoutTutorList" class="text-sm text-gray-700"></ul>
-                </section>
+            <div class="severity-grid">
+                <div class="card high">
+                    <h3>High Severity</h3>
+                    <h1 id="highSeverityCount">0</h1>
+                    <p>Students without active personal tutor</p>
+                    <div class="bar red"></div>
+                </div>
 
-                <section class="bg-white rounded-lg shadow p-4 border border-gray-100">
-                    <h2 class="font-semibold mb-3">Inactive 7 Days</h2>
-                    <ul id="inactive7DaysList" class="text-sm text-gray-700"></ul>
-                </section>
+                <div class="card medium">
+                    <h3>Medium Severity</h3>
+                    <h1 id="mediumSeverityCount">0</h1>
+                    <p>Inactive 28 days and above</p>
+                    <div class="bar orange"></div>
+                </div>
 
-                <section class="bg-white rounded-lg shadow p-4 border border-gray-100">
-                    <h2 class="font-semibold mb-3">Inactive 28 Days</h2>
-                    <ul id="inactive28DaysList" class="text-sm text-gray-700"></ul>
-                </section>
+                <div class="card low">
+                    <h3>Low Severity</h3>
+                    <h1 id="lowSeverityCount">0</h1>
+                    <p>Inactive 7-27 days</p>
+                    <div class="bar green"></div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Detail</th>
+                            <th>Severity</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="exceptionRows"></tbody>
+                </table>
             </div>
         </main>
     </div>

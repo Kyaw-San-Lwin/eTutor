@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'etutor/backend',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '9a1559cc0b39d8f0b230a9f006c4f4bc35d8b19f',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'etutor/backend' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '9a1559cc0b39d8f0b230a9f006c4f4bc35d8b19f',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

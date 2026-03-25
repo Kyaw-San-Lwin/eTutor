@@ -30,9 +30,15 @@ function bindStaffShell() {
     });
   }
 
-  document.querySelectorAll(".dropdown-toggle").forEach(function (item) {
-    item.addEventListener("click", function () {
-      const parent = this.parentElement;
+  const sidebar = document.querySelector(".sidebar");
+  if (sidebar) {
+    sidebar.addEventListener("click", function (event) {
+      const toggle = event.target.closest(".dropdown-toggle");
+      if (!toggle) {
+        return;
+      }
+
+      const parent = toggle.parentElement;
       document.querySelectorAll(".dropdown").forEach(function (dropdown) {
         if (dropdown !== parent) {
           dropdown.classList.remove("active");
@@ -40,7 +46,7 @@ function bindStaffShell() {
       });
       parent.classList.toggle("active");
     });
-  });
+  }
 }
 
 function initCharts() {

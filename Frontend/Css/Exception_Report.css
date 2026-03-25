@@ -78,3 +78,8 @@ td {
     background: #fff3cd;
     color: orange;
 }
+
+.badge.low {
+    background: #d1fae5;
+    color: #047857;
+}
