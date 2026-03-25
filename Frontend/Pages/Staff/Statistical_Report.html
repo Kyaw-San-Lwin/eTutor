@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +8,6 @@
     <link rel="stylesheet" href="../../Css/Sidebar.css">
     <link rel="stylesheet" href="../../Css/Statistical_Report.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../../assets/js/core/config.js"></script>
     <script src="../../assets/js/core/storage.js"></script>
     <script src="../../assets/js/core/apiClient.js"></script>
@@ -17,47 +15,31 @@
     <script src="../../assets/js/features/staff-permissions-page.js"></script>
     <script src="../../assets/js/features/statistical-report-page.js"></script>
 </head>
-
 <body class="bg-gray-100 font-sans" data-admin-page="1">
-
     <div class="flex min-h-screen">
-
         <aside class="sidebar bg-white border-r">
-
             <div class="logo-container">
                 <img src="../../Images/KMD Logo.jpg" alt="Logo">
                 <h1 class="logo-text">College</h1>
             </div>
 
-            <!-- Navigation -->
             <nav class="flex-1 p-4 space-y-1 text-black">
-
                 <a href="./Staff_Dashboard.html" class="nav-item">
-                    <i class="bi bi-tv"></i>
-                    <span class="menu-text">Dashboard</span>
+                    <i class="bi bi-tv"></i><span class="menu-text">Dashboard</span>
                 </a>
-
                 <a href="./Staff_Profile.html" class="nav-item">
-                    <i class="bi bi-person-circle"></i>
-                    <span class="menu-text">Profile</span>
+                    <i class="bi bi-person-circle"></i><span class="menu-text">Profile</span>
                 </a>
-
                 <a href="./Edit_Profile.html" class="nav-item">
-                    <i class="bi bi-pencil-square"></i>
-                    <span class="menu-text">Edit Profile</span>
+                    <i class="bi bi-pencil-square"></i><span class="menu-text">Edit Profile</span>
                 </a>
-
                 <a href="./Create_user.html" class="nav-item">
-                    <i class="bi bi-person-plus"></i>
-                    <span class="menu-text">Create Account</span>
+                    <i class="bi bi-person-plus"></i><span class="menu-text">Create Account</span>
                 </a>
-
                 <a href="./Reset_Password.html" class="nav-item">
-                    <i class="bi bi-key"></i>
-                    <span class="menu-text">Reset Password</span>
+                    <i class="bi bi-key"></i><span class="menu-text">Reset Password</span>
                 </a>
 
-                <!-- USERS DROPDOWN -->
                 <div class="dropdown">
                     <div class="nav-item dropdown-toggle">
                         <i class="bi bi-people-fill"></i>
@@ -65,18 +47,11 @@
                         <i class="bi bi-chevron-down arrow"></i>
                     </div>
                     <div class="dropdown-menu">
-                        <a href="./Student_List.html">
-                            <i class="bi bi-person"></i>
-                            <span class="menu-text">Students</span>
-                        </a>
-                        <a href="./Tutor_List.html">
-                            <i class="bi bi-person-badge"></i>
-                            <span class="menu-text">Tutors</span>
-                        </a>
+                        <a href="./Student_List.html"><i class="bi bi-person"></i><span class="menu-text">Students</span></a>
+                        <a href="./Tutor_List.html"><i class="bi bi-person-badge"></i><span class="menu-text">Tutors</span></a>
                     </div>
                 </div>
 
-                <!-- PERSONAL TUTOR DROPDOWN -->
                 <div class="dropdown">
                     <div class="nav-item dropdown-toggle">
                         <i class="bi bi-chat-left-dots"></i>
@@ -84,335 +59,83 @@
                         <i class="bi bi-chevron-down arrow"></i>
                     </div>
                     <div class="dropdown-menu">
-                        <a href="./Allocation.html">
-                            <i class="bi bi-diagram-3"></i>
-                            <span class="menu-text">Tutor Allocation</span>
-                        </a>
-                        <a href="./Reallocation.html">
-                            <i class="bi bi-arrow-repeat"></i>
-                            <span class="menu-text">Tutor Reallocation</span>
-                        </a>
+                        <a href="./Allocation.html"><i class="bi bi-diagram-3"></i><span class="menu-text">Tutor Allocation</span></a>
+                        <a href="./Reallocation.html"><i class="bi bi-arrow-repeat"></i><span class="menu-text">Tutor Reallocation</span></a>
                     </div>
                 </div>
 
-                <!-- Placeholder for admin-only dropdown -->
                 <div id="admin-reports-placeholder"></div>
 
                 <a href="./Blog_Post.html" class="nav-item">
-                    <i class="bi bi-journal-text"></i>
-                    <span class="menu-text">Blog Post</span>
+                    <i class="bi bi-journal-text"></i><span class="menu-text">Blog Post</span>
                 </a>
-
                 <a href="../Auth/Login.html" class="nav-item logout">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span class="menu-text">Logout</span>
+                    <i class="bi bi-box-arrow-right"></i><span class="menu-text">Logout</span>
                 </a>
 
+                <div class="last-login">
+                    <p>Last Login</p>
+                    <p id="lastLoginValue">Loading...</p>
+                </div>
             </nav>
-
         </aside>
 
-        <main class="main-content">
-
-            <h1 class="title">Statistical Reports</h1>
-            <p class="subtitle">Comprehensive analytics and statistics</p>
-
-            <!-- Cards -->
-            <div class="stats-grid">
-
-                <div class="card">
-                    <div class="card-header">
-                        <div>
-                            <h3>Total Allocations</h3>
-                            <h1>1,234</h1>
-                            <p class="card-subtext">Across all programmes</p>
-                        </div>
-                        <div class="card-icon">
-                            <i class="bi bi-people"></i>
-                        </div>
+        <main class="flex-1 p-6">
+            <div class="bg-white rounded-lg shadow-sm p-4 mb-4 border border-gray-100">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Statistical Report</h1>
+                        <p class="text-sm text-gray-500">Live operational metrics for staff admin review</p>
+                        <p class="text-xs text-gray-400 mt-1">Generated at: <span id="reportGeneratedAt">-</span></p>
                     </div>
+                    <button id="printReportBtn" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700">
+                        <i class="bi bi-printer"></i>
+                        Export / Print
+                    </button>
                 </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div>
-                            <h3>Completion Rate</h3>
-                            <h1>87.1%</h1>
-                            <p class="card-subtext">Students allocated to tutors</p>
-                        </div>
-                        <div class="card-icon">
-                            <i class="bi bi-clock"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div>
-                            <h3>Avg Students/Tutor</h3>
-                            <h1>26.5</h1>
-                            <p class="card-subtext">Balanced workload</p>
-                        </div>
-                        <div class="card-icon">
-                            <i class="bi bi-activity"></i>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
-            <!-- Charts -->
-            <div class="chart-grid">
+            <p id="reportStatus" class="text-sm mb-4"></p>
 
-                <div class="chart-box chart-small">
-                    <h3>Students by Programme</h3>
-                    <canvas id="programChart"></canvas>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-lg shadow p-4 border border-gray-100">
+                    <p class="text-gray-500 text-sm">Messages (Last 7 Days)</p>
+                    <p id="messagesLast7Days" class="text-2xl font-bold text-gray-900">0</p>
                 </div>
-
-                <div class="chart-box chart-small">
-                    <h3>Tutor Workload</h3>
-                    <canvas id="workloadChart"></canvas>
+                <div class="bg-white rounded-lg shadow p-4 border border-gray-100">
+                    <p class="text-gray-500 text-sm">Average Messages / Tutor</p>
+                    <p id="avgMessagesPerTutor" class="text-2xl font-bold text-gray-900">0</p>
                 </div>
-
-                <div class="chart-box chart-pie">
-                    <h3>Allocation Status</h3>
-                    <canvas id="pieChart"></canvas>
-
-                    <div class="pie-info">
-                        <p><strong>Allocated:</strong> 1,087</p>
-                        <p><strong>Pending:</strong> 161</p>
-                    </div>
+                <div class="bg-white rounded-lg shadow p-4 border border-gray-100">
+                    <p class="text-gray-500 text-sm">Active Allocations</p>
+                    <p id="activeAllocations" class="text-2xl font-bold text-gray-900">0</p>
                 </div>
-
-                <div class="chart-box chart-wide">
-                    <h3>Meeting Trends</h3>
-                    <canvas id="lineChart"></canvas>
+                <div class="bg-white rounded-lg shadow p-4 border border-gray-100">
+                    <p class="text-gray-500 text-sm">Scheduled Meetings</p>
+                    <p id="scheduledMeetings" class="text-2xl font-bold text-gray-900">0</p>
                 </div>
-
             </div>
 
+            <section class="bg-white rounded-lg shadow p-4 border border-gray-100">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="font-semibold text-gray-900">Recent Activity Logs</h2>
+                    <span class="text-xs text-gray-500">Latest 10 records</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="border-b text-gray-500">
+                            <tr>
+                                <th class="py-2">User</th>
+                                <th>Activity</th>
+                                <th>Page</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activityRows"></tbody>
+                    </table>
+                </div>
+            </section>
         </main>
-
     </div>
-
-    <script>
-
-        document.addEventListener("DOMContentLoaded", function () {
-
-            const sidebar = document.querySelector(".sidebar");
-
-            sidebar.addEventListener("click", function (e) {
-                const toggle = e.target.closest(".dropdown-toggle");
-
-                if (toggle) {
-                    e.stopPropagation();
-                    const parent = toggle.parentElement;
-
-                    document.querySelectorAll(".sidebar .dropdown").forEach(d => {
-                        if (d !== parent) d.classList.remove("active");
-                    });
-
-                    parent.classList.toggle("active");
-                }
-            });
-
-            document.addEventListener("click", function (e) {
-                if (!e.target.closest(".sidebar")) {
-                    document.querySelectorAll(".sidebar .dropdown")
-                        .forEach(d => d.classList.remove("active"));
-                }
-            });
-
-            /* ADMIN REPORTS */
-            const userRole = "admin";
-
-            if (userRole === "admin") {
-                const placeholder = document.getElementById("admin-reports-placeholder");
-
-                const reportsDropdown = document.createElement("div");
-                reportsDropdown.classList.add("dropdown");
-                reportsDropdown.innerHTML = `
-                <div class="nav-item active dropdown-toggle">
-                    <i class="bi bi-file-bar-graph"></i>
-                    <span class="menu-text">Reports</span>
-                    <i class="bi bi-chevron-down arrow"></i>
-                </div>
-                <div class="dropdown-menu">
-                    <a href="./Exception_Report.html">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        <span class="menu-text">Exception Report</span>
-                    </a>
-                    <a href="./Statistical_Report.html">
-                        <i class="bi bi-bar-chart-line"></i>
-                        <span class="menu-text">Statistical Report</span>
-                    </a>
-                </div>
-            `;
-                placeholder.replaceWith(reportsDropdown);
-            }
-
-        });
-
-        // COLOR THEME
-        const primary = "#3b82f6";
-        const secondary = "#6366f1";
-        const danger = "#ef4444";
-
-        /* ===================== BAR CHART ===================== */
-        new Chart(document.getElementById("programChart"), {
-            type: "bar",
-            data: {
-                labels: ["CS", "GED", "HND", "ENG", "CB", "CN"],
-                datasets: [{
-                    label: "Students",
-                    data: [200, 300, 150, 240, 260, 80],
-                    backgroundColor: primary,
-                    borderRadius: 8,
-                    barThickness: 40
-                }]
-            },
-            options: {
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: "#e5e7eb" }
-                    },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
-
-        /* ===================== WORKLOAD ===================== */
-        const workloadCtx = document.getElementById("workloadChart").getContext("2d");
-
-        const gradient = workloadCtx.createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, secondary);
-        gradient.addColorStop(1, primary);
-
-        new Chart(workloadCtx, {
-            type: "bar",
-            data: {
-                labels: ["CS", "GED", "HND", "ENG", "CB", "CN"],
-                datasets: [{
-                    label: "Workload",
-                    data: [190, 300, 160, 230, 260, 70],
-                    backgroundColor: gradient,
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
-
-        /* ===================== PIE (DONUT) ===================== */
-        new Chart(document.getElementById("pieChart"), {
-            type: "doughnut",
-            data: {
-                labels: ["Allocated", "Pending"],
-                datasets: [{
-                    data: [1087, 161],
-                    backgroundColor: [primary, danger],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                cutout: "70%",
-                plugins: {
-                    legend: {
-                        position: "bottom",
-                        labels: {
-                            boxWidth: 12,
-                            padding: 15
-                        }
-                    }
-                }
-            }
-        });
-
-        /* ===================== LINE CHART ===================== */
-        const lineCtx = document.getElementById("lineChart").getContext("2d");
-
-        const lineGradient = lineCtx.createLinearGradient(0, 0, 0, 300);
-        lineGradient.addColorStop(0, "rgba(59,130,246,0.4)");
-        lineGradient.addColorStop(1, "rgba(59,130,246,0)");
-
-        new Chart(lineCtx, {
-            type: "line",
-            data: {
-                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-                datasets: [{
-                    label: "Meetings",
-                    data: [10, 20, 15, 30, 25, 40],
-                    borderColor: primary,
-                    backgroundColor: lineGradient,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: primary,
-                    pointRadius: 5
-                }]
-            },
-            options: {
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
-
-    </script>
-
 </body>
-
-</html>
-
-</aside>
-
-<main class="flex-1 p-6">
-    <h1 class="text-2xl font-bold mb-2">Statistical Report</h1>
-    <p id="reportStatus" class="text-sm mb-4"></p>
-
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-lg shadow p-4">
-            <p class="text-gray-500">Messages (7 days)</p>
-            <p id="messagesLast7Days" class="text-2xl font-bold">0</p>
-        </div>
-        <div class="bg-white rounded-lg shadow p-4">
-            <p class="text-gray-500">Average Messages / Tutor</p>
-            <p id="avgMessagesPerTutor" class="text-2xl font-bold">0</p>
-        </div>
-        <div class="bg-white rounded-lg shadow p-4">
-            <p class="text-gray-500">Active Allocations</p>
-            <p id="activeAllocations" class="text-2xl font-bold">0</p>
-        </div>
-        <div class="bg-white rounded-lg shadow p-4">
-            <p class="text-gray-500">Scheduled Meetings</p>
-            <p id="scheduledMeetings" class="text-2xl font-bold">0</p>
-        </div>
-    </div>
-
-    <section class="bg-white rounded-lg shadow p-4">
-        <h2 class="font-semibold mb-3">Recent Activity Logs</h2>
-        <table class="w-full text-left text-sm">
-            <thead class="border-b text-gray-500">
-                <tr>
-                    <th class="py-2">User</th>
-                    <th>Activity</th>
-                    <th>Page</th>
-                    <th>Time</th>
-                </tr>
-            </thead>
-            <tbody id="activityRows"></tbody>
-        </table>
-    </section>
-</main>
-</div>
-</body>
-
 </html>

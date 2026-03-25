@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   bindShell();
+  updateGeneratedTime();
   await loadLastLogin();
 
   if (!user.is_admin) {
@@ -26,6 +27,25 @@ function bindShell() {
       window.Auth.logout();
     });
   }
+
+  const printBtn = document.getElementById("printReportBtn");
+  if (printBtn) {
+    printBtn.addEventListener("click", function () {
+      window.print();
+    });
+  }
+
+  document.querySelectorAll(".dropdown-toggle").forEach(function (item) {
+    item.addEventListener("click", function () {
+      const parent = this.parentElement;
+      document.querySelectorAll(".dropdown").forEach(function (dropdown) {
+        if (dropdown !== parent) {
+          dropdown.classList.remove("active");
+        }
+      });
+      parent.classList.toggle("active");
+    });
+  });
 }
 
 async function loadLastLogin() {
@@ -101,6 +121,14 @@ function setStatus(message, isError) {
   }
   node.textContent = message;
   node.className = `text-sm mb-4 ${isError ? "text-red-500" : "text-green-600"}`;
+}
+
+function updateGeneratedTime() {
+  const target = document.getElementById("reportGeneratedAt");
+  if (!target) {
+    return;
+  }
+  target.textContent = formatDateTime(new Date().toISOString());
 }
 
 function formatDate(value) {
