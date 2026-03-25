@@ -166,7 +166,7 @@ function renderReallocationTable() {
     return `
       <tr>
         <td class="student-name">
-          <img src="${index % 2 === 0 ? "../../Images/profile.jpg" : "../../Images/profile 2.jpg"}" class="student-avatar" alt="Avatar">
+          <img src="${student?.profile_photo ? resolveAssetUrl(student.profile_photo) : getAvatarFromName(student?.full_name || student?.user_name || `Student ${studentId}`)}" class="student-avatar" alt="Avatar">
           ${escapeHtml(student?.full_name || student?.user_name || `Student ${studentId}`)}
         </td>
         <td>${escapeHtml(student?.programme || "N/A")}</td>
@@ -233,6 +233,38 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function resolveAssetUrl(path) {
+  if (!path) {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  const base = window.AppConfig.projectBase || "";
+  if (path.startsWith(base + "/")) {
+    return `${window.AppConfig.origin}${path}`;
+  }
+
+  if (path.startsWith("/")) {
+    return `${window.AppConfig.origin}${base}${path}`;
+  }
+
+  return path;
+}
+
+function getAvatarFromName(name) {
+  const safeName = String(name || "User").trim() || "User";
+  const initials = safeName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(function (part) { return part.charAt(0).toUpperCase(); })
+    .join("") || "U";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="100%" height="100%" fill="#1d4ed8"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="#ffffff">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 

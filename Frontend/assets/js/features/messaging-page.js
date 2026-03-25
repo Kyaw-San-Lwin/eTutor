@@ -161,7 +161,9 @@ async function loadBaseContacts(user) {
       name: row.tutor_full_name || row.tutor_user_name || "Allocated Tutor",
       email: row.tutor_email || "",
       subtitle: row.tutor_department || "Tutor",
-      avatar: "../../Images/profile 2.jpg"
+      avatar: row.tutor_profile_photo
+        ? resolveAssetUrl(row.tutor_profile_photo)
+        : getAvatarFromName(row.tutor_full_name || row.tutor_user_name || "Tutor")
     }];
   }
 
@@ -175,7 +177,9 @@ async function loadBaseContacts(user) {
         name: row.student_full_name || row.student_user_name || "Assigned Student",
         email: row.student_email || "",
         subtitle: row.student_programme || "Student",
-        avatar: index % 2 === 0 ? "../../Images/profile 2.jpg" : "../../Images/profile.jpg"
+        avatar: row.student_profile_photo
+          ? resolveAssetUrl(row.student_profile_photo)
+          : getAvatarFromName(row.student_full_name || row.student_user_name || "Student")
       };
     });
   }
@@ -200,7 +204,9 @@ async function loadBaseContacts(user) {
           subtitle: roleLabel === "student"
             ? (row.programme || "Student")
             : (row.department || "Tutor"),
-          avatar: index % 2 === 0 ? "../../Images/profile 2.jpg" : "../../Images/profile.jpg"
+          avatar: row.profile_photo
+            ? resolveAssetUrl(row.profile_photo)
+            : getAvatarFromName(row.full_name || row.user_name || "User")
         };
       });
   }
@@ -243,7 +249,7 @@ function mergeContactsWithMessages(currentUserId, contacts, messages) {
         name: contactName,
         email: "",
         subtitle: "",
-        avatar: index % 2 === 0 ? "../../Images/profile 2.jpg" : "../../Images/profile.jpg",
+        avatar: getAvatarFromName(contactName),
         lastMessage: "",
         lastSentAt: "",
         unreadCount: 0
@@ -547,6 +553,38 @@ function compareDatesDesc(left, right) {
   const leftTime = left ? new Date(left).getTime() : 0;
   const rightTime = right ? new Date(right).getTime() : 0;
   return rightTime - leftTime;
+}
+
+function resolveAssetUrl(path) {
+  if (!path) {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  const base = window.AppConfig.projectBase || "";
+  if (path.startsWith(base + "/")) {
+    return `${window.AppConfig.origin}${path}`;
+  }
+
+  if (path.startsWith("/")) {
+    return `${window.AppConfig.origin}${base}${path}`;
+  }
+
+  return path;
+}
+
+function getAvatarFromName(name) {
+  const safeName = String(name || "User").trim() || "User";
+  const initials = safeName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(function (part) { return part.charAt(0).toUpperCase(); })
+    .join("") || "U";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect width="100%" height="100%" fill="#1d4ed8"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="18" fill="#ffffff">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 function formatDate(value) {

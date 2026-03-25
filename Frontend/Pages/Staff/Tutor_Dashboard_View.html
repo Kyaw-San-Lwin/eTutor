@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Dashboard View</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../../Css/Sidebar.css">
+    <link rel="stylesheet" href="../../Css/Tutor_Dashboard.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="../../assets/js/core/config.js"></script>
+    <script src="../../assets/js/core/storage.js"></script>
+    <script src="../../assets/js/core/apiClient.js"></script>
+    <script src="../../assets/js/core/auth.js"></script>
+    <script src="../../assets/js/core/welcome.js"></script>
+    <script src="../../assets/js/core/toast.js"></script>
+    <script src="../../assets/js/features/tutor-dashboard-page.js"></script>
+</head>
+
+<body class="bg-gray-100 font-sans">
+
+    <div class="flex min-h-screen">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar bg-white border-r">
+
+            <!-- Logo -->
+            <div class="logo-container">
+                <img src="../../Images/KMD Logo.jpg">
+                <h1 class="logo-text">College</h1>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-1 text-black">
+                <a href="./Staff_Dashboard.html" class="nav-item">
+                    <i class="bi bi-tv"></i>
+                    <span class="menu-text">Staff Dashboard</span>
+                </a>
+                <a href="./Tutor_List.html" class="nav-item active">
+                    <i class="bi bi-person-badge"></i>
+                    <span class="menu-text">Back to Tutor List</span>
+                </a>
+
+                <a href="../Auth/Login.html" class="nav-item logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="menu-text">Logout</span>
+                </a>
+
+                <div class="last-login">
+                    <p>Last Login</p>
+                    <p id="lastLoginValue">Loading...</p>
+                </div>
+
+            </nav>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 dashboard-main w-full">
+
+            <div class="mb-4">
+                <h1 class="text-2xl font-semibold">Tutor Dashboard (Staff View)</h1>
+            </div>
+
+            <div class="dashboard-grid">
+
+                <!-- LEFT SIDE -->
+                <div class="left-section">
+
+                    <!-- Meeting History -->
+                    <div class="bg-white p-8 rounded-xl">
+                        <h2 class="text-xl font-semibold mb-4">Meeting History</h2>
+                        <p id="meetingCount" class="text-6xl font-bold">0</p>
+                        <p id="meetingSummary" class="text-gray-500 mt-2">Loading scheduled meetings...</p>
+                        <a href="javascript:void(0)" class="text-blue-600 mt-4 inline-block">All meeting -></a>
+                    </div>
+
+                    <!-- Blog Comment -->
+                    <div class="bg-white p-8 rounded-xl">
+
+                        <div class="flex justify-between mb-4">
+                            <h2 class="text-xl font-semibold">Blog Comment</h2>
+                            <p class="text-gray-500">Sort by Newest</p>
+                        </div>
+
+                        <div id="recentComments" class="space-y-2"></div>
+
+                        <a href="javascript:void(0)" class="text-blue-600 mt-4 inline-block">All comments -></a>
+
+                    </div>
+
+                    <!-- Bottom Cards -->
+                    <div class="bottom-cards">
+
+                        <div class="bg-white p-6 rounded-xl chat-card">
+                            <h3 class="text-lg font-semibold">Chats</h3>
+                            <p id="unreadMessageCount" class="text-gray-500 text-sm mb-6">Loading unread messages...</p>
+                            <img src="../../Images/profile 2.jpg" class="w-12 h-12 rounded-full">
+                            <div class="mt-auto">
+                                <a href="javascript:void(0)" class="text-blue-600 block">All messages -></a>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl text-center">
+                            <h3 class="text-lg font-semibold mb-6">Assigned Students</h3>
+                            <div id="assignedStudentCount" class="w-40 h-40 border-8 border-blue-700 rounded-full mx-auto flex items-center justify-center text-3xl font-bold">0</div>
+                            <a id="assignedStudentSummary" href="javascript:void(0)" class="text-blue-600 block mt-6">Loading assigned students...</a>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- RIGHT SIDE -->
+                <div id="upcomingMeetings" class="meeting-section"></div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- WELCOME POPUP -->
+    <div id="welcomeModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 hidden z-50">
+
+        <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg text-center animate-fadeIn">
+
+            <!-- Icon -->
+            <div class="text-indigo-600 text-5xl mb-4">
+                <i class="bi bi-emoji-smile"></i>
+            </div>
+
+            <!-- Title -->
+            <h2 class="text-2xl font-bold mb-2">Welcome to KMD eTutor System!</h2>
+
+            <!-- Message -->
+            <p class="text-gray-600 mb-4">
+                We're glad to have you here. Start exploring your dashboard.
+            </p>
+
+            <!-- 🔥 NEW SECURITY MESSAGE -->
+            <p class="text-red-500 text-sm mb-6">
+                ⚠️ For security reasons, please change your password immediately. 
+                Your current password was set by staff and is not secure.
+            </p>
+
+            <!-- 🔥 UPDATED BUTTON -->
+            <a href="./Edit_Profile.html#passwordChange">
+                <button 
+                    class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition">
+                    Change Password Now
+                </button>
+            </a>
+
+        </div>
+
+    </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        window.initDashboardWelcome?.();
+    });
+</script>
+
+</body>
+</html>

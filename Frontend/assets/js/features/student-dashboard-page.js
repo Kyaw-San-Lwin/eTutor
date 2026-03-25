@@ -1,6 +1,18 @@
 document.addEventListener("DOMContentLoaded", async function () {
-  const user = window.Auth.requireAuth(["student"]);
+  const viewContext = getViewContext("student");
+  const user = window.Auth.requireAuth(["student", "staff"]);
   if (!user) {
+    return;
+  }
+
+  const isStaffScopedPage = window.location.pathname.toLowerCase().includes("/pages/staff/");
+  if (isStaffScopedPage && user.role !== "staff") {
+    window.location.replace("../Student/Student_Dashboard.html");
+    return;
+  }
+
+  if (user.role === "staff" && !viewContext.enabled) {
+    window.location.replace("../Staff/Staff_Dashboard.html");
     return;
   }
 
@@ -13,16 +25,18 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   await Promise.allSettled([
-    loadDashboardMetrics(),
+    loadDashboardMetrics(viewContext),
     loadLastLogin(),
     loadRecentMeetings(),
     loadRecentComments()
   ]);
 });
 
-async function loadDashboardMetrics() {
+async function loadDashboardMetrics(viewContext) {
   try {
-    const response = await window.ApiClient.get("dashboard");
+    const response = viewContext.enabled
+      ? await window.ApiClient.get("dashboard", "userDashboard", { user_id: viewContext.userId })
+      : await window.ApiClient.get("dashboard");
     const data = response.data || {};
     const metrics = data.metrics || {};
 
@@ -136,8 +150,8 @@ async function loadRecentComments() {
     }
 
     container.innerHTML = comments
-      .map(function (comment, index) {
-        const avatar = index % 2 === 0 ? "../../Images/profile.jpg" : "../../Images/profile 2.jpg";
+      .map(function (comment) {
+        const avatar = getAvatarFromName(comment.user_name || "User");
         return `
           <div class="comment-item">
             <div class="flex items-center gap-3">
@@ -216,6 +230,29 @@ function escapeAttribute(value) {
     .replace(/"/g, "&quot;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
+
+function getAvatarFromName(name) {
+  const safeName = String(name || "User").trim() || "User";
+  const initials = safeName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(function (part) { return part.charAt(0).toUpperCase(); })
+    .join("") || "U";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect width="100%" height="100%" fill="#1d4ed8"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="18" fill="#ffffff">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function getViewContext(expectedRole) {
+  const params = new URLSearchParams(window.location.search || "");
+  const viewUserId = Number(params.get("view_user_id") || 0);
+  const viewRole = String(params.get("view_role") || "").toLowerCase();
+  const enabled = Number.isFinite(viewUserId) && viewUserId > 0 && viewRole === expectedRole;
+
+  return {
+    enabled: enabled,
+    userId: enabled ? viewUserId : 0
+  };
 }
 
 

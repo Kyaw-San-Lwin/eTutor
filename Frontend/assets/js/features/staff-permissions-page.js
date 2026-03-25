@@ -18,6 +18,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  if (!isAdmin) {
+    document.querySelectorAll('.sidebar a[href$="Reset_Password.html"]').forEach(function (link) {
+      link.remove();
+    });
+  }
+
   renderAdminReportsMenu(isAdmin);
   applySidebarActiveState();
 });

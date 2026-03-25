@@ -4,15 +4,16 @@ document.addEventListener("DOMContentLoaded", async function () {
     return;
   }
 
+  const targetView = getTargetViewFromQuery();
   bindStaffShell();
-  setHeaderUser(user);
+  setHeaderUser(user, targetView);
   renderAdminMenu(user);
   initCharts();
   bindChartRangeChange(user);
 
   await Promise.allSettled([
     loadLastLogin(),
-    loadDashboardMetrics(),
+    loadDashboardMetrics(targetView),
     loadRecentActivity(),
     loadLiveChartData(user)
   ]);
@@ -252,15 +253,25 @@ function renderAdminMenu(user) {
   placeholder.replaceWith(wrapper);
 }
 
-function setHeaderUser(user) {
+function setHeaderUser(user, targetView) {
   const nameNode = document.getElementById("staffHeaderName");
   const roleNode = document.getElementById("staffHeaderRole");
+  const subtitle = document.getElementById("dashboardSubheading");
 
   if (nameNode) {
     nameNode.textContent = user.user_name || "Staff User";
   }
   if (roleNode) {
     roleNode.textContent = user.is_admin ? "Admin Staff" : "Staff";
+  }
+
+  if (subtitle) {
+    if (targetView.userId > 0) {
+      const roleText = targetView.role ? `${targetView.role} ` : "";
+      subtitle.textContent = `Viewing ${roleText}dashboard for user #${targetView.userId}.`;
+    } else {
+      subtitle.textContent = "Welcome to the KMD eTutor Academic Support System!";
+    }
   }
 }
 
@@ -278,15 +289,49 @@ async function loadLastLogin() {
   }
 }
 
-async function loadDashboardMetrics() {
+async function loadDashboardMetrics(targetView) {
   try {
-    const response = await window.ApiClient.get("dashboard");
+    let response;
+    if (targetView && targetView.userId > 0) {
+      response = await window.ApiClient.get("dashboard", "userDashboard", { user_id: targetView.userId });
+    } else {
+      response = await window.ApiClient.get("dashboard");
+    }
+
     const metrics = response.data?.metrics || {};
+    const isAdminView = Boolean(response.data?.user?.is_admin);
 
     setMetric("metricTotalUsers", metrics.total_users);
     setMetric("metricActiveTutors", metrics.total_tutors);
     setMetric("metricActiveStudents", metrics.total_students);
     setMetric("metricMessages7", metrics.messages_last_7_days ?? metrics.unread_messages);
+
+    if (targetView && targetView.userId > 0) {
+      // Fallback values for non-admin target dashboards.
+      if (metrics.total_users == null) {
+        setMetric("metricTotalUsers", metrics.managed_allocations ?? metrics.active_tutor_allocations ?? metrics.active_assigned_students ?? 0);
+      }
+      if (metrics.total_tutors == null) {
+        setMetric("metricActiveTutors", metrics.active_allocations ?? metrics.scheduled_meetings ?? 0);
+      }
+      if (metrics.total_students == null) {
+        setMetric("metricActiveStudents", metrics.my_documents ?? metrics.my_blog_posts ?? 0);
+      }
+      if (metrics.messages_last_7_days == null && metrics.unread_messages == null) {
+        setMetric("metricMessages7", 0);
+      }
+    }
+
+    if (!isAdminView && targetView && targetView.userId > 0) {
+      const titleUsers = document.querySelector(".grid.grid-cols-4 .bg-white:nth-child(1) p.text-gray-500");
+      const titleTutors = document.querySelector(".grid.grid-cols-4 .bg-white:nth-child(2) p.text-gray-500");
+      const titleStudents = document.querySelector(".grid.grid-cols-4 .bg-white:nth-child(3) p.text-gray-500");
+      const titleMessages = document.querySelector(".grid.grid-cols-4 .bg-white:nth-child(4) p.text-gray-500");
+      if (titleUsers) titleUsers.textContent = "Primary Metric";
+      if (titleTutors) titleTutors.textContent = "Secondary Metric";
+      if (titleStudents) titleStudents.textContent = "Third Metric";
+      if (titleMessages) titleMessages.textContent = "Unread Messages";
+    }
   } catch (error) {
     setMetric("metricTotalUsers", "N/A");
     setMetric("metricActiveTutors", "N/A");
@@ -377,4 +422,14 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function getTargetViewFromQuery() {
+  const params = new URLSearchParams(window.location.search || "");
+  const userId = Number(params.get("view_user_id") || 0);
+  const role = String(params.get("view_role") || "").toLowerCase();
+  return {
+    userId: Number.isFinite(userId) && userId > 0 ? userId : 0,
+    role: role
+  };
 }

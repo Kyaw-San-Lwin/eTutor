@@ -67,7 +67,7 @@ async function loadAssignedStudents() {
         email: row.student_email || "N/A",
         image: row.student_profile_photo
           ? resolveAssetUrl(row.student_profile_photo)
-          : "../../Images/profile.jpg"
+          : getAvatarFromName(row.student_full_name || row.student_user_name || "Student")
       };
     });
 
@@ -182,6 +182,17 @@ function resolveAssetUrl(path) {
   }
 
   return path;
+}
+
+function getAvatarFromName(name) {
+  const safeName = String(name || "User").trim() || "User";
+  const initials = safeName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(function (part) { return part.charAt(0).toUpperCase(); })
+    .join("") || "U";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="100%" height="100%" fill="#1d4ed8"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="#ffffff">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 function formatDate(value) {

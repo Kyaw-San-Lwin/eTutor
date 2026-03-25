@@ -92,11 +92,8 @@ function toggleAdminActions() {
     return;
   }
 
-  if (listState.isAdmin) {
-    actionHeader.classList.remove("hidden");
-  } else {
-    actionHeader.classList.add("hidden");
-  }
+  actionHeader.classList.remove("hidden");
+  actionHeader.textContent = "Actions";
 }
 
 async function loadLastLogin() {
@@ -117,7 +114,7 @@ async function loadUsers(roleFilter) {
   listState.roleFilter = roleFilter;
   const table = document.getElementById("studentTable");
   if (table) {
-    table.innerHTML = `<tr><td colspan="${listState.isAdmin ? 5 : 4}">Loading...</td></tr>`;
+    table.innerHTML = `<tr><td colspan="5">Loading...</td></tr>`;
   }
 
   try {
@@ -131,7 +128,7 @@ async function loadUsers(roleFilter) {
     renderUsers();
   } catch (error) {
     if (table) {
-      table.innerHTML = `<tr><td colspan="${listState.isAdmin ? 5 : 4}">${escapeHtml(error.message || "Unable to load users.")}</td></tr>`;
+      table.innerHTML = `<tr><td colspan="5">${escapeHtml(error.message || "Unable to load users.")}</td></tr>`;
     }
   }
 }
@@ -198,7 +195,7 @@ function renderUsers() {
   });
 
   if (!filteredUsers.length) {
-    table.innerHTML = `<tr><td colspan="${listState.isAdmin ? 5 : 4}">No records found.</td></tr>`;
+    table.innerHTML = `<tr><td colspan="5">No records found.</td></tr>`;
     return;
   }
 
@@ -208,11 +205,19 @@ function renderUsers() {
     const category = roleFilter === "tutor"
       ? (user.department || "N/A")
       : (user.programme || "N/A");
-    const avatar = index % 2 === 0 ? "../../Images/profile.jpg" : "../../Images/profile 2.jpg";
+    const avatar = user.profile_photo
+      ? resolveAssetUrl(user.profile_photo)
+      : getAvatarFromName(displayName);
+    const viewUrl = buildDashboardViewUrl(Number(user.user_id || 0), roleFilter);
 
-    const actionCell = listState.isAdmin
-      ? `<td><button type="button" class="assign-btn" data-reset-user-id="${Number(user.user_id || 0)}">Reset Password</button></td>`
-      : "";
+    const actionCell = `
+      <td class="flex gap-2 items-center">
+        <a href="${viewUrl}" class="assign-btn">View Dashboard</a>
+        ${listState.isAdmin
+          ? `<button type="button" class="assign-btn" data-reset-user-id="${Number(user.user_id || 0)}">Reset Password</button>`
+          : ""}
+      </td>
+    `;
 
     return `
       <tr>
@@ -291,6 +296,55 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function buildDashboardViewUrl(userId, role) {
+  const normalizedRole = String(role || "").toLowerCase();
+  const params = new URLSearchParams();
+  params.set("view_user_id", String(userId));
+  params.set("view_role", normalizedRole);
+
+  if (normalizedRole === "student") {
+    return `./Student_Dashboard_View.html?${params.toString()}`;
+  }
+
+  if (normalizedRole === "tutor") {
+    return `./Tutor_Dashboard_View.html?${params.toString()}`;
+  }
+
+  return `./Staff_Dashboard.html?${params.toString()}`;
+}
+
+function resolveAssetUrl(path) {
+  if (!path) {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  const base = window.AppConfig.projectBase || "";
+  if (path.startsWith(base + "/")) {
+    return `${window.AppConfig.origin}${path}`;
+  }
+
+  if (path.startsWith("/")) {
+    return `${window.AppConfig.origin}${base}${path}`;
+  }
+
+  return path;
+}
+
+function getAvatarFromName(name) {
+  const safeName = String(name || "User").trim() || "User";
+  const initials = safeName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(function (part) { return part.charAt(0).toUpperCase(); })
+    .join("") || "U";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="100%" height="100%" fill="#1d4ed8"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="#ffffff">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 
