@@ -359,7 +359,9 @@ function openStudentPanel(studentId) {
 
   const image = document.getElementById("studentProfileImage");
   if (image) {
-    image.src = student.photo ? resolveAssetUrl(student.photo) : getDefaultAvatar();
+    image.src = student.photo
+      ? resolveAssetUrl(student.photo)
+      : getDefaultAvatar(student.name || `Student ${studentId}`);
   }
 
   panel.classList.add("show");
@@ -431,8 +433,15 @@ function resolveAssetUrl(path) {
   return path;
 }
 
-function getDefaultAvatar() {
-  return `${window.AppConfig.frontendBase}/Images/profile.jpg`;
+function getDefaultAvatar(name) {
+  const safeName = String(name || "User").trim() || "User";
+  const initials = safeName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(function (part) { return part.charAt(0).toUpperCase(); })
+    .join("") || "U";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="100%" height="100%" fill="#1d4ed8"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="#ffffff">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 function getFileName(filePath) {

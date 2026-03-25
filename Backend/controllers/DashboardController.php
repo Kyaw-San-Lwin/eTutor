@@ -85,6 +85,11 @@ class DashboardController
         ];
     }
 
+    private function getStaffIdByUserId(int $userId): int
+    {
+        return $this->scalar("SELECT staff_id FROM staff WHERE user_id = ? LIMIT 1", "i", $userId);
+    }
+
     private function buildDashboardData(int $userId, string $role, bool $isAdmin): array
     {
         $data = [
@@ -151,15 +156,17 @@ class DashboardController
                 $studentId
             );
         } else {
+            $staffId = $this->getStaffIdByUserId($userId);
+            $data["metrics"]["staff_id"] = $staffId > 0 ? $staffId : null;
             $data["metrics"]["managed_allocations"] = $this->scalar(
                 "SELECT COUNT(*) FROM allocations WHERE staff_id = ?",
                 "i",
-                $userId
+                $staffId
             );
             $data["metrics"]["active_allocations"] = $this->scalar(
                 "SELECT COUNT(*) FROM allocations WHERE staff_id = ? AND status = 'active'",
                 "i",
-                $userId
+                $staffId
             );
         }
 
@@ -201,13 +208,71 @@ class DashboardController
         }
 
         $targetRole = (string) ($profile['role'] ?? '');
-        if (!in_array($targetRole, ['student', 'tutor'], true)) {
-            Response::json(["success" => false, "message" => "Only tutor or student dashboards can be viewed"], 400);
+        if (!in_array($targetRole, ['student', 'tutor', 'staff'], true)) {
+            Response::json(["success" => false, "message" => "Only staff, tutor or student dashboards can be viewed"], 400);
         }
 
         $data = $this->buildDashboardData(
             (int) $profile['user_id'],
             $targetRole,
+            (bool) ($profile['is_admin'] ?? false)
+        );
+
+        Response::json(["success" => true, "data" => $data]);
+    }
+
+    public function studentDashboard()
+    {
+        $user = $this->requireAuth();
+        $this->requireDashboardRole($user);
+
+        $requesterRole = (string) ($user['role'] ?? '');
+        if ($requesterRole !== 'staff') {
+            Response::json(["success" => false, "message" => "Staff only access"], 403);
+        }
+
+        $targetUserId = filter_var($_GET['student_user_id'] ?? null, FILTER_VALIDATE_INT);
+        if ($targetUserId === false || $targetUserId <= 0) {
+            Response::json(["success" => false, "message" => "Valid student_user_id is required"], 400);
+        }
+
+        $profile = $this->getUserProfile((int) $targetUserId);
+        if ($profile === null || (string) ($profile['role'] ?? '') !== 'student') {
+            Response::json(["success" => false, "message" => "Target student not found"], 404);
+        }
+
+        $data = $this->buildDashboardData(
+            (int) $profile['user_id'],
+            'student',
+            false
+        );
+
+        Response::json(["success" => true, "data" => $data]);
+    }
+
+    public function staffDashboard()
+    {
+        $user = $this->requireAuth();
+        $this->requireDashboardRole($user);
+
+        $requesterRole = (string) ($user['role'] ?? '');
+        if ($requesterRole !== 'staff') {
+            Response::json(["success" => false, "message" => "Staff only access"], 403);
+        }
+
+        $targetUserId = filter_var($_GET['staff_user_id'] ?? null, FILTER_VALIDATE_INT);
+        if ($targetUserId === false || $targetUserId <= 0) {
+            Response::json(["success" => false, "message" => "Valid staff_user_id is required"], 400);
+        }
+
+        $profile = $this->getUserProfile((int) $targetUserId);
+        if ($profile === null || (string) ($profile['role'] ?? '') !== 'staff') {
+            Response::json(["success" => false, "message" => "Target staff not found"], 404);
+        }
+
+        $data = $this->buildDashboardData(
+            (int) $profile['user_id'],
+            'staff',
             (bool) ($profile['is_admin'] ?? false)
         );
 

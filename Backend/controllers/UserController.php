@@ -660,6 +660,7 @@ class UserController
                 u.user_id,
                 u.user_name,
                 u.email,
+                u.profile_photo,
                 r.role_name,
                 u.account_status,
                 s2.staff_id,

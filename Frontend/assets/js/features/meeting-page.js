@@ -261,7 +261,7 @@ function renderStudentMeetings() {
   const tutorEmail = meetingState.myTutor?.tutor_email || "";
   const tutorPhoto = meetingState.myTutor?.tutor_profile_photo
     ? resolveAssetUrl(meetingState.myTutor.tutor_profile_photo)
-    : `${window.AppConfig.frontendBase}/Images/profile 2.jpg`;
+    : getAvatarFromName(tutorName);
 
   container.innerHTML = meetingState.meetings.map(function (meeting) {
     return renderMeetingCard({
@@ -295,7 +295,7 @@ function renderTutorMeetings() {
     return renderMeetingCard({
       displayName: student.name,
       displayEmail: emailOrProgramme,
-      displayImage: `${window.AppConfig.frontendBase}/Images/profile.jpg`,
+      displayImage: getAvatarFromName(student.name),
       meeting
     });
   }).join("");
@@ -446,6 +446,17 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function getAvatarFromName(name) {
+  const safeName = String(name || "User").trim() || "User";
+  const initials = safeName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(function (part) { return part.charAt(0).toUpperCase(); })
+    .join("") || "U";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="100%" height="100%" fill="#1d4ed8"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="#ffffff">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 

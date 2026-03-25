@@ -136,15 +136,17 @@ function renderProfileError(message) {
   if (note) {
     note.textContent = message;
   }
+  setProfileImage("");
 }
 
 function setProfileImage(path) {
   const image = document.getElementById("profileImage");
-  if (!image || !path) {
+  if (!image) {
     return;
   }
 
-  image.src = resolveAssetUrl(path);
+  const name = document.getElementById("profileName")?.textContent || "User";
+  image.src = path ? resolveAssetUrl(path) : getAvatarFromName(name);
 }
 
 function setText(id, value) {
@@ -190,6 +192,17 @@ function resolveAssetUrl(path) {
   }
 
   return path;
+}
+
+function getAvatarFromName(name) {
+  const safeName = String(name || "User").trim() || "User";
+  const initials = safeName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(function (part) { return part.charAt(0).toUpperCase(); })
+    .join("") || "U";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><rect width="100%" height="100%" fill="#1d4ed8"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="64" fill="#ffffff">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 
