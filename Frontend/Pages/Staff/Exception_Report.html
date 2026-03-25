@@ -15,42 +15,31 @@
     <script src="../../assets/js/features/staff-permissions-page.js"></script>
     <script src="../../assets/js/features/exception-report-page.js"></script>
 </head>
-
 <body class="bg-gray-100 font-sans" data-admin-page="1">
-
     <div class="flex min-h-screen">
-
         <aside class="sidebar bg-white border-r">
-
             <div class="logo-container">
                 <img src="../../Images/KMD Logo.jpg" alt="Logo">
                 <h1 class="logo-text">College</h1>
             </div>
 
-            <!-- Navigation -->
             <nav class="flex-1 p-4 space-y-1 text-black">
                 <a href="./Staff_Dashboard.html" class="nav-item">
-                    <i class="bi bi-tv"></i>
-                    <span class="menu-text">Dashboard</span>
+                    <i class="bi bi-tv"></i><span class="menu-text">Dashboard</span>
                 </a>
                 <a href="./Staff_Profile.html" class="nav-item">
-                    <i class="bi bi-person-circle"></i>
-                    <span class="menu-text">Profile</span>
+                    <i class="bi bi-person-circle"></i><span class="menu-text">Profile</span>
                 </a>
                 <a href="./Edit_Profile.html" class="nav-item">
-                    <i class="bi bi-pencil-square"></i>
-                    <span class="menu-text">Edit Profile</span>
+                    <i class="bi bi-pencil-square"></i><span class="menu-text">Edit Profile</span>
                 </a>
                 <a href="./Create_user.html" class="nav-item">
-                    <i class="bi bi-person-plus"></i>
-                    <span class="menu-text">Create Account</span>
+                    <i class="bi bi-person-plus"></i><span class="menu-text">Create Account</span>
                 </a>
                 <a href="./Reset_Password.html" class="nav-item">
-                    <i class="bi bi-key"></i>
-                    <span class="menu-text">Reset Password</span>
+                    <i class="bi bi-key"></i><span class="menu-text">Reset Password</span>
                 </a>
 
-                <!-- USERS DROPDOWN -->
                 <div class="dropdown">
                     <div class="nav-item dropdown-toggle">
                         <i class="bi bi-people-fill"></i>
@@ -58,18 +47,11 @@
                         <i class="bi bi-chevron-down arrow"></i>
                     </div>
                     <div class="dropdown-menu">
-                        <a href="./Student_List.html">
-                            <i class="bi bi-person"></i>
-                            <span class="menu-text">Students</span>
-                        </a>
-                        <a href="./Tutor_List.html">
-                            <i class="bi bi-person-badge"></i>
-                            <span class="menu-text">Tutors</span>
-                        </a>
+                        <a href="./Student_List.html"><i class="bi bi-person"></i><span class="menu-text">Students</span></a>
+                        <a href="./Tutor_List.html"><i class="bi bi-person-badge"></i><span class="menu-text">Tutors</span></a>
                     </div>
                 </div>
 
-                <!-- PERSONAL TUTOR DROPDOWN -->
                 <div class="dropdown">
                     <div class="nav-item dropdown-toggle">
                         <i class="bi bi-chat-left-dots"></i>
@@ -77,195 +59,56 @@
                         <i class="bi bi-chevron-down arrow"></i>
                     </div>
                     <div class="dropdown-menu">
-                        <a href="./Allocation.html">
-                            <i class="bi bi-diagram-3"></i>
-                            <span class="menu-text">Tutor Allocation</span>
-                        </a>
-                        <a href="./Reallocation.html">
-                            <i class="bi bi-arrow-repeat"></i>
-                            <span class="menu-text">Tutor Reallocation</span>
-                        </a>
+                        <a href="./Allocation.html"><i class="bi bi-diagram-3"></i><span class="menu-text">Tutor Allocation</span></a>
+                        <a href="./Reallocation.html"><i class="bi bi-arrow-repeat"></i><span class="menu-text">Tutor Reallocation</span></a>
                     </div>
                 </div>
 
-                <!-- Placeholder for admin-only dropdown -->
                 <div id="admin-reports-placeholder"></div>
 
                 <a href="./Blog_Post.html" class="nav-item">
-                    <i class="bi bi-journal-text"></i>
-                    <span class="menu-text">Blog Post</span>
+                    <i class="bi bi-journal-text"></i><span class="menu-text">Blog Post</span>
                 </a>
-
                 <a href="../Auth/Login.html" class="nav-item logout">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span class="menu-text">Logout</span>
+                    <i class="bi bi-box-arrow-right"></i><span class="menu-text">Logout</span>
                 </a>
 
+                <div class="last-login">
+                    <p>Last Login</p>
+                    <p id="lastLoginValue">Loading...</p>
+                </div>
             </nav>
-
-        </aside>
-
-        <!-- MAIN -->
-        <main class="main-content">
-
-            <h1 class="title">Expection Reports</h1>
-            <p class="subtitle">Comprehensive analytics and statistics</p>
-
-            <!-- Severity Cards -->
-            <div class="severity-grid">
-
-                <div class="card high">
-                    <h3>High Severity</h3>
-                    <h1>2</h1>
-                    <p>Requires immediate attention</p>
-                    <div class="bar red"></div>
-                </div>
-
-                <div class="card medium">
-                    <h3>Medium Severity</h3>
-                    <h1>4</h1>
-                    <p>Should be addressed soon</p>
-                    <div class="bar orange"></div>
-                </div>
-
-                <div class="card low">
-                    <h3>Low Severity</h3>
-                    <h1>4</h1>
-                    <p>Monitor and review</p>
-                    <div class="bar green"></div>
-                </div>
-
-            </div>
-
-            <!-- Table -->
-            <div class="table-container">
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th>Detail</th>
-                            <th>Severity</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        <tr>
-                            <td>Unallocated Student</td>
-                            <td>Student: Yun Aeindary Oo<br>Programme: Computing</td>
-                            <td><span class="badge high">High</span></td>
-                            <td>1/15/2024</td>
-                        </tr>
-
-                        <tr>
-                            <td>Overloaded Tutor</td>
-                            <td>Tutor: Moe Pale<br>Students: 31/30</td>
-                            <td><span class="badge medium">Medium</span></td>
-                            <td>1/15/2024</td>
-                        </tr>
-
-                        <tr>
-                            <td>No Recent Meeting</td>
-                            <td>Student: Kyaw San Lwin<br>Tutor: Moe Thant Oo<br>Last Meeting: 2025-12-15</td>
-                            <td><span class="badge medium">Medium</span></td>
-                            <td>1/15/2024</td>
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </main>
-
-</div>
-
-<script>
-
-    document.addEventListener("DOMContentLoaded", function() {
-
-        const sidebar = document.querySelector(".sidebar");
-
-        sidebar.addEventListener("click", function(e) {
-            const toggle = e.target.closest(".dropdown-toggle");
-
-            if (toggle) {
-                e.stopPropagation(); // prevent conflicts
-
-                const parent = toggle.parentElement;
-
-                // Close others
-                document.querySelectorAll(".sidebar .dropdown").forEach(d => {
-                    if (d !== parent) d.classList.remove("active");
-                });
-
-                parent.classList.toggle("active");
-            }
-        });
-
-        // Click outside closes all
-        document.addEventListener("click", function(e) {
-            if (!e.target.closest(".sidebar")) {
-                document.querySelectorAll(".sidebar .dropdown")
-                    .forEach(d => d.classList.remove("active"));
-            }
-        });
-
-        /* ADMIN REPORTS */
-        const userRole = "admin";
-
-        if (userRole === "admin") {
-            const placeholder = document.getElementById("admin-reports-placeholder");
-
-            const reportsDropdown = document.createElement("div");
-            reportsDropdown.classList.add("dropdown");
-            reportsDropdown.innerHTML = `
-                <div class="nav-item active dropdown-toggle">
-                    <i class="bi bi-file-bar-graph"></i>
-                    <span class="menu-text">Reports</span>
-                    <i class="bi bi-chevron-down arrow"></i>
-                </div>
-                <div class="dropdown-menu">
-                    <a href="./Exception_Report.html">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        <span class="menu-text">Exception Report</span>
-                    </a>
-                    <a href="./Statistical_Report.html">
-                        <i class="bi bi-bar-chart-line"></i>
-                        <span class="menu-text">Statistical Report</span>
-                    </a>
-                </div>
-            `;
-            placeholder.replaceWith(reportsDropdown);
-        }
-
-    });
-
-</script>
-
-</body>
-</html>
         </aside>
 
         <main class="flex-1 p-6">
-            <h1 class="text-2xl font-bold mb-2">Exception Report</h1>
+            <div class="bg-white rounded-lg shadow-sm p-4 mb-4 border border-gray-100">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Exception Report</h1>
+                        <p class="text-sm text-gray-500">Operational risk indicators and unmatched records</p>
+                        <p class="text-xs text-gray-400 mt-1">Generated at: <span id="reportGeneratedAt">-</span></p>
+                    </div>
+                    <button id="printReportBtn" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700">
+                        <i class="bi bi-printer"></i>
+                        Export / Print
+                    </button>
+                </div>
+            </div>
+
             <p id="reportStatus" class="text-sm mb-4"></p>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <section class="bg-white rounded-lg shadow p-4">
+                <section class="bg-white rounded-lg shadow p-4 border border-gray-100">
                     <h2 class="font-semibold mb-3">Students Without Personal Tutor</h2>
                     <ul id="studentsWithoutTutorList" class="text-sm text-gray-700"></ul>
                 </section>
 
-                <section class="bg-white rounded-lg shadow p-4">
+                <section class="bg-white rounded-lg shadow p-4 border border-gray-100">
                     <h2 class="font-semibold mb-3">Inactive 7 Days</h2>
                     <ul id="inactive7DaysList" class="text-sm text-gray-700"></ul>
                 </section>
 
-                <section class="bg-white rounded-lg shadow p-4">
+                <section class="bg-white rounded-lg shadow p-4 border border-gray-100">
                     <h2 class="font-semibold mb-3">Inactive 28 Days</h2>
                     <ul id="inactive28DaysList" class="text-sm text-gray-700"></ul>
                 </section>
@@ -273,6 +116,4 @@
         </main>
     </div>
 </body>
-</html>
-
 </html>
