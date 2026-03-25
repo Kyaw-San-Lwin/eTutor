@@ -46,7 +46,7 @@ async function loadDocumentComments() {
   try {
     const [commentsResponse, documentsResponse] = await Promise.all([
       window.ApiClient.get("document_comment"),
-      window.ApiClient.get("document", "", { limit: 200, offset: 0 })
+      window.ApiClient.get("document", "", { limit: 100, offset: 0 })
     ]);
 
     const comments = Array.isArray(commentsResponse.data) ? commentsResponse.data : [];
@@ -74,15 +74,18 @@ function renderComments(comments, documentNameMap) {
   }
 
   container.innerHTML = comments.map(function (comment) {
-    const tutor = comment.tutor_user_name || "Tutor";
+    const tutor = comment.tutor_full_name || comment.tutor_user_name || "Tutor";
     const createdAt = formatDateTime(comment.created_at);
     const fileName = documentNameMap.get(Number(comment.document_id)) || `Document #${comment.document_id}`;
+    const avatar = comment.tutor_profile_photo
+      ? resolveAssetUrl(comment.tutor_profile_photo)
+      : `${window.AppConfig.frontendBase}/Images/profile 2.jpg`;
 
     return `
       <div class="meeting-card">
         <div class="meeting-header">
           <div class="profile-info">
-            <img src="${window.AppConfig.frontendBase}/Images/profile 2.jpg" alt="Tutor Profile" class="profile-pic">
+            <img src="${avatar}" alt="Tutor Profile" class="profile-pic">
             <div class="name-time">
               <span class="tutor-name">${escapeHtml(tutor)}</span>
               <span class="dot">.</span>
@@ -146,6 +149,27 @@ function getFileName(filePath) {
   const normalized = String(filePath).split("?")[0];
   const parts = normalized.split("/");
   return parts[parts.length - 1] || normalized;
+}
+
+function resolveAssetUrl(path) {
+  if (!path) {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  const base = window.AppConfig.projectBase || "";
+  if (path.startsWith(base + "/")) {
+    return `${window.AppConfig.origin}${path}`;
+  }
+
+  if (path.startsWith("/")) {
+    return `${window.AppConfig.origin}${base}${path}`;
+  }
+
+  return path;
 }
 
 function escapeHtml(value) {

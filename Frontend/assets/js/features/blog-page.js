@@ -26,7 +26,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 let blogState = {
   blogs: [],
-  commentsByPostId: new Map()
+  commentsByPostId: new Map(),
+  currentUserId: Number((window.AuthStorage.getUser() || {}).user_id || (window.AuthStorage.getUser() || {}).id || 0)
 };
 
 function bindLogout() {
@@ -99,7 +100,7 @@ async function loadComposerProfile() {
 
   const defaultUser = window.AuthStorage.getUser() || {};
   if (nameTarget) {
-    nameTarget.textContent = defaultUser.user_name || "Your account";
+    nameTarget.textContent = defaultUser.full_name || defaultUser.display_name || defaultUser.user_name || "Your account";
   }
 
   try {
@@ -108,7 +109,7 @@ async function loadComposerProfile() {
     const profile = data.profile || {};
 
     if (nameTarget) {
-      nameTarget.textContent = profile.display_name || data.user_name || defaultUser.user_name || "Your account";
+      nameTarget.textContent = profile.full_name || profile.display_name || data.full_name || defaultUser.full_name || data.user_name || defaultUser.user_name || "Your account";
     }
 
     if (emailTarget) {
@@ -118,11 +119,11 @@ async function loadComposerProfile() {
     if (avatarTarget) {
       avatarTarget.src = profile.profile_photo
         ? resolveAssetUrl(profile.profile_photo)
-        : getDefaultAvatar(nameTarget?.textContent || defaultUser.user_name || "User");
+        : getDefaultAvatar(nameTarget?.textContent || defaultUser.full_name || defaultUser.user_name || "User");
     }
   } catch (error) {
     if (avatarTarget) {
-      avatarTarget.src = getDefaultAvatar(nameTarget?.textContent || defaultUser.user_name || "User");
+      avatarTarget.src = getDefaultAvatar(nameTarget?.textContent || defaultUser.full_name || defaultUser.user_name || "User");
     }
   }
 }
@@ -170,13 +171,14 @@ function renderBlogs() {
     const commentsHtml = comments.length
       ? comments.map(renderComment).join("")
       : '<div class="comment"><p>No comments yet.</p></div>';
+    const canDelete = canManagePosts && Number(blog.user_id || 0) === blogState.currentUserId;
 
     return `
       <div class="post-card" data-blog-id="${Number(blog.blog_id)}">
         <div class="post-header">
-          <img src="${getDefaultAvatar(blog.display_name || blog.user_name || "User")}" alt="Author avatar">
+          <img src="${getDefaultAvatar(blog.full_name || blog.display_name || blog.user_name || "User")}" alt="Author avatar">
           <div>
-            <h2>${escapeHtml(blog.display_name || blog.user_name || "Unknown user")}</h2>
+            <h2>${escapeHtml(blog.full_name || blog.display_name || blog.user_name || "Unknown user")}</h2>
             <p>${escapeHtml(blog.email || "")}</p>
           </div>
         </div>
@@ -184,7 +186,7 @@ function renderBlogs() {
         <p class="post-text">${escapeHtml(blog.content || "")}</p>
         <p class="post-time">${escapeHtml(formatDateTime(blog.created_at))}</p>
 
-        ${canManagePosts ? `
+        ${canDelete ? `
         <button class="delete-btn" data-delete-id="${Number(blog.blog_id)}">
           <i class="bi bi-trash"></i> Delete
         </button>
@@ -236,7 +238,7 @@ function renderComment(comment) {
   return `
     <div class="comment">
       <div class="comment-header">
-        <span class="comment-user">${escapeHtml(comment.display_name || comment.user_name || "Unknown user")}</span>
+        <span class="comment-user">${escapeHtml(comment.full_name || comment.display_name || comment.user_name || "Unknown user")}</span>
         <span class="comment-time">${escapeHtml(formatDateTime(comment.created_at))}</span>
       </div>
       <p>${escapeHtml(comment.comment || "")}</p>

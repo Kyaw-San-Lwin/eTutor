@@ -74,6 +74,14 @@ class MessageController
         logActivity($this->conn, (int) $user['user_id'], $page, $activity);
     }
 
+    private function hasColumn(string $table, string $column): bool
+    {
+        $tableEscaped = $this->conn->real_escape_string($table);
+        $columnEscaped = $this->conn->real_escape_string($column);
+        $result = $this->conn->query("SHOW COLUMNS FROM `{$tableEscaped}` LIKE '{$columnEscaped}'");
+        return $result && $result->num_rows > 0;
+    }
+
     public function list()
     {
         $user = $this->requireAuth();
@@ -82,11 +90,15 @@ class MessageController
         $userId = (int) $user['user_id'];
         $withUserId = filter_var($_GET['with_user_id'] ?? null, FILTER_VALIDATE_INT);
         $pagination = ValidationService::paginationFromQuery(50, 200);
+        $profilePhotoSelect = $this->hasColumn('users', 'profile_photo')
+            ? ", su.profile_photo AS sender_profile_photo, ru.profile_photo AS receiver_profile_photo"
+            : ", NULL AS sender_profile_photo, NULL AS receiver_profile_photo";
 
         if ($withUserId !== false && $withUserId > 0) {
             $stmt = $this->conn->prepare("
                 SELECT m.message_id, m.sender_id, su.user_name AS sender_name, m.receiver_id, ru.user_name AS receiver_name,
                        m.message, m.sent_at, m.status
+                       {$profilePhotoSelect}
                 FROM messages m
                 JOIN users su ON m.sender_id = su.user_id
                 JOIN users ru ON m.receiver_id = ru.user_id
@@ -105,6 +117,7 @@ class MessageController
             $stmt = $this->conn->prepare("
                 SELECT m.message_id, m.sender_id, su.user_name AS sender_name, m.receiver_id, ru.user_name AS receiver_name,
                        m.message, m.sent_at, m.status
+                       {$profilePhotoSelect}
                 FROM messages m
                 JOIN users su ON m.sender_id = su.user_id
                 JOIN users ru ON m.receiver_id = ru.user_id

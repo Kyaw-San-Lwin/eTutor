@@ -183,6 +183,7 @@ async function createTutorMeeting() {
   const meetingDate = getValue("meetingDate");
   const meetingTime = getValue("meetingTime");
   const meetingType = getValue("meetingType") || "virtual";
+  const meetingName = getValue("meetingName").trim();
   const note = getValue("meetingMessage").trim();
   const meetingPlatform = getValue("meetingPlatform").trim();
   const meetingLink = getValue("meetingLink").trim();
@@ -205,12 +206,13 @@ async function createTutorMeeting() {
     return;
   }
 
+  const encodedOutcome = `${meetingName ? `[title:${meetingName}]` : ""}${note ? `${meetingName ? " " : ""}${note}` : ""}`.trim();
   const payload = {
     student_id: studentId,
     meeting_date: meetingDate,
     meeting_time: meetingTime,
     meeting_type: meetingType,
-    outcome: note,
+    outcome: encodedOutcome,
     status: "scheduled"
   };
 
@@ -228,6 +230,7 @@ async function createTutorMeeting() {
   try {
     const response = await window.ApiClient.post("meeting", "", payload);
     setStatus("meetingStatus", response.message || "Meeting created successfully.", false);
+    setValue("meetingName", "");
     setValue("meetingMessage", "");
     if (meetingType === "virtual") {
       setValue("meetingLink", "");
@@ -304,6 +307,7 @@ function renderTutorMeetings() {
 function renderMeetingCard(data) {
   const meta = parseOutcomeMeta(data.meeting.outcome || "");
   const scheduleLabel = `${formatDate(data.meeting.meeting_date)} ${formatTime(data.meeting.meeting_time)}`.trim();
+  const displayTitle = meta.title || (data.meeting.meeting_type || "Meeting").toUpperCase();
   let messageBody = meta.note || "";
 
   if (data.meeting.meeting_type === "virtual") {
@@ -326,6 +330,7 @@ function renderMeetingCard(data) {
         <div>
           <p class="tutor-name">${escapeHtml(data.displayName)}</p>
           <p class="tutor-email">${escapeHtml(data.displayEmail)}</p>
+          <p class="tutor-email">${escapeHtml(displayTitle)}</p>
         </div>
       </div>
       <div class="message-section">
@@ -342,6 +347,13 @@ function parseOutcomeMeta(outcome) {
   let text = String(outcome || "");
   let platform = "";
   let location = "";
+  let title = "";
+
+  const titleMatch = text.match(/\[title:([^\]]+)\]/i);
+  if (titleMatch) {
+    title = titleMatch[1].trim();
+    text = text.replace(titleMatch[0], "").trim();
+  }
 
   const platformMatch = text.match(/\[platform:([^\]]+)\]/i);
   if (platformMatch) {
@@ -356,6 +368,7 @@ function parseOutcomeMeta(outcome) {
   }
 
   return {
+    title,
     platform,
     location,
     note: text

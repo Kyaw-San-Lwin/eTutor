@@ -53,6 +53,18 @@ class AuthController
         }
     }
 
+    private function ensureMustChangePasswordColumn(mysqli $conn): void
+    {
+        if ($this->hasColumn($conn, 'users', 'must_change_password')) {
+            return;
+        }
+
+        $sql = "ALTER TABLE users ADD COLUMN must_change_password TINYINT(1) NOT NULL DEFAULT 0 AFTER token_version";
+        if (!$conn->query($sql) && !$this->hasColumn($conn, 'users', 'must_change_password')) {
+            Response::json(["message" => "Failed to initialize password policy flag"], 500);
+        }
+    }
+
     private function getBearerTokenFromHeaders(): ?string
     {
         $headers = getallheaders();
@@ -98,6 +110,7 @@ class AuthController
         Request::requireMethod("POST");
         global $conn;
         $this->ensureTokenVersionColumn($conn);
+        $this->ensureMustChangePasswordColumn($conn);
 
         $data = $this->getRequestData();
         if ($data === null) {
@@ -116,11 +129,16 @@ class AuthController
         users.password,
         users.account_status,
         users.token_version,
+        users.must_change_password,
+        users.profile_photo,
         users.last_login,
         roles.role_name,
+        COALESCE(students.full_name, tutors.full_name, staff.full_name, users.user_name) AS full_name,
         COALESCE(staff.is_admin, 0) AS is_admin
     FROM users
     JOIN roles ON users.role_id = roles.role_id
+    LEFT JOIN students ON users.user_id = students.user_id
+    LEFT JOIN tutors ON users.user_id = tutors.user_id
     LEFT JOIN staff ON users.user_id = staff.user_id
     WHERE users.email = ? OR users.user_name = ?
 ");
@@ -161,10 +179,15 @@ class AuthController
                     "user" => [
                         "id" => $user['user_id'],
                         "name" => $user['user_name'],
+                        "full_name" => $user['full_name'] ?? $user['user_name'],
+                        "display_name" => $user['full_name'] ?? $user['user_name'],
+                        "user_name" => $user['user_name'],
                         "email" => $user['email'],
                         "role" => $user['role_name'],
                         "is_admin" => $user['is_admin'],
-                        "is_first_login" => $isFirstLogin
+                        "profile_photo" => $user['profile_photo'] ?? null,
+                        "is_first_login" => $isFirstLogin,
+                        "must_change_password" => (int) ($user['must_change_password'] ?? 0) === 1
                     ]
                 ]);
             } else {

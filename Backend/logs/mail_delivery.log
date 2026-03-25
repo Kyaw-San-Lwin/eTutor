@@ -1,0 +1,10 @@
+[2026-03-25 21:15:24] allocation_recipients student_id=1 student_email=student@gmail.com tutor_id=3 tutor_email=saya@gmail.com event=reallocated
+[2026-03-25 21:15:24] send_attempt transport=smtp to=student@gmail.com subject=Personal Tutor reallocated
+[2026-03-25 21:15:28] allocation_recipients student_id=1 student_email=student@gmail.com tutor_id=4 tutor_email=kyawsanlwin2004@gmail.com event=reallocated
+[2026-03-25 21:15:28] send_attempt transport=smtp to=student@gmail.com subject=Personal Tutor reallocated
+[2026-03-25 21:15:29] send_result transport=smtp to=student@gmail.com success=true
+[2026-03-25 21:15:29] send_attempt transport=smtp to=saya@gmail.com subject=Student reallocated
+[2026-03-25 21:15:33] send_result transport=smtp to=student@gmail.com success=true
+[2026-03-25 21:15:33] send_attempt transport=smtp to=kyawsanlwin2004@gmail.com subject=Student reallocated
+[2026-03-25 21:15:34] send_result transport=smtp to=saya@gmail.com success=true
+[2026-03-25 21:15:37] send_result transport=smtp to=kyawsanlwin2004@gmail.com success=true

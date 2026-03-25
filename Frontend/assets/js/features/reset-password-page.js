@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   bindShell();
   bindResetForm();
+  prefillResetLoginFromQuery();
   await loadLastLogin();
 });
 
@@ -83,7 +84,11 @@ function bindResetForm() {
         response.message || "Password reset successfully. Existing sessions have been invalidated.",
         false
       );
+      const presetLogin = getResetLoginFromQuery();
       form.reset();
+      if (presetLogin && loginInput) {
+        loginInput.value = presetLogin;
+      }
     } catch (error) {
       setStatus(status, error.message || "Failed to reset password.", true);
     } finally {
@@ -108,6 +113,23 @@ function bindResetForm() {
       }
     });
   }
+}
+
+function prefillResetLoginFromQuery() {
+  const loginInput = document.getElementById("resetLogin");
+  if (!loginInput) {
+    return;
+  }
+
+  const presetLogin = getResetLoginFromQuery();
+  if (presetLogin) {
+    loginInput.value = presetLogin;
+  }
+}
+
+function getResetLoginFromQuery() {
+  const params = new URLSearchParams(window.location.search || "");
+  return String(params.get("login") || "").trim();
 }
 
 function setStatus(node, message, isError) {

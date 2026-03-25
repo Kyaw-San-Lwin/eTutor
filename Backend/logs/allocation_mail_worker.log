@@ -1,0 +1,12 @@
+[2026-03-25 21:11:01] start student_id=4 tutor_id=3 event=reallocated
+[2026-03-25 21:11:07] start student_id=4 tutor_id=4 event=reallocated
+[2026-03-25 21:11:12] done student_id=4 tutor_id=3 event=reallocated
+[2026-03-25 21:11:16] done student_id=4 tutor_id=4 event=reallocated
+[2026-03-25 21:13:56] start student_id=2 tutor_id=3 event=reallocated
+[2026-03-25 21:14:03] start student_id=2 tutor_id=4 event=reallocated
+[2026-03-25 21:14:06] done student_id=2 tutor_id=3 event=reallocated
+[2026-03-25 21:14:12] done student_id=2 tutor_id=4 event=reallocated
+[2026-03-25 21:15:24] start student_id=1 tutor_id=3 event=reallocated
+[2026-03-25 21:15:28] start student_id=1 tutor_id=4 event=reallocated
+[2026-03-25 21:15:34] done student_id=1 tutor_id=3 event=reallocated
+[2026-03-25 21:15:37] done student_id=1 tutor_id=4 event=reallocated

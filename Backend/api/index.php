@@ -58,7 +58,11 @@ if (file_exists($envPath)) {
                 $_ENV[$key] = $value;
             }
             if (getenv($key) === false) {
-                putenv($key . '=' . $value);
+                if (is_bool($value)) {
+                    putenv($key . '=' . ($value ? 'true' : 'false'));
+                } else {
+                    putenv($key . '=' . $value);
+                }
             }
         }
     }

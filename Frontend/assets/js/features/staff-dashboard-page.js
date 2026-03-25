@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   await Promise.allSettled([
     loadLastLogin(),
+    hydrateHeaderFullName(),
     loadDashboardMetrics(targetView),
     loadRecentActivity(),
     loadLiveChartData(user)
@@ -142,7 +143,7 @@ async function loadLiveChartData(user) {
 
     const activeUsers = Array.isArray(activeUsersResponse.data) ? activeUsersResponse.data : [];
     const barLabels = activeUsers.length
-      ? activeUsers.map(function (entry) { return String(entry.user_name || "Unknown"); })
+      ? activeUsers.map(function (entry) { return String(entry.full_name || entry.display_name || entry.user_name || "Unknown"); })
       : ["No data"];
     const barValues = activeUsers.length
       ? activeUsers.map(function (entry) { return Number(entry.actions || 0); })
@@ -257,12 +258,19 @@ function setHeaderUser(user, targetView) {
   const nameNode = document.getElementById("staffHeaderName");
   const roleNode = document.getElementById("staffHeaderRole");
   const subtitle = document.getElementById("dashboardSubheading");
+  const avatarNode = document.getElementById("staffHeaderAvatar");
 
   if (nameNode) {
-    nameNode.textContent = user.user_name || "Staff User";
+    nameNode.textContent = user.full_name || user.display_name || user.user_name || "Staff User";
   }
   if (roleNode) {
     roleNode.textContent = user.is_admin ? "Admin Staff" : "Staff";
+  }
+  if (avatarNode) {
+    const displayName = user.full_name || user.display_name || user.user_name || "Staff User";
+    avatarNode.src = user.profile_photo
+      ? resolveAssetUrl(user.profile_photo)
+      : getAvatarFromName(displayName);
   }
 
   if (subtitle) {
@@ -273,6 +281,60 @@ function setHeaderUser(user, targetView) {
       subtitle.textContent = "Welcome to the KMD eTutor Academic Support System!";
     }
   }
+}
+
+async function hydrateHeaderFullName() {
+  try {
+    const response = await window.ApiClient.get("user", "me");
+    const data = response.data || {};
+    const profile = data.profile || {};
+    const resolvedName = profile.full_name || profile.display_name || data.full_name || data.user_name || "";
+    const resolvedPhoto = profile.profile_photo || data.profile_photo || "";
+
+    const nameNode = document.getElementById("staffHeaderName");
+    const avatarNode = document.getElementById("staffHeaderAvatar");
+
+    if (nameNode && resolvedName) {
+      nameNode.textContent = resolvedName;
+    }
+    if (avatarNode && resolvedPhoto) {
+      avatarNode.src = resolveAssetUrl(resolvedPhoto);
+    }
+  } catch (error) {
+    // Keep existing header fallback values from auth payload.
+  }
+}
+
+function resolveAssetUrl(path) {
+  if (!path) {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  const base = window.AppConfig.projectBase || "";
+  if (path.startsWith(base + "/")) {
+    return `${window.AppConfig.origin}${path}`;
+  }
+
+  if (path.startsWith("/")) {
+    return `${window.AppConfig.origin}${base}${path}`;
+  }
+
+  return path;
+}
+
+function getAvatarFromName(name) {
+  const safeName = String(name || "User").trim() || "User";
+  const initials = safeName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(function (part) { return part.charAt(0).toUpperCase(); })
+    .join("") || "U";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="100%" height="100%" fill="#1d4ed8"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="14" fill="#ffffff">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 async function loadLastLogin() {
@@ -360,7 +422,7 @@ async function loadRecentActivity() {
     tableBody.innerHTML = items.map(function (item) {
       return `
         <tr>
-          <td class="py-3">${escapeHtml(item.user_name || `User #${item.user_id || "N/A"}`)}</td>
+          <td class="py-3">${escapeHtml(item.full_name || item.display_name || item.user_name || `User #${item.user_id || "N/A"}`)}</td>
           <td>${escapeHtml(item.activity_type || "Activity")}</td>
           <td class="text-gray-500">${escapeHtml(formatDateTime(item.access_time))}</td>
         </tr>

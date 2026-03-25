@@ -76,7 +76,7 @@ async function loadSelfProfile() {
     const data = response.data || {};
     const profile = data.profile || {};
 
-    setText("profileName", profile.display_name || data.user_name || "N/A");
+    setText("profileName", profile.full_name || profile.display_name || data.full_name || data.user_name || "N/A");
     const secondary = mode === "staff-self"
       ? (data.user_name || "N/A")
       : (profile.contact_number || "N/A");

@@ -5,6 +5,19 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
+if (!class_exists(PHPMailer::class)) {
+    $phpMailerBase = __DIR__ . '/../vendor/phpmailer/phpmailer/src/';
+    $phpMailerFile = $phpMailerBase . 'PHPMailer.php';
+    $smtpFile = $phpMailerBase . 'SMTP.php';
+    $exceptionFile = $phpMailerBase . 'Exception.php';
+
+    if (file_exists($phpMailerFile)) {
+        require_once $exceptionFile;
+        require_once $smtpFile;
+        require_once $phpMailerFile;
+    }
+}
+
 class NotificationService
 {
     private $conn;
@@ -17,9 +30,22 @@ class NotificationService
     private $smtpUsername;
     private $smtpPassword;
     private $smtpSecure;
+    private $mailLogFile;
 
     private function envBool(string $key, bool $default = false): bool
     {
+        if (array_key_exists($key, $_ENV)) {
+            $envValue = $_ENV[$key];
+            if (is_bool($envValue)) {
+                return $envValue;
+            }
+            $raw = trim((string) $envValue);
+            if ($raw !== '') {
+                $value = strtolower($raw);
+                return in_array($value, ['1', 'true', 'yes', 'on'], true);
+            }
+        }
+
         $raw = getenv($key);
         if ($raw === false || $raw === null || $raw === '') {
             return $default;
@@ -40,6 +66,20 @@ class NotificationService
         $this->smtpUsername = (string) (getenv('ETUTOR_SMTP_USERNAME') ?: '');
         $this->smtpPassword = (string) (getenv('ETUTOR_SMTP_PASSWORD') ?: '');
         $this->smtpSecure = strtolower((string) (getenv('ETUTOR_SMTP_SECURE') ?: 'tls')); // tls | ssl | none
+        $logDir = realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . 'logs';
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0777, true);
+        }
+        $this->mailLogFile = $logDir . DIRECTORY_SEPARATOR . 'mail_delivery.log';
+    }
+
+    private function mailLog(string $line): void
+    {
+        @file_put_contents(
+            $this->mailLogFile,
+            '[' . date('Y-m-d H:i:s') . '] ' . $line . PHP_EOL,
+            FILE_APPEND
+        );
     }
 
     private function getUserByStudentId(int $studentId): ?array
@@ -96,20 +136,28 @@ class NotificationService
 
     private function sendMail(string $to, string $subject, string $message): bool
     {
+        $this->mailLog("send_attempt transport={$this->mailTransport} to={$to} subject={$subject}");
+
         if (!$this->mailEnabled) {
             // Skeleton mode: keep notifications observable in logs during development.
             error_log("NOTIFICATION_DISABLED to={$to} subject={$subject} message={$message}");
+            $this->mailLog("send_skip reason=mail_disabled to={$to}");
             return true;
         }
 
         if ($this->mailTransport === 'smtp') {
-            return $this->sendViaSmtp($to, $subject, $message);
+            $sent = $this->sendViaSmtp($to, $subject, $message);
+            $this->mailLog("send_result transport=smtp to={$to} success=" . ($sent ? 'true' : 'false'));
+            return $sent;
         }
 
         $headers = "From: {$this->mailFrom}\r\nContent-Type: text/plain; charset=UTF-8";
         $sent = @mail($to, $subject, $message, $headers);
         if (!$sent) {
             error_log("NOTIFICATION_SEND_FAILED to={$to} subject={$subject}");
+            $this->mailLog("send_result transport=mail to={$to} success=false");
+        } else {
+            $this->mailLog("send_result transport=mail to={$to} success=true");
         }
         return $sent;
     }
@@ -145,7 +193,17 @@ class NotificationService
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             }
 
-            $mail->setFrom($this->mailFrom, $this->mailFromName);
+            $fromAddress = $this->mailFrom;
+            $fromIsValid = filter_var($fromAddress, FILTER_VALIDATE_EMAIL) !== false;
+            $fromLooksLocal = str_ends_with(strtolower($fromAddress), '.local');
+            if (!$fromIsValid || $fromLooksLocal) {
+                $fromAddress = $this->smtpUsername;
+            }
+
+            $mail->setFrom($fromAddress, $this->mailFromName);
+            if ($fromAddress !== $this->mailFrom && filter_var($this->mailFrom, FILTER_VALIDATE_EMAIL)) {
+                $mail->addReplyTo($this->mailFrom, $this->mailFromName);
+            }
             $mail->addAddress($to);
             $mail->isHTML(false);
             $mail->Subject = $subject;
@@ -154,6 +212,7 @@ class NotificationService
             return $mail->send();
         } catch (PHPMailerException $e) {
             error_log("NOTIFICATION_SEND_FAILED to={$to} subject={$subject} error=" . $e->getMessage());
+            $this->mailLog("send_error transport=smtp to={$to} error=" . $e->getMessage());
             return false;
         }
     }
@@ -165,6 +224,7 @@ class NotificationService
 
         if (!$student || !$tutor) {
             error_log("NOTIFICATION_SKIP allocation_missing_party student_id={$studentId} tutor_id={$tutorId}");
+            $this->mailLog("allocation_skip student_id={$studentId} tutor_id={$tutorId} reason=missing_party");
             return;
         }
 
@@ -177,6 +237,7 @@ class NotificationService
         $subjectTutor = "Student {$event}";
         $bodyTutor = "Hello {$tutorName}, student {$studentName} is now assigned to you.";
 
+        $this->mailLog("allocation_recipients student_id={$studentId} student_email={$student['email']} tutor_id={$tutorId} tutor_email={$tutor['email']} event={$event}");
         $this->sendMail($student['email'], $subjectStudent, $bodyStudent);
         $this->sendMail($tutor['email'], $subjectTutor, $bodyTutor);
     }

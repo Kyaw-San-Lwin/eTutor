@@ -24,6 +24,18 @@ function bindShell() {
       window.Auth.logout();
     });
   }
+
+  document.querySelectorAll(".dropdown-toggle").forEach(function (item) {
+    item.addEventListener("click", function () {
+      const parent = this.parentElement;
+      document.querySelectorAll(".dropdown").forEach(function (dropdown) {
+        if (dropdown !== parent) {
+          dropdown.classList.remove("active");
+        }
+      });
+      parent.classList.toggle("active");
+    });
+  });
 }
 
 function bindFilters() {
@@ -82,7 +94,7 @@ async function loadActivityLogs() {
       return `
         <tr>
           <td class="py-2">${Number(row.log_id || 0)}</td>
-          <td>${escapeHtml(row.user_name || `User #${row.user_id || "N/A"}`)}</td>
+          <td>${escapeHtml(row.full_name || row.display_name || row.user_name || `User #${row.user_id || "N/A"}`)}</td>
           <td>${escapeHtml(row.activity_type || "Activity")}</td>
           <td>${escapeHtml(row.page_visited || "N/A")}</td>
           <td>${escapeHtml(row.ip_address || "N/A")}</td>

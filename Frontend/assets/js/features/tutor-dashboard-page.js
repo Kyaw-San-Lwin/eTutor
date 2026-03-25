@@ -97,7 +97,8 @@ async function loadRecentMeetings() {
 
     container.innerHTML = meetings
       .map(function (meeting) {
-        const title = escapeHtml((meeting.meeting_type || "Meeting").toUpperCase());
+        const meta = parseMeetingMeta(meeting.outcome || "");
+        const title = escapeHtml(meta.title || (meeting.meeting_type || "Meeting").toUpperCase());
         const timeLabel = formatTime(meeting.meeting_time);
         const dateLabel = formatDate(meeting.meeting_date);
         const statusLabel = escapeHtml(meeting.status || "");
@@ -151,12 +152,15 @@ async function loadRecentComments() {
 
     container.innerHTML = comments
       .map(function (comment) {
-        const avatar = getAvatarFromName(comment.user_name || "User");
+        const displayName = comment.full_name || comment.display_name || comment.user_name || "Unknown user";
+        const avatar = comment.profile_photo
+          ? resolveAssetUrl(comment.profile_photo)
+          : getAvatarFromName(displayName);
         return `
           <div class="comment-item">
             <div class="flex items-center gap-3">
               <img src="${avatar}" class="w-10 h-10 rounded-full" alt="User avatar">
-              <p>${escapeHtml(comment.user_name || "Unknown user")}</p>
+              <p>${escapeHtml(displayName)}</p>
             </div>
             <div class="flex items-center gap-3 text-gray-500">
               <i class="bi bi-chat"></i>
@@ -241,6 +245,35 @@ function getAvatarFromName(name) {
     .join("") || "U";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect width="100%" height="100%" fill="#1d4ed8"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="18" fill="#ffffff">${initials}</text></svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function resolveAssetUrl(path) {
+  if (!path) {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  const base = window.AppConfig.projectBase || "";
+  if (path.startsWith(base + "/")) {
+    return `${window.AppConfig.origin}${path}`;
+  }
+
+  if (path.startsWith("/")) {
+    return `${window.AppConfig.origin}${base}${path}`;
+  }
+
+  return path;
+}
+
+function parseMeetingMeta(outcome) {
+  const text = String(outcome || "");
+  const titleMatch = text.match(/\[title:([^\]]+)\]/i);
+  return {
+    title: titleMatch ? titleMatch[1].trim() : ""
+  };
 }
 
 function getViewContext(expectedRole) {

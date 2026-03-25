@@ -154,7 +154,10 @@ function bindReallocationActions() {
         });
 
         setStatus("Tutor reallocated successfully.", false);
-        await loadReallocationData();
+        // Refresh in background so UI responds faster.
+        loadReallocationData().catch(function () {
+          // Keep success state even if refresh fails temporarily.
+        });
       } catch (error) {
         setStatus(error.message || "Unable to reallocate tutor.", true);
       } finally {
@@ -455,6 +458,8 @@ async function confirmBulkReallocation() {
   try {
     let changed = 0;
     let skipped = 0;
+    let failed = 0;
+    const jobs = [];
 
     for (const studentId of selectedIds) {
       const allocation = reallocationState.activeAllocations.find(function (item) {
@@ -464,19 +469,37 @@ async function confirmBulkReallocation() {
         skipped += 1;
         continue;
       }
-
-      await window.ApiClient.post("allocation", "reallocate", {
-        student_id: studentId,
-        new_tutor_id: selectedTutorId
-      });
-      changed += 1;
+      jobs.push(
+        window.ApiClient.post("allocation", "reallocate", {
+          student_id: studentId,
+          new_tutor_id: selectedTutorId
+        })
+      );
     }
 
-    setStatus(`Done. Reallocated: ${changed}, Skipped (same tutor): ${skipped}.`, false);
+    if (jobs.length) {
+      const results = await Promise.allSettled(jobs);
+      results.forEach(function (result) {
+        if (result.status === "fulfilled") {
+          changed += 1;
+        } else {
+          failed += 1;
+        }
+      });
+    }
+
+    const ok = failed === 0;
+    setStatus(
+      `Done. Reallocated: ${changed}, Skipped (same tutor): ${skipped}${failed ? `, Failed: ${failed}` : ""}.`,
+      !ok
+    );
     reallocationState.selectedStudentIds = [];
     reallocationState.selectedStudentId = 0;
     closeModal();
-    await loadReallocationData();
+    // Refresh in background so completion feedback is immediate.
+    loadReallocationData().catch(function () {
+      // Keep completion message if refresh fails.
+    });
   } catch (error) {
     setStatus(error.message || "Unable to reallocate tutor.", true);
   } finally {

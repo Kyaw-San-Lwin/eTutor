@@ -158,12 +158,12 @@ async function loadBaseContacts(user) {
 
     return [{
       id: Number(row.tutor_user_id),
-      name: row.tutor_full_name || row.tutor_user_name || "Allocated Tutor",
+      name: row.tutor_full_name || row.tutor_display_name || row.tutor_user_name || "Allocated Tutor",
       email: row.tutor_email || "",
       subtitle: row.tutor_department || "Tutor",
       avatar: row.tutor_profile_photo
         ? resolveAssetUrl(row.tutor_profile_photo)
-        : getAvatarFromName(row.tutor_full_name || row.tutor_user_name || "Tutor")
+          : getAvatarFromName(row.tutor_full_name || row.tutor_display_name || row.tutor_user_name || "Tutor")
     }];
   }
 
@@ -174,12 +174,12 @@ async function loadBaseContacts(user) {
     return rows.map(function (row, index) {
       return {
         id: Number(row.student_user_id),
-        name: row.student_full_name || row.student_user_name || "Assigned Student",
+        name: row.student_full_name || row.student_display_name || row.student_user_name || "Assigned Student",
         email: row.student_email || "",
         subtitle: row.student_programme || "Student",
         avatar: row.student_profile_photo
           ? resolveAssetUrl(row.student_profile_photo)
-          : getAvatarFromName(row.student_full_name || row.student_user_name || "Student")
+          : getAvatarFromName(row.student_full_name || row.student_display_name || row.student_user_name || "Student")
       };
     });
   }
@@ -199,14 +199,14 @@ async function loadBaseContacts(user) {
         const roleLabel = String(row.role_name || "").toLowerCase();
         return {
           id: Number(row.user_id),
-          name: row.full_name || row.user_name || "User",
+          name: row.full_name || row.display_name || row.user_name || "User",
           email: row.email || "",
           subtitle: roleLabel === "student"
             ? (row.programme || "Student")
             : (row.department || "Tutor"),
           avatar: row.profile_photo
             ? resolveAssetUrl(row.profile_photo)
-            : getAvatarFromName(row.full_name || row.user_name || "User")
+            : getAvatarFromName(row.full_name || row.display_name || row.user_name || "User")
         };
       });
   }
@@ -241,15 +241,18 @@ function mergeContactsWithMessages(currentUserId, contacts, messages) {
 
     if (!map.has(otherUserId)) {
       const contactName = Number(message.sender_id) === currentUserId
-        ? (message.receiver_name || "User")
-        : (message.sender_name || "User");
+        ? (message.receiver_full_name || message.receiver_name || "User")
+        : (message.sender_full_name || message.sender_name || "User");
+      const avatarPath = Number(message.sender_id) === currentUserId
+        ? (message.receiver_profile_photo || "")
+        : (message.sender_profile_photo || "");
 
       map.set(otherUserId, {
         id: otherUserId,
         name: contactName,
         email: "",
         subtitle: "",
-        avatar: getAvatarFromName(contactName),
+        avatar: avatarPath ? resolveAssetUrl(avatarPath) : getAvatarFromName(contactName),
         lastMessage: "",
         lastSentAt: "",
         unreadCount: 0

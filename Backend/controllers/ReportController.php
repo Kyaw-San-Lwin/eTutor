@@ -360,9 +360,14 @@ class ReportController
         $total = (int) (($countStmt->get_result()->fetch_row()[0]) ?? 0);
 
         $dataSql = "
-            SELECT l.log_id, l.user_id, u.user_name, l.page_visited, l.activity_type, l.browser_used, l.ip_address, l.access_time
+            SELECT l.log_id, l.user_id, u.user_name,
+                   COALESCE(s.full_name, t.full_name, sf.full_name, u.user_name) AS full_name,
+                   l.page_visited, l.activity_type, l.browser_used, l.ip_address, l.access_time
             FROM activity_logs l
             LEFT JOIN users u ON l.user_id = u.user_id
+            LEFT JOIN students s ON s.user_id = u.user_id
+            LEFT JOIN tutors t ON t.user_id = u.user_id
+            LEFT JOIN staff sf ON sf.user_id = u.user_id
             {$whereSql}
             ORDER BY l.access_time DESC
             LIMIT ? OFFSET ?
@@ -452,9 +457,14 @@ class ReportController
 
         $whereSql = count($where) > 0 ? (' WHERE ' . implode(' AND ', $where)) : '';
         $sql = "
-            SELECT l.log_id, l.user_id, u.user_name, l.page_visited, l.activity_type, l.browser_used, l.ip_address, l.access_time
+            SELECT l.log_id, l.user_id, u.user_name,
+                   COALESCE(s.full_name, t.full_name, sf.full_name, u.user_name) AS full_name,
+                   l.page_visited, l.activity_type, l.browser_used, l.ip_address, l.access_time
             FROM activity_logs l
             LEFT JOIN users u ON l.user_id = u.user_id
+            LEFT JOIN students s ON s.user_id = u.user_id
+            LEFT JOIN tutors t ON t.user_id = u.user_id
+            LEFT JOIN staff sf ON sf.user_id = u.user_id
             {$whereSql}
             ORDER BY l.access_time DESC
             LIMIT ?
@@ -486,12 +496,13 @@ class ReportController
         if ($out === false) {
             Response::json(["success" => false, "message" => "Failed to open output stream for CSV export"], 500);
         }
-        fputcsv($out, ['log_id', 'user_id', 'user_name', 'page_visited', 'activity_type', 'browser_used', 'ip_address', 'access_time']);
+        fputcsv($out, ['log_id', 'user_id', 'user_name', 'full_name', 'page_visited', 'activity_type', 'browser_used', 'ip_address', 'access_time']);
         while ($row = $result->fetch_assoc()) {
             fputcsv($out, [
                 $row['log_id'] ?? '',
                 $row['user_id'] ?? '',
                 $row['user_name'] ?? '',
+                $row['full_name'] ?? '',
                 $row['page_visited'] ?? '',
                 $row['activity_type'] ?? '',
                 $row['browser_used'] ?? '',
@@ -565,11 +576,16 @@ class ReportController
         }
 
         $sql = "
-            SELECT l.user_id, u.user_name, COUNT(*) AS actions
+            SELECT l.user_id, u.user_name,
+                   COALESCE(s.full_name, t.full_name, sf.full_name, u.user_name) AS full_name,
+                   COUNT(*) AS actions
             FROM activity_logs l
             LEFT JOIN users u ON u.user_id = l.user_id
+            LEFT JOIN students s ON s.user_id = u.user_id
+            LEFT JOIN tutors t ON t.user_id = u.user_id
+            LEFT JOIN staff sf ON sf.user_id = u.user_id
             WHERE l.access_time >= (NOW() - INTERVAL ? DAY)
-            GROUP BY l.user_id, u.user_name
+            GROUP BY l.user_id, u.user_name, full_name
             ORDER BY actions DESC
             LIMIT ?
         ";
@@ -587,7 +603,7 @@ class ReportController
         $result = $stmt->get_result();
         while ($row = $result->fetch_assoc()) {
             $uid = (int) ($row['user_id'] ?? 0);
-            $name = trim((string) ($row['user_name'] ?? ''));
+            $name = trim((string) ($row['full_name'] ?? $row['user_name'] ?? ''));
             if ($name === '') {
                 $name = $uid > 0 ? ("User #" . $uid) : "Unknown";
             }
@@ -595,6 +611,7 @@ class ReportController
             $rows[] = [
                 "user_id" => $uid,
                 "user_name" => $name,
+                "full_name" => $name,
                 "actions" => (int) ($row['actions'] ?? 0)
             ];
         }

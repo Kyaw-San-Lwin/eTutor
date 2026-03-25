@@ -194,6 +194,7 @@ async function saveProfile() {
         });
 
         setProfilePreview(photoResponse.data?.profile_photo || "");
+        syncLocalUserProfile({ profile_photo: photoResponse.data?.profile_photo || "" });
         if (fileInput) {
           fileInput.value = "";
         }
@@ -206,6 +207,9 @@ async function saveProfile() {
     if (mode === "staff-edit") {
       setValue("profileFullName", response.data?.full_name || fullName);
       setValue("profileDepartmentInput", response.data?.department || department);
+      syncLocalUserProfile({
+        user_name: response.data?.full_name || fullName
+      });
     } else {
       setValue("profilePhone", response.data?.contact_number || phoneNumber);
     }
@@ -263,6 +267,9 @@ async function changePassword() {
     setValue("currentPassword", "");
     setValue("newPassword", "");
     setValue("confirmPassword", "");
+    syncLocalUserProfile({
+      must_change_password: false
+    });
     setMessage("passwordChangeMessage", response.message || "Password changed successfully.", false);
   } catch (error) {
     setMessage("passwordChangeMessage", error.message || "Unable to change password.", true);
@@ -271,6 +278,16 @@ async function changePassword() {
       button.disabled = false;
     }
   }
+}
+
+function syncLocalUserProfile(patch) {
+  const current = window.AuthStorage?.getUser?.();
+  if (!current || !window.AuthStorage?.setAuth) {
+    return;
+  }
+
+  const next = Object.assign({}, current, patch || {});
+  window.AuthStorage.setAuth({ user: next });
 }
 
 function setValue(id, value) {

@@ -103,7 +103,12 @@ function bindCreateUserSubmit() {
       form.reset();
       toggleRoleFields();
     } catch (error) {
-      setStatus(error.message || "Unable to create user.", true);
+      const message = String(error.message || "").toLowerCase();
+      if (message.includes("already exists") || error.status === 409) {
+        setStatus("This email or username already exists.", true);
+      } else {
+        setStatus(error.message || "Unable to create user.", true);
+      }
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;

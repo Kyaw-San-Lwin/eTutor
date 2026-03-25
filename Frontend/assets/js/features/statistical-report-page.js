@@ -95,7 +95,7 @@ async function loadActivityLogs() {
     body.innerHTML = rows.map(function (row) {
       return `
         <tr>
-          <td class="py-2">${escapeHtml(row.user_name || `User #${row.user_id || "N/A"}`)}</td>
+          <td class="py-2">${escapeHtml(row.full_name || row.display_name || row.user_name || `User #${row.user_id || "N/A"}`)}</td>
           <td>${escapeHtml(row.activity_type || "Activity")}</td>
           <td>${escapeHtml(row.page_visited || "N/A")}</td>
           <td>${escapeHtml(formatDateTime(row.access_time))}</td>

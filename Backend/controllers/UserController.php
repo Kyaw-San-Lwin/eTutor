@@ -306,6 +306,18 @@ class UserController
         }
     }
 
+    private function ensureMustChangePasswordColumn(): void
+    {
+        if ($this->hasColumn('users', 'must_change_password')) {
+            return;
+        }
+
+        $sql = "ALTER TABLE users ADD COLUMN must_change_password TINYINT(1) NOT NULL DEFAULT 0 AFTER token_version";
+        if (!$this->conn->query($sql) && !$this->hasColumn('users', 'must_change_password')) {
+            Response::json(["success" => false, "message" => "Failed to initialize password policy flag"], 500);
+        }
+    }
+
     private function deleteStoredProfilePhoto(?string $webPath): void
     {
         $path = (string) $webPath;
@@ -628,7 +640,8 @@ class UserController
             return;
         }
 
-        $updateStmt = $this->conn->prepare("UPDATE users SET password = ? WHERE user_id = ?");
+        $this->ensureMustChangePasswordColumn();
+        $updateStmt = $this->conn->prepare("UPDATE users SET password = ?, must_change_password = 0 WHERE user_id = ?");
         if (!$updateStmt) {
             Response::json(["success" => false, "message" => "Failed to prepare password change"], 500);
             return;
@@ -894,7 +907,8 @@ class UserController
             return;
         }
 
-        $stmt = $this->conn->prepare("UPDATE users SET password = ?, token_version = token_version + 1 WHERE user_id = ?");
+        $this->ensureMustChangePasswordColumn();
+        $stmt = $this->conn->prepare("UPDATE users SET password = ?, token_version = token_version + 1, must_change_password = 1 WHERE user_id = ?");
         if (!$stmt) {
             Response::json(["success" => false, "message" => "Failed to prepare password reset"], 500);
             return;

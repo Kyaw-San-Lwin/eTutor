@@ -81,7 +81,7 @@ class DocumentController
         }
 
         $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-        $allowed = ['pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png'];
+        $allowed = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt', 'jpg', 'jpeg', 'png'];
         if (!in_array($ext, $allowed, true)) {
             Response::json(["success" => false, "message" => "Unsupported file type"], 400);
         }

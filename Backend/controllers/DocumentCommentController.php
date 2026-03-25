@@ -39,6 +39,14 @@ class DocumentCommentController
         logActivity($this->conn, $userId, $page, $activity);
     }
 
+    private function hasColumn(string $table, string $column): bool
+    {
+        $tableEscaped = $this->conn->real_escape_string($table);
+        $columnEscaped = $this->conn->real_escape_string($column);
+        $result = $this->conn->query("SHOW COLUMNS FROM `{$tableEscaped}` LIKE '{$columnEscaped}'");
+        return $result && $result->num_rows > 0;
+    }
+
     private function getStudentIdByUserId(int $userId): int
     {
         $stmt = $this->conn->prepare("SELECT student_id FROM students WHERE user_id = ? LIMIT 1");
@@ -117,9 +125,16 @@ class DocumentCommentController
         $documentId = filter_var($_GET['document_id'] ?? null, FILTER_VALIDATE_INT);
         $commentIdColumn = $this->getCommentIdColumn();
 
+        $photoSelect = $this->hasColumn('users', 'profile_photo')
+            ? ', tu.profile_photo AS tutor_profile_photo'
+            : ', NULL AS tutor_profile_photo';
+
         $baseSql = "
             SELECT dc.{$commentIdColumn} AS document_comment_id, dc.document_id, dc.tutor_id, t.user_id AS tutor_user_id,
-                   tu.user_name AS tutor_user_name, dc.comment, dc.created_at
+                   tu.user_name AS tutor_user_name,
+                   COALESCE(NULLIF(t.full_name, ''), tu.user_name) AS tutor_full_name
+                   {$photoSelect},
+                   dc.comment, dc.created_at
             FROM document_comments dc
             JOIN tutors t ON dc.tutor_id = t.tutor_id
             JOIN users tu ON t.user_id = tu.user_id

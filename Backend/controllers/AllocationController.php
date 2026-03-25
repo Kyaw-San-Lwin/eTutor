@@ -137,6 +137,120 @@ class AllocationController
             || (int) ($this->conn->errno ?? 0) === self::DUPLICATE_KEY_ERRNO;
     }
 
+    private function envBool(string $key, bool $default = false): bool
+    {
+        if (array_key_exists($key, $_ENV)) {
+            $envValue = $_ENV[$key];
+            if (is_bool($envValue)) {
+                return $envValue;
+            }
+            $raw = trim((string) $envValue);
+            if ($raw !== '') {
+                $value = strtolower($raw);
+                return in_array($value, ['1', 'true', 'yes', 'on'], true);
+            }
+        }
+
+        $raw = getenv($key);
+        if ($raw === false || $raw === null || $raw === '') {
+            return $default;
+        }
+        $value = strtolower(trim((string) $raw));
+        return in_array($value, ['1', 'true', 'yes', 'on'], true);
+    }
+
+    private function dispatchAllocationNotification(int $studentId, int $tutorId, string $event): void
+    {
+        // Dedicated switch: allow disabling allocation/reallocation emails without disabling all mail features.
+        if (!$this->envBool('ETUTOR_ALLOCATION_MAIL_ENABLED', true)) {
+            return;
+        }
+
+        if (!$this->envBool('ETUTOR_MAIL_ENABLED', false)) {
+            return;
+        }
+
+        $runner = function () use ($studentId, $tutorId, $event) {
+            try {
+                $notifier = new NotificationService($this->conn);
+                $notifier->sendAllocationNotification($studentId, $tutorId, $event);
+            } catch (Throwable $e) {
+                error_log("Allocation notification failed ({$event}): " . $e->getMessage());
+            }
+        };
+
+        // Default to async dispatch to keep API response fast.
+        $async = $this->envBool('ETUTOR_MAIL_ASYNC', true);
+        if ($async) {
+            if ($this->spawnAllocationNotificationProcess($studentId, $tutorId, $event)) {
+                return;
+            }
+
+            // Fallback if process spawning is unavailable in current environment.
+            register_shutdown_function(function () use ($runner) {
+                if (function_exists('fastcgi_finish_request')) {
+                    @fastcgi_finish_request();
+                }
+                $runner();
+            });
+            return;
+        }
+
+        $runner();
+    }
+
+    private function spawnAllocationNotificationProcess(int $studentId, int $tutorId, string $event): bool
+    {
+        $script = realpath(__DIR__ . '/../tasks/send_allocation_notification.php');
+        if ($script === false) {
+            return false;
+        }
+
+        $configuredPhpCli = getenv('ETUTOR_PHP_CLI');
+        $phpBinary = (is_string($configuredPhpCli) && trim($configuredPhpCli) !== '')
+            ? trim($configuredPhpCli)
+            : (PHP_BINARY ?: 'php');
+
+        // Apache may expose php-cgi.exe as PHP_BINARY; prefer php.exe for CLI workers.
+        if (stripos(basename($phpBinary), 'php-cgi.exe') !== false) {
+            $candidate = dirname($phpBinary) . DIRECTORY_SEPARATOR . 'php.exe';
+            if (is_file($candidate)) {
+                $phpBinary = $candidate;
+            }
+        }
+
+        if (!is_file($phpBinary) && stripos($phpBinary, 'php') === false) {
+            error_log("Allocation notification spawn skipped: invalid php binary {$phpBinary}");
+            return false;
+        }
+
+        $eventArg = preg_replace('/[^a-z_]/i', '', $event) ?: 'allocated';
+
+        if (PHP_OS_FAMILY === 'Windows') {
+            $phpCmd = str_replace('"', '""', $phpBinary);
+            $scriptCmd = str_replace('"', '""', $script);
+            $eventCmd = str_replace('"', '""', $eventArg);
+            $cmd = 'cmd /c start "" /B "' . $phpCmd . '" "' . $scriptCmd . '" '
+                . (int) $studentId . ' ' . (int) $tutorId . ' "' . $eventCmd . '"';
+
+            $process = @popen($cmd, 'r');
+            if ($process === false) {
+                error_log("Allocation notification spawn failed: popen returned false");
+                return false;
+            }
+            @pclose($process);
+            return true;
+        }
+
+        $baseCommand = escapeshellarg($phpBinary)
+            . ' ' . escapeshellarg($script)
+            . ' ' . (int) $studentId
+            . ' ' . (int) $tutorId
+            . ' ' . escapeshellarg($eventArg);
+        @exec($baseCommand . ' >/dev/null 2>&1 &');
+        return true;
+    }
+
     private function hasActiveAllocation(int $studentId): bool
     {
         $stmt = $this->conn->prepare("
@@ -260,12 +374,7 @@ class AllocationController
             return;
         }
 
-        try {
-            $notifier = new NotificationService($this->conn);
-            $notifier->sendAllocationNotification($studentId, $tutorId, 'allocated');
-        } catch (Throwable $e) {
-            error_log("Allocation notification failed on create: " . $e->getMessage());
-        }
+        $this->dispatchAllocationNotification((int) $studentId, (int) $tutorId, 'allocated');
 
         $this->safeLogActivity("Allocation Create", "Created allocation for student ID: " . $studentId);
         Response::json(["success" => true, "message" => "Allocation created"], 201);
@@ -323,12 +432,7 @@ class AllocationController
             return;
         }
 
-        try {
-            $notifier = new NotificationService($this->conn);
-            $notifier->sendAllocationNotification($studentId, $tutorId, 'reallocated');
-        } catch (Throwable $e) {
-            error_log("Allocation notification failed on update: " . $e->getMessage());
-        }
+        $this->dispatchAllocationNotification((int) $studentId, (int) $tutorId, 'reallocated');
 
         $this->safeLogActivity("Allocation Update", "Updated allocation ID: " . $id);
         Response::json(["success" => true, "message" => "Allocation updated"]);
@@ -487,12 +591,7 @@ class AllocationController
                 continue;
             }
 
-            try {
-                $notifier = new NotificationService($this->conn);
-                $notifier->sendAllocationNotification($sid, $tid, 'allocated');
-            } catch (Throwable $e) {
-                error_log("Bulk allocation notification failed: " . $e->getMessage());
-            }
+            $this->dispatchAllocationNotification($sid, $tid, 'allocated');
 
             $created[] = [
                 "index" => $index,
@@ -556,7 +655,7 @@ class AllocationController
                 SELECT allocation_id, tutor_id
                 FROM allocations
                 WHERE student_id = ? AND status = 'active'
-                ORDER BY allocated_date DESC
+                ORDER BY allocation_id DESC
                 LIMIT 1
             ");
             if (!$findStmt) {
@@ -609,12 +708,7 @@ class AllocationController
 
             $this->conn->commit();
 
-            try {
-                $notifier = new NotificationService($this->conn);
-                $notifier->sendAllocationNotification($studentId, $newTutorId, 'reallocated');
-            } catch (Throwable $e) {
-                error_log("Reallocation notification failed: " . $e->getMessage());
-            }
+            $this->dispatchAllocationNotification($studentId, $newTutorId, 'reallocated');
 
             $this->safeLogActivity(
                 "Allocation Reallocate",

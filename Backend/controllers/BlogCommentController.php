@@ -60,6 +60,14 @@ class BlogCommentController
         logActivity($this->conn, $userId, $page, $activity);
     }
 
+    private function hasColumn(string $table, string $column): bool
+    {
+        $tableEscaped = $this->conn->real_escape_string($table);
+        $columnEscaped = $this->conn->real_escape_string($column);
+        $result = $this->conn->query("SHOW COLUMNS FROM `{$tableEscaped}` LIKE '{$columnEscaped}'");
+        return $result && $result->num_rows > 0;
+    }
+
     private function blogPostExists(int $postId): bool
     {
         $stmt = $this->conn->prepare("SELECT blog_id FROM blog_posts WHERE blog_id = ? LIMIT 1");
@@ -79,6 +87,9 @@ class BlogCommentController
         $user = $this->requireAuth();
         $this->requireReadRole($user);
         $userId = (int) $user['user_id'];
+        $profilePhotoSelect = $this->hasColumn('users', 'profile_photo')
+            ? "u.profile_photo AS profile_photo"
+            : "NULL AS profile_photo";
 
         $postId = filter_var($_GET['post_id'] ?? null, FILTER_VALIDATE_INT);
         if ($postId !== false && $postId > 0) {
@@ -94,6 +105,7 @@ class BlogCommentController
                         NULLIF(sf.full_name, ''),
                         u.user_name
                     ) AS display_name,
+                    {$profilePhotoSelect},
                     c.comment,
                     c.created_at
                 FROM blog_comments c
@@ -121,6 +133,7 @@ class BlogCommentController
                         NULLIF(sf.full_name, ''),
                         u.user_name
                     ) AS display_name,
+                    {$profilePhotoSelect},
                     c.comment,
                     c.created_at
                 FROM blog_comments c

@@ -22,8 +22,9 @@
     const welcomeKey = getWelcomeKey();
     const fromSession = sessionStorage.getItem(welcomeKey) === "1";
     const fromUserFlag = user.is_first_login === true || user.is_first_login === 1 || user.is_first_login === "1";
+    const mustChangePassword = user.must_change_password === true || user.must_change_password === 1 || user.must_change_password === "1";
 
-    if (fromSession || fromUserFlag) {
+    if (fromSession || fromUserFlag || mustChangePassword) {
       setTimeout(function () {
         modal.classList.remove("hidden");
       }, 300);

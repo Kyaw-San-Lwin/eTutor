@@ -214,7 +214,7 @@ function renderUsers() {
       <td class="flex gap-2 items-center">
         <a href="${viewUrl}" class="assign-btn">View Dashboard</a>
         ${listState.isAdmin
-          ? `<button type="button" class="assign-btn" data-reset-user-id="${Number(user.user_id || 0)}">Reset Password</button>`
+          ? `<button type="button" class="assign-btn" data-reset-user-id="${Number(user.user_id || 0)}" data-reset-login="${escapeHtml(user.email || user.user_name || "")}">Reset Password</button>`
           : ""}
       </td>
     `;
@@ -236,40 +236,19 @@ function renderUsers() {
   if (listState.isAdmin) {
     table.querySelectorAll("[data-reset-user-id]").forEach(function (button) {
       button.addEventListener("click", function () {
-        const userId = Number(button.getAttribute("data-reset-user-id") || 0);
-        if (!userId) {
-          return;
-        }
-        resetUserPassword(userId, button);
+        const login = String(button.getAttribute("data-reset-login") || "").trim();
+        goToResetPassword(login);
       });
     });
   }
 }
 
-async function resetUserPassword(userId, button) {
-  const newPassword = window.prompt("Enter a new password (minimum 8 characters):");
-  if (newPassword === null) {
-    return;
+function goToResetPassword(login) {
+  const params = new URLSearchParams();
+  if (login) {
+    params.set("login", login);
   }
-
-  const trimmed = newPassword.trim();
-  if (trimmed.length < 8) {
-    window.alert("Password must be at least 8 characters.");
-    return;
-  }
-
-  button.disabled = true;
-  try {
-    const response = await window.ApiClient.post("user", "resetPassword", {
-      id: userId,
-      new_password: trimmed
-    });
-    window.alert(response.message || "Password reset successful.");
-  } catch (error) {
-    window.alert(error.message || "Failed to reset password.");
-  } finally {
-    button.disabled = false;
-  }
+  window.location.href = `./Reset_Password.html${params.toString() ? `?${params.toString()}` : ""}`;
 }
 
 function formatDate(value) {

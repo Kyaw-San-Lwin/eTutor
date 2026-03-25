@@ -24,7 +24,9 @@ const documentState = {
   documents: [],
   viewedDocumentIds: new Set(),
   studentMap: new Map(),
-  selectedStudentId: 0
+  selectedStudentId: 0,
+  selectedDocumentId: 0,
+  commentsByDocumentId: new Map()
 };
 
 async function initializePage(role) {
@@ -40,7 +42,8 @@ async function initializePage(role) {
     bindTutorProfilePanel();
     await Promise.allSettled([
       loadAssignedStudents(),
-      loadTutorDocuments()
+      loadTutorDocuments(),
+      loadTutorDocumentComments()
     ]);
   }
 }
@@ -80,6 +83,12 @@ function bindTableActions() {
       if (documentId > 0) {
         documentState.viewedDocumentIds.add(documentId);
         renderDocuments();
+        if (documentState.role === "tutor") {
+          const doc = findDocumentById(documentId);
+          if (doc) {
+            openStudentPanel(Number(doc.student_id || 0), documentId);
+          }
+        }
       }
       return;
     }
@@ -113,11 +122,15 @@ function bindStudentUpload() {
 function bindTutorProfilePanel() {
   const panel = document.getElementById("studentProfile");
   const messageButton = document.getElementById("studentMessageBtn");
+  const sendCommentButton = document.getElementById("sendCommentBtn");
 
   if (messageButton) {
     messageButton.addEventListener("click", function () {
       window.location.href = "./Tutor_Messaging.html";
     });
+  }
+  if (sendCommentButton) {
+    sendCommentButton.addEventListener("click", submitTutorComment);
   }
 
   if (!panel) {
@@ -154,7 +167,7 @@ async function loadStudentDocuments() {
   }
 
   try {
-    const response = await window.ApiClient.get("document", "", { limit: 200, offset: 0 });
+    const response = await window.ApiClient.get("document", "", { limit: 100, offset: 0 });
     documentState.documents = Array.isArray(response.data) ? response.data : [];
     renderDocuments();
     setStatus("", false);
@@ -195,13 +208,30 @@ async function loadTutorDocuments() {
   }
 
   try {
-    const response = await window.ApiClient.get("document", "", { limit: 200, offset: 0 });
+    const response = await window.ApiClient.get("document", "", { limit: 100, offset: 0 });
     documentState.documents = Array.isArray(response.data) ? response.data : [];
     renderDocuments();
   } catch (error) {
     if (table) {
       table.innerHTML = `<tr><td colspan="5">${escapeHtml(error.message || "Unable to load documents.")}</td></tr>`;
     }
+  }
+}
+
+async function loadTutorDocumentComments() {
+  try {
+    const response = await window.ApiClient.get("document_comment");
+    const comments = Array.isArray(response.data) ? response.data : [];
+    const map = new Map();
+    comments.forEach(function (row) {
+      const documentId = Number(row.document_id || 0);
+      if (documentId > 0) {
+        map.set(documentId, row);
+      }
+    });
+    documentState.commentsByDocumentId = map;
+  } catch (error) {
+    documentState.commentsByDocumentId = new Map();
   }
 }
 
@@ -340,7 +370,7 @@ function renderTutorDocumentRow(doc) {
   `;
 }
 
-function openStudentPanel(studentId) {
+function openStudentPanel(studentId, documentId) {
   const panel = document.getElementById("studentProfile");
   if (!panel) {
     return;
@@ -354,8 +384,17 @@ function openStudentPanel(studentId) {
   };
 
   documentState.selectedStudentId = studentId;
+  documentState.selectedDocumentId = Number(documentId || 0);
   setText("studentName", student.name);
-  setText("studentMeta", [student.programme, student.email].filter(Boolean).join(" | "));
+  const selectedDoc = findDocumentById(documentState.selectedDocumentId);
+  const selectedDocName = selectedDoc ? getFileName(selectedDoc.file_path) : "";
+  setText("studentMeta", [student.programme, student.email, selectedDocName].filter(Boolean).join(" | "));
+
+  const commentInput = document.getElementById("tutorComment");
+  if (commentInput) {
+    const existing = documentState.commentsByDocumentId.get(documentState.selectedDocumentId);
+    commentInput.value = existing?.comment || "";
+  }
 
   const image = document.getElementById("studentProfileImage");
   if (image) {
@@ -367,12 +406,66 @@ function openStudentPanel(studentId) {
   panel.classList.add("show");
 }
 
+async function submitTutorComment() {
+  const commentInput = document.getElementById("tutorComment");
+  const sendCommentButton = document.getElementById("sendCommentBtn");
+  const documentId = Number(documentState.selectedDocumentId || 0);
+  const comment = String(commentInput?.value || "").trim();
+
+  if (documentId <= 0) {
+    setStatus("Please select a student document first.", true);
+    return;
+  }
+  if (!comment) {
+    setStatus("Please write a comment first.", true);
+    return;
+  }
+
+  if (sendCommentButton) {
+    sendCommentButton.disabled = true;
+  }
+
+  try {
+    const hasExisting = documentState.commentsByDocumentId.has(documentId);
+    if (hasExisting) {
+      await window.ApiClient.put("document_comment", "", {
+        document_id: documentId,
+        comment: comment
+      });
+      setStatus("Comment updated.", false);
+    } else {
+      await window.ApiClient.post("document_comment", "", {
+        document_id: documentId,
+        comment: comment
+      });
+      setStatus("Comment sent.", false);
+    }
+    await loadTutorDocumentComments();
+  } catch (error) {
+    setStatus(error.message || "Unable to save comment.", true);
+  } finally {
+    if (sendCommentButton) {
+      sendCommentButton.disabled = false;
+    }
+  }
+}
+
 function getStudentName(studentId) {
   const student = documentState.studentMap.get(Number(studentId));
   if (!student) {
     return `Student ${studentId}`;
   }
   return student.name;
+}
+
+function findDocumentById(documentId) {
+  const did = Number(documentId || 0);
+  if (did <= 0) {
+    return null;
+  }
+  return documentState.documents.find(function (doc) {
+    return Number(doc.document_id || 0) === did;
+  }) || null;
 }
 
 function getInputValue(id) {
