@@ -31,13 +31,24 @@
     border:1px solid #ccc;
     padding:6px;
     border-radius:4px;
+    min-width:150px;
 }
 
 .search-bar input{
     flex:1;
+    min-width:0;
     border:none;
     outline:none;
     font-size:14px;
+}
+
+.search-assign-container{
+    width:100%;
+    max-width:1000px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
 }
 
 /* TABLE */
@@ -65,6 +76,7 @@ th, td{
     padding:10px;
     text-align:left;
     white-space:nowrap;
+    vertical-align:middle;
 }
 
 th{
@@ -90,6 +102,7 @@ th{
     height:32px;
     border-radius:50%;
     object-fit:cover;
+    flex-shrink:0;
 }
 
 /* CHECKBOX ALIGN */
@@ -125,13 +138,12 @@ td input[type="checkbox"], th input[type="checkbox"]{
 }
 
 /* BUTTONS */
-/* SMALL ASSIGN BUTTONS IN TABLE */
 .assign-btn{
     background:#1e3a8a;
     color:white;
-    padding:4px 10px;   /* small padding */
+    padding:4px 10px;
     border-radius:5px;
-    font-size:12px;     /* small text */
+    font-size:12px;
     cursor:pointer;
     transition:0.2s;
 }
@@ -140,15 +152,15 @@ td input[type="checkbox"], th input[type="checkbox"]{
     background:#1e40af;
 }
 
-/* BIG ASSIGN SELECTED BUTTON */
 .multi-assign-btn{
     background:#1e3a8a;
     color:white;
-    padding:10px 20px;  /* bigger padding */
+    padding:10px 20px;
     border-radius:6px;
-    font-size:16px;     /* bigger text */
+    font-size:16px;
     cursor:pointer;
     transition:0.2s;
+    flex-shrink:0;
 }
 
 .multi-assign-btn:hover{
@@ -168,36 +180,47 @@ td input[type="checkbox"], th input[type="checkbox"]{
     border-radius:6px;
 }
 
-/* ================= TABLET (≤1024px) ================= */
+/* ================= TABLET (<=1024px) ================= */
 @media (max-width:1024px){
 
     .doc-main{
-        padding:25px;
+        padding:24px;
         gap:16px;
     }
 
+    .search-assign-container{
+        flex-wrap:wrap;
+        align-items:stretch;
+        gap:12px;
+    }
+
     .search-bar{
+        max-width:none;
         padding:10px;
         gap:8px;
+        flex:1 1 100%;
+    }
+
+    .search-bar select{
+        min-width:135px;
     }
 
     .search-bar input{
         font-size:13px;
     }
 
-    .modal-content{
-        padding:20px;
-        max-width:350px;
-    }
-
     .multi-assign-btn{
+        margin-left:auto;
         font-size:14px;
-        padding:8px 16px;
+        padding:9px 16px;
     }
 
-    .assign-btn{
-        font-size:11px;
-        padding:3px 8px;
+    .table-container{
+        border-radius:8px;
+    }
+
+    table{
+        min-width:760px;
     }
 
     th, td{
@@ -209,63 +232,165 @@ td input[type="checkbox"], th input[type="checkbox"]{
         width:28px;
         height:28px;
     }
+
+    .modal-content{
+        padding:20px;
+        max-width:360px;
+    }
 }
 
-/* ================= MOBILE (≤768px) ================= */
+/* ================= MOBILE (<=768px) ================= */
 @media (max-width:768px){
 
     .doc-main{
-        padding:15px;
+        padding:16px;
         gap:12px;
+        align-items:stretch;
+    }
+
+    .doc-main h1,
+    .doc-main h2,
+    .doc-main p{
+        width:100%;
+    }
+
+    .search-assign-container{
+        flex-direction:row;
+        align-items:center;
+        justify-content:space-between;
+        gap:8px;
+        flex-wrap:nowrap;
     }
 
     .search-bar{
-        flex-direction:column;
-        align-items:stretch;
+        flex-direction:row;
+        align-items:center;
         gap:8px;
         padding:10px;
+        overflow-x:auto;
+        flex:1 1 auto;
+        min-width:0;
     }
 
-    .search-bar input,
+    .search-bar i{
+        display:block;
+        flex-shrink:0;
+    }
+
     .search-bar select{
-        width:100%;
-        font-size:13px;
+        width:auto;
+        min-width:120px;
+        max-width:140px;
+        flex-shrink:0;
+        font-size:12px;
         padding:6px;
     }
 
-    .modal-content{
-        width:95%;
-        padding:18px;
-        border-radius:8px;
+    .search-bar input{
+        width:auto;
+        min-width:180px;
+        flex:1 1 auto;
+        font-size:13px;
+        padding:6px 0;
     }
 
     .multi-assign-btn{
-        width:100%;
-        font-size:14px;
-        padding:10px;
+        width:auto;
+        min-width:max-content;
+        margin-left:0;
+        font-size:13px;
+        padding:9px 12px;
         text-align:center;
+        flex-shrink:0;
     }
 
-    .confirm-btn,
-    .cancel-btn{
+    .table-container{
         width:100%;
-        margin-top:8px;
-        text-align:center;
+        overflow-x:auto;
+        -webkit-overflow-scrolling:touch;
+        border-radius:0;
     }
 
-    .modal-content div{
-        display:flex;
-        flex-direction:column;
-        gap:8px;
+    table{
+        min-width:680px;
     }
 
     th, td{
         font-size:12px;
-        padding:6px;
+        padding:7px 6px;
+    }
+
+    .student-name{
+        gap:8px;
     }
 
     .student-avatar{
         width:24px;
         height:24px;
+    }
+
+    .assign-btn{
+        font-size:11px;
+        padding:4px 8px;
+    }
+
+    .modal-content{
+        width:min(95%, 360px);
+        padding:18px;
+        border-radius:8px;
+    }
+
+    .modal-content .flex.justify-end{
+        flex-direction:column;
+    }
+
+    .confirm-btn,
+    .cancel-btn{
+        width:100%;
+        text-align:center;
+    }
+}
+
+/* ================= SMALL MOBILE (<=480px) ================= */
+@media (max-width:480px){
+
+    .doc-main{
+        padding:12px;
+    }
+
+    .search-bar{
+        padding:8px;
+        gap:6px;
+    }
+
+    .search-bar select{
+        min-width:105px;
+        max-width:120px;
+        font-size:11px;
+        padding:5px;
+    }
+
+    .search-bar input{
+        min-width:140px;
+        font-size:12px;
+    }
+
+    th, td{
+        font-size:11px;
+        padding:6px 5px;
+    }
+
+    table{
+        min-width:620px;
+    }
+
+    .multi-assign-btn{
+        font-size:13px;
+        padding:9px;
+    }
+
+    .assign-btn{
+        font-size:10px;
+        padding:4px 7px;
     }
 }

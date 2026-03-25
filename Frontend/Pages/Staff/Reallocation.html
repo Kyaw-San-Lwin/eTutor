@@ -128,7 +128,7 @@
                     <i class="bi bi-search"></i>
                     <input type="text" id="searchInput" placeholder="Search by student name or program">
                 </div>
-                <button type="button" class="multi-assign-btn hidden">
+                <button id="openReassignModalBtn" type="button" class="multi-assign-btn hidden">
                     Change Selected
                 </button>
             </div>
@@ -138,6 +138,7 @@
                 <table>
                     <thead>
                         <tr>
+                            <th><input type="checkbox" id="selectAllStudents" aria-label="Select all students"></th>
                             <th>Name</th>
                             <th>Program</th>
                             <th>Current Tutor</th>
@@ -149,6 +150,22 @@
                 </table>
             </div>
 
+        
+            <div id="reassignModal" class="modal hidden">
+                <div class="modal-content">
+                    <h2 class="text-lg font-semibold mb-3">Reallocate Tutor</h2>
+                    <div id="selectedStudentsList" class="mb-4 text-sm hidden"></div>
+                    <div class="mb-4 text-sm">
+                        <div><strong>Student:</strong> <span id="modalName"></span></div>
+                        <div><strong>Program:</strong> <span id="modalProgram"></span></div>
+                    </div>
+                    <select id="bulkTutorSelect" class="w-full p-2 border rounded mb-4"></select>
+                    <div class="flex justify-end gap-2">
+                        <button id="closeReassignModalBtn" type="button" class="cancel-btn">Cancel</button>
+                        <button id="confirmReassignBtn" type="button" class="confirm-btn">Confirm</button>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 </body>
