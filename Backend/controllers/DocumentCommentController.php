@@ -91,6 +91,30 @@ class DocumentCommentController
         return $result && $result->num_rows > 0;
     }
 
+    private function canTutorCommentDocument(int $tutorId, int $documentId): bool
+    {
+        $stmt = $this->conn->prepare("
+            SELECT d.document_id
+            FROM documents d
+            JOIN allocations a ON a.student_id = d.student_id
+            WHERE d.document_id = ?
+              AND a.tutor_id = ?
+              AND a.status = 'active'
+            LIMIT 1
+        ");
+        if (!$stmt) {
+            return false;
+        }
+
+        $stmt->bind_param("ii", $documentId, $tutorId);
+        if (!$stmt->execute()) {
+            return false;
+        }
+
+        $result = $stmt->get_result();
+        return $result && $result->num_rows > 0;
+    }
+
     private function getCommentIdColumn(): string
     {
         if ($this->commentIdColumn !== null) {
@@ -251,6 +275,10 @@ class DocumentCommentController
 
         if ($tutorId <= 0) {
             Response::json(["success" => false, "message" => "Valid tutor_id is required"], 400);
+        }
+
+        if (!$this->canTutorCommentDocument($tutorId, (int) $documentId)) {
+            Response::json(["success" => false, "message" => "You can only comment on documents of your assigned students"], 403);
         }
 
         $stmt = $this->conn->prepare("

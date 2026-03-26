@@ -53,6 +53,14 @@ class DashboardController
         return (int) ($row[0] ?? 0);
     }
 
+    private function hasColumn(string $table, string $column): bool
+    {
+        $tableEscaped = $this->conn->real_escape_string($table);
+        $columnEscaped = $this->conn->real_escape_string($column);
+        $result = $this->conn->query("SHOW COLUMNS FROM `{$tableEscaped}` LIKE '{$columnEscaped}'");
+        return $result && $result->num_rows > 0;
+    }
+
     private function getUserProfile(int $userId): ?array
     {
         $stmt = $this->conn->prepare("
@@ -88,6 +96,11 @@ class DashboardController
     private function getStaffIdByUserId(int $userId): int
     {
         return $this->scalar("SELECT staff_id FROM staff WHERE user_id = ? LIMIT 1", "i", $userId);
+    }
+
+    private function getTutorIdByUserId(int $userId): int
+    {
+        return $this->scalar("SELECT tutor_id FROM tutors WHERE user_id = ? LIMIT 1", "i", $userId);
     }
 
     private function buildDashboardData(int $userId, string $role, bool $isAdmin): array
@@ -155,6 +168,161 @@ class DashboardController
                 "i",
                 $studentId
             );
+
+            if ($studentId > 0) {
+                $studentStmt = $this->conn->prepare("
+                    SELECT s.student_id, COALESCE(NULLIF(s.full_name, ''), u.user_name) AS full_name
+                    FROM students s
+                    JOIN users u ON s.user_id = u.user_id
+                    WHERE s.student_id = ?
+                    LIMIT 1
+                ");
+                if ($studentStmt) {
+                    $studentStmt->bind_param("i", $studentId);
+                    if ($studentStmt->execute()) {
+                        $student = $studentStmt->get_result()->fetch_assoc();
+                        if ($student) {
+                            $data["student"] = [
+                                "student_id" => (int) ($student['student_id'] ?? 0),
+                                "full_name" => (string) ($student['full_name'] ?? '')
+                            ];
+                        }
+                    }
+                }
+
+                $photoSelect = $this->hasColumn('users', 'profile_photo')
+                    ? ', tu.profile_photo'
+                    : ', NULL AS profile_photo';
+                $tutorStmt = $this->conn->prepare("
+                    SELECT a.tutor_id,
+                           tu.user_id AS tutor_user_id,
+                           COALESCE(NULLIF(t.full_name, ''), tu.user_name) AS full_name,
+                           tu.email,
+                           t.department
+                           {$photoSelect}
+                    FROM allocations a
+                    JOIN tutors t ON a.tutor_id = t.tutor_id
+                    JOIN users tu ON t.user_id = tu.user_id
+                    WHERE a.student_id = ? AND a.status = 'active'
+                    ORDER BY a.allocated_date DESC
+                    LIMIT 1
+                ");
+                $tutorUserId = 0;
+                if ($tutorStmt) {
+                    $tutorStmt->bind_param("i", $studentId);
+                    if ($tutorStmt->execute()) {
+                        $tutorRow = $tutorStmt->get_result()->fetch_assoc();
+                        if ($tutorRow) {
+                            $tutorUserId = (int) ($tutorRow['tutor_user_id'] ?? 0);
+                            $data["personal_tutor"] = [
+                                "tutor_id" => (int) ($tutorRow['tutor_id'] ?? 0),
+                                "tutor_user_id" => $tutorUserId,
+                                "full_name" => (string) ($tutorRow['full_name'] ?? ''),
+                                "email" => (string) ($tutorRow['email'] ?? ''),
+                                "department" => (string) ($tutorRow['department'] ?? ''),
+                                "profile_photo" => (string) ($tutorRow['profile_photo'] ?? '')
+                            ];
+                        }
+                    }
+                }
+
+                $upcomingMeetings = [];
+                $meetingStmt = $this->conn->prepare("
+                    SELECT meeting_id, meeting_type, meeting_date, meeting_time, status, meeting_link
+                    FROM meetings
+                    WHERE student_id = ?
+                      AND meeting_date >= CURDATE()
+                    ORDER BY meeting_date ASC, meeting_time ASC
+                    LIMIT 5
+                ");
+                if ($meetingStmt) {
+                    $meetingStmt->bind_param("i", $studentId);
+                    if ($meetingStmt->execute()) {
+                        $result = $meetingStmt->get_result();
+                        while ($row = $result->fetch_assoc()) {
+                            $upcomingMeetings[] = $row;
+                        }
+                    }
+                }
+                $data["upcoming_meetings"] = $upcomingMeetings;
+
+                $recentFeedback = [];
+                $commentStmt = $this->conn->prepare("
+                    SELECT dc.document_id,
+                           d.file_path AS document_name,
+                           dc.comment,
+                           dc.created_at AS commented_at,
+                           COALESCE(NULLIF(t.full_name, ''), tu.user_name) AS tutor_full_name
+                    FROM document_comments dc
+                    JOIN documents d ON dc.document_id = d.document_id
+                    JOIN tutors t ON dc.tutor_id = t.tutor_id
+                    JOIN users tu ON t.user_id = tu.user_id
+                    WHERE d.student_id = ?
+                    ORDER BY dc.created_at DESC
+                    LIMIT 5
+                ");
+                if ($commentStmt) {
+                    $commentStmt->bind_param("i", $studentId);
+                    if ($commentStmt->execute()) {
+                        $result = $commentStmt->get_result();
+                        while ($row = $result->fetch_assoc()) {
+                            $recentFeedback[] = $row;
+                        }
+                    }
+                }
+                $data["recent_document_feedback"] = $recentFeedback;
+
+                $recentMessages = [];
+                if ($tutorUserId > 0) {
+                    $msgStmt = $this->conn->prepare("
+                        SELECT message_id, sender_id, receiver_id, message, sent_at, status
+                        FROM messages
+                        WHERE (sender_id = ? AND receiver_id = ?)
+                           OR (sender_id = ? AND receiver_id = ?)
+                        ORDER BY sent_at DESC
+                        LIMIT 10
+                    ");
+                    if ($msgStmt) {
+                        $msgStmt->bind_param("iiii", $userId, $tutorUserId, $tutorUserId, $userId);
+                        if ($msgStmt->execute()) {
+                            $result = $msgStmt->get_result();
+                            while ($row = $result->fetch_assoc()) {
+                                $recentMessages[] = $row;
+                            }
+                        }
+                    }
+                }
+                $data["recent_messages"] = $recentMessages;
+
+                $totalMessagesWithTutor = 0;
+                $unreadMessagesFromTutor = 0;
+                if ($tutorUserId > 0) {
+                    $totalMessagesWithTutor = $this->scalar(
+                        "SELECT COUNT(*) FROM messages WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)",
+                        "iiii",
+                        $userId,
+                        $tutorUserId,
+                        $tutorUserId,
+                        $userId
+                    );
+                    $unreadMessagesFromTutor = $this->scalar(
+                        "SELECT COUNT(*) FROM messages WHERE sender_id = ? AND receiver_id = ? AND status = 'sent'",
+                        "ii",
+                        $tutorUserId,
+                        $userId
+                    );
+                }
+
+                $data["summary"] = [
+                    "unread_messages" => $unreadMessagesFromTutor,
+                    "total_messages_with_tutor" => $totalMessagesWithTutor,
+                    "scheduled_meetings" => (int) ($data["metrics"]["scheduled_meetings"] ?? 0),
+                    "documents_uploaded" => (int) ($data["metrics"]["my_documents"] ?? 0),
+                    "blog_posts" => $this->scalar("SELECT COUNT(*) FROM blog_posts WHERE user_id = ?", "i", $userId),
+                    "blog_comments" => $this->scalar("SELECT COUNT(*) FROM blog_comments WHERE user_id = ?", "i", $userId),
+                    "last_interaction_at" => isset($recentMessages[0]['sent_at']) ? $recentMessages[0]['sent_at'] : null
+                ];
+            }
         } else {
             $staffId = $this->getStaffIdByUserId($userId);
             $data["metrics"]["staff_id"] = $staffId > 0 ? $staffId : null;
@@ -277,6 +445,169 @@ class DashboardController
         );
 
         Response::json(["success" => true, "data" => $data]);
+    }
+
+    public function tutorTutees()
+    {
+        $user = $this->requireAuth();
+        $this->requireDashboardRole($user);
+
+        $role = (string) ($user['role'] ?? '');
+        if ($role !== 'tutor') {
+            Response::json(["success" => false, "message" => "Tutor only access"], 403);
+        }
+
+        $tutorUserId = (int) ($user['user_id'] ?? 0);
+        $tutorId = $this->getTutorIdByUserId($tutorUserId);
+        if ($tutorId <= 0) {
+            Response::json(["success" => false, "message" => "Tutor profile not found"], 404);
+        }
+
+        $q = trim((string) ($_GET['q'] ?? ''));
+        $programme = trim((string) ($_GET['programme'] ?? ''));
+        $sortBy = strtolower(trim((string) ($_GET['sort_by'] ?? 'last_interaction')));
+        $sortDir = strtolower(trim((string) ($_GET['sort_dir'] ?? 'desc')));
+        $limit = filter_var($_GET['limit'] ?? 100, FILTER_VALIDATE_INT);
+        $offset = filter_var($_GET['offset'] ?? 0, FILTER_VALIDATE_INT);
+
+        if ($limit === false || $limit <= 0 || $limit > 100) {
+            Response::json(["success" => false, "message" => "limit must be between 1 and 100"], 400);
+        }
+        if ($offset === false || $offset < 0) {
+            Response::json(["success" => false, "message" => "offset must be 0 or greater"], 400);
+        }
+
+        $allowedSortBy = [
+            'name' => 'student_full_name',
+            'programme' => 'student_programme',
+            'last_interaction' => 'last_interaction_at',
+            'unread_messages' => 'unread_messages',
+            'documents' => 'documents_uploaded'
+        ];
+        $sortColumn = $allowedSortBy[$sortBy] ?? $allowedSortBy['last_interaction'];
+        $sortDirection = $sortDir === 'asc' ? 'ASC' : 'DESC';
+
+        $photoSelect = $this->hasColumn('users', 'profile_photo')
+            ? ', su.profile_photo AS student_profile_photo'
+            : ', NULL AS student_profile_photo';
+
+        $where = " WHERE a.tutor_id = ? AND a.status = 'active' ";
+        $types = "iiii";
+        $params = [$tutorUserId, $tutorUserId, $tutorUserId, $tutorId];
+
+        if ($q !== '') {
+            $where .= " AND (COALESCE(NULLIF(s.full_name, ''), su.user_name) LIKE ? OR su.email LIKE ?) ";
+            $types .= "ss";
+            $like = '%' . $q . '%';
+            $params[] = $like;
+            $params[] = $like;
+        }
+
+        if ($programme !== '' && strtolower($programme) !== 'all') {
+            $where .= " AND s.programme = ? ";
+            $types .= "s";
+            $params[] = $programme;
+        }
+
+        $baseSelect = "
+            SELECT
+                s.student_id,
+                su.user_id AS student_user_id,
+                COALESCE(NULLIF(s.full_name, ''), su.user_name) AS student_full_name,
+                su.user_name AS student_user_name,
+                su.email AS student_email,
+                s.contact_number AS student_contact_number,
+                s.programme AS student_programme
+                {$photoSelect},
+                COUNT(DISTINCT d.document_id) AS documents_uploaded,
+                SUM(CASE
+                    WHEN m.sender_id = su.user_id
+                     AND m.receiver_id = ?
+                     AND m.status = 'sent' THEN 1
+                    ELSE 0
+                END) AS unread_messages,
+                MAX(m.sent_at) AS last_interaction_at
+            FROM allocations a
+            JOIN students s ON s.student_id = a.student_id
+            JOIN users su ON su.user_id = s.user_id
+            LEFT JOIN documents d ON d.student_id = s.student_id
+            LEFT JOIN messages m ON (
+                (m.sender_id = su.user_id AND m.receiver_id = ?)
+                OR
+                (m.sender_id = ? AND m.receiver_id = su.user_id)
+            )
+            {$where}
+            GROUP BY s.student_id, su.user_id, student_full_name, su.user_name, su.email, s.contact_number, s.programme, student_profile_photo
+        ";
+
+        $countSql = "SELECT COUNT(*) FROM ({$baseSelect}) t";
+        $countStmt = $this->conn->prepare($countSql);
+        if (!$countStmt) {
+            Response::json(["success" => false, "message" => "Failed to prepare tutees count"], 500);
+        }
+
+        $countParams = $params;
+        $countTypes = $types;
+        $countStmt->bind_param($countTypes, ...$countParams);
+        if (!$countStmt->execute()) {
+            Response::json(["success" => false, "message" => "Failed to fetch tutees count"], 500);
+        }
+        $total = (int) (($countStmt->get_result()->fetch_row()[0]) ?? 0);
+
+        $sql = "
+            SELECT *
+            FROM ({$baseSelect}) x
+            ORDER BY {$sortColumn} {$sortDirection}, student_full_name ASC
+            LIMIT ? OFFSET ?
+        ";
+        $stmt = $this->conn->prepare($sql);
+        if (!$stmt) {
+            Response::json(["success" => false, "message" => "Failed to prepare tutor tutees dashboard"], 500);
+        }
+
+        $typesWithPaging = $types . "ii";
+        $paramsWithPaging = $params;
+        $paramsWithPaging[] = (int) $limit;
+        $paramsWithPaging[] = (int) $offset;
+        $stmt->bind_param($typesWithPaging, ...$paramsWithPaging);
+
+        if (!$stmt->execute()) {
+            Response::json(["success" => false, "message" => "Failed to fetch tutor tutees dashboard"], 500);
+        }
+
+        $rows = [];
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $lastInteraction = $row['last_interaction_at'] ?? null;
+            $risk = 'normal';
+            if ($lastInteraction) {
+                $days = (int) floor((time() - strtotime((string) $lastInteraction)) / 86400);
+                if ($days >= 28) {
+                    $risk = 'inactive28';
+                } elseif ($days >= 7) {
+                    $risk = 'inactive7';
+                }
+            } else {
+                $risk = 'inactive28';
+            }
+
+            $row['unread_messages'] = (int) ($row['unread_messages'] ?? 0);
+            $row['documents_uploaded'] = (int) ($row['documents_uploaded'] ?? 0);
+            $row['risk_level'] = $risk;
+            $rows[] = $row;
+        }
+
+        Response::json([
+            "success" => true,
+            "data" => $rows,
+            "meta" => [
+                "total" => $total,
+                "limit" => (int) $limit,
+                "offset" => (int) $offset,
+                "sort_by" => $sortBy,
+                "sort_dir" => strtolower($sortDirection)
+            ]
+        ]);
     }
 
     public function lastLogin()

@@ -3,6 +3,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/activityMiddleware.php';
 require_once __DIR__ . '/../services/PermissionService.php';
 require_once __DIR__ . '/../services/ValidationService.php';
+require_once __DIR__ . '/../services/DocumentPreviewService.php';
 
 class DocumentController
 {
@@ -120,6 +121,148 @@ class DocumentController
         }
 
         logActivity($this->conn, (int) $GLOBALS['auth_user']['user_id'], $page, $activity);
+    }
+
+    private function getAuthorizedDocumentRow(int $documentId, array $user): ?array
+    {
+        $role = (string) ($user['role'] ?? '');
+        $isAdmin = !empty($user['is_admin']);
+        $userId = (int) ($user['user_id'] ?? 0);
+
+        if ($role === 'student') {
+            $studentId = $this->getStudentIdByUserId($userId);
+            if ($studentId <= 0) {
+                return null;
+            }
+            $sql = "SELECT document_id, student_id, file_path, uploaded_at FROM documents WHERE document_id = ? AND student_id = ?";
+            if ($this->hasColumn('documents', 'deleted_at')) {
+                $sql .= " AND deleted_at IS NULL";
+            }
+            $sql .= " LIMIT 1";
+            $stmt = $this->conn->prepare($sql);
+            if (!$stmt) {
+                return null;
+            }
+            $stmt->bind_param("ii", $documentId, $studentId);
+        } elseif ($role === 'tutor') {
+            $tutorId = $this->getTutorIdByUserId($userId);
+            if ($tutorId <= 0) {
+                return null;
+            }
+            $sql = "
+                SELECT d.document_id, d.student_id, d.file_path, d.uploaded_at
+                FROM documents d
+                JOIN allocations a ON a.student_id = d.student_id
+                WHERE d.document_id = ?
+                  AND a.tutor_id = ?
+                  AND a.status = 'active'
+            ";
+            if ($this->hasColumn('documents', 'deleted_at')) {
+                $sql .= " AND d.deleted_at IS NULL";
+            }
+            $sql .= " LIMIT 1";
+            $stmt = $this->conn->prepare($sql);
+            if (!$stmt) {
+                return null;
+            }
+            $stmt->bind_param("ii", $documentId, $tutorId);
+        } else {
+            if (!$isAdmin || $role !== 'staff') {
+                return null;
+            }
+            $sql = "SELECT document_id, student_id, file_path, uploaded_at FROM documents WHERE document_id = ?";
+            if ($this->hasColumn('documents', 'deleted_at')) {
+                $sql .= " AND deleted_at IS NULL";
+            }
+            $sql .= " LIMIT 1";
+            $stmt = $this->conn->prepare($sql);
+            if (!$stmt) {
+                return null;
+            }
+            $stmt->bind_param("i", $documentId);
+        }
+
+        if (!$stmt->execute()) {
+            return null;
+        }
+        $result = $stmt->get_result();
+        return $result ? ($result->fetch_assoc() ?: null) : null;
+    }
+
+    private function resolveAuthorizedFileForPreview(array $user, int $documentId, bool $convertForPreview): ?array
+    {
+        $row = $this->getAuthorizedDocumentRow($documentId, $user);
+        if (!$row) {
+            return null;
+        }
+
+        $relativePath = (string) ($row['file_path'] ?? '');
+        $normalized = str_replace('\\', '/', $relativePath);
+        if (strpos($normalized, '/Backend/') === 0) {
+            $normalized = substr($normalized, strlen('/Backend/'));
+        } elseif (strpos($normalized, 'Backend/') === 0) {
+            $normalized = substr($normalized, strlen('Backend/'));
+        } else {
+            $normalized = ltrim($normalized, '/');
+        }
+
+        $backendRoot = realpath(__DIR__ . '/..');
+        $uploadsRoot = $backendRoot ? realpath($backendRoot . '/uploads') : false;
+        if ($backendRoot === false || $uploadsRoot === false) {
+            return null;
+        }
+
+        $fullPath = realpath($backendRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $normalized));
+        if ($fullPath === false || strpos($fullPath, $uploadsRoot) !== 0 || !is_file($fullPath)) {
+            return null;
+        }
+
+        if ($convertForPreview) {
+            $previewService = new DocumentPreviewService();
+            $convertedPdf = $previewService->convertOfficeToPdf($fullPath, $backendRoot);
+            if (is_string($convertedPdf) && is_file($convertedPdf)) {
+                $fullPath = $convertedPdf;
+            }
+        }
+
+        $mime = 'application/octet-stream';
+        if (function_exists('mime_content_type')) {
+            $detected = @mime_content_type($fullPath);
+            if (is_string($detected) && $detected !== '') {
+                $mime = $detected;
+            }
+        } elseif (class_exists('finfo')) {
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $detected = $finfo->file($fullPath);
+            if (is_string($detected) && $detected !== '') {
+                $mime = $detected;
+            }
+        }
+
+        $fileName = basename($fullPath);
+        if ($mime === 'application/octet-stream') {
+            $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+            $mimeByExt = [
+                'pdf' => 'application/pdf',
+                'txt' => 'text/plain',
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'png' => 'image/png',
+                'doc' => 'application/msword',
+                'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'ppt' => 'application/vnd.ms-powerpoint',
+                'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+            ];
+            if (isset($mimeByExt[$ext])) {
+                $mime = $mimeByExt[$ext];
+            }
+        }
+
+        return [
+            'full_path' => $fullPath,
+            'mime' => $mime,
+            'file_name' => $fileName
+        ];
     }
 
     public function list()
@@ -447,5 +590,74 @@ class DocumentController
         $this->safeLogActivity("Document Delete", "Deleted document ID: " . $id);
 
         Response::json(["success" => true, "message" => "Document deleted"]);
+    }
+
+    public function view()
+    {
+        $user = $this->requireAuth();
+        $this->requireDocumentRole($user);
+
+        $documentId = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
+        if ($documentId === false || $documentId <= 0) {
+            Response::json(["success" => false, "message" => "Valid document id is required"], 400);
+            return;
+        }
+
+        $previewRequested = isset($_GET['preview']) && in_array(strtolower((string) $_GET['preview']), ['1', 'true', 'yes', 'on'], true);
+        $resolved = $this->resolveAuthorizedFileForPreview($user, (int) $documentId, $previewRequested);
+        if (!$resolved) {
+            Response::json(["success" => false, "message" => "Document not found"], 404);
+            return;
+        }
+        $fullPath = $resolved['full_path'];
+        $mime = $resolved['mime'];
+        $fileName = $resolved['file_name'];
+
+        $this->safeLogActivity("Document View", "Viewed document ID: " . (int) $documentId);
+
+        header("Content-Type: {$mime}");
+        header("X-Content-Type-Options: nosniff");
+        header('Content-Disposition: inline; filename="' . addslashes($fileName) . '"');
+        header("Content-Length: " . filesize($fullPath));
+        readfile($fullPath);
+        exit;
+    }
+
+    public function preview()
+    {
+        $user = $this->requireAuth();
+        $this->requireDocumentRole($user);
+
+        $documentId = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
+        if ($documentId === false || $documentId <= 0) {
+            Response::json(["success" => false, "message" => "Valid document id is required"], 400);
+            return;
+        }
+
+        $previewRequested = isset($_GET['preview']) && in_array(strtolower((string) $_GET['preview']), ['1', 'true', 'yes', 'on'], true);
+        $resolved = $this->resolveAuthorizedFileForPreview($user, (int) $documentId, $previewRequested);
+        if (!$resolved) {
+            Response::json(["success" => false, "message" => "Document not found"], 404);
+            return;
+        }
+
+        $fullPath = $resolved['full_path'];
+        $mime = $resolved['mime'];
+        $fileName = $resolved['file_name'];
+        $raw = @file_get_contents($fullPath);
+        if ($raw === false) {
+            Response::json(["success" => false, "message" => "Unable to read file"], 500);
+            return;
+        }
+
+        $this->safeLogActivity("Document Preview", "Previewed document ID: " . (int) $documentId);
+        Response::json([
+            "success" => true,
+            "data" => [
+                "mime" => $mime,
+                "file_name" => $fileName,
+                "content_base64" => base64_encode($raw)
+            ]
+        ]);
     }
 }

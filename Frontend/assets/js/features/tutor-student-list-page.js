@@ -56,7 +56,12 @@ async function loadAssignedStudents() {
   }
 
   try {
-    const response = await window.ApiClient.get("allocation", "assignedStudents");
+    const response = await window.ApiClient.get("dashboard", "tutorTutees", {
+      limit: 100,
+      offset: 0,
+      sort_by: "last_interaction",
+      sort_dir: "desc"
+    });
     const rows = Array.isArray(response.data) ? response.data : [];
 
     tutorStudentState.students = rows.map(function (row) {
@@ -67,7 +72,11 @@ async function loadAssignedStudents() {
         email: row.student_email || "N/A",
         image: row.student_profile_photo
           ? resolveAssetUrl(row.student_profile_photo)
-          : getAvatarFromName(row.student_full_name || row.student_user_name || "Student")
+          : getAvatarFromName(row.student_full_name || row.student_user_name || "Student"),
+        lastInteractionAt: row.last_interaction_at || null,
+        unreadMessages: Number(row.unread_messages || 0),
+        documentsUploaded: Number(row.documents_uploaded || 0),
+        riskLevel: row.risk_level || "normal"
       };
     });
 

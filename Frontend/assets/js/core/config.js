@@ -1,7 +1,8 @@
 (function () {
-  const protocol = window.location.protocol === "https:" ? "https:" : "http:";
-  const appOrigin = `${protocol}//localhost`;
-  const projectBase = "/eTutor";
+  const appOrigin = window.location.origin;
+  const pathname = window.location.pathname || "";
+  const frontendIndex = pathname.toLowerCase().indexOf("/frontend/");
+  const projectBase = frontendIndex > 0 ? pathname.slice(0, frontendIndex) : "/eTutor";
   const frontendBase = `${appOrigin}${projectBase}/Frontend`;
   const apiBaseUrl = `${appOrigin}${projectBase}/Backend/api/index.php`;
 

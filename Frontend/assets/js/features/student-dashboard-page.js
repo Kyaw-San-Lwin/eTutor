@@ -26,11 +26,17 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   await Promise.allSettled([
     loadDashboardMetrics(viewContext),
-    loadLastLogin(),
+    loadLastLogin()
+  ]);
+  await Promise.allSettled([
     loadRecentMeetings(),
     loadRecentComments()
   ]);
 });
+
+const studentDashboardState = {
+  data: null
+};
 
 async function loadDashboardMetrics(viewContext) {
   try {
@@ -38,11 +44,13 @@ async function loadDashboardMetrics(viewContext) {
       ? await window.ApiClient.get("dashboard", "userDashboard", { user_id: viewContext.userId })
       : await window.ApiClient.get("dashboard");
     const data = response.data || {};
+    studentDashboardState.data = data;
     const metrics = data.metrics || {};
+    const summary = data.summary || {};
 
-    const scheduledMeetings = Number(metrics.scheduled_meetings || 0);
-    const unreadMessages = Number(metrics.unread_messages || 0);
-    const myDocuments = Number(metrics.my_documents || 0);
+    const scheduledMeetings = Number(summary.scheduled_meetings ?? metrics.scheduled_meetings ?? 0);
+    const unreadMessages = Number(summary.unread_messages ?? metrics.unread_messages ?? 0);
+    const myDocuments = Number(summary.documents_uploaded ?? metrics.my_documents ?? 0);
 
     setText("meetingCount", scheduledMeetings);
     setText(
@@ -62,6 +70,13 @@ async function loadDashboardMetrics(viewContext) {
       "documentSummary",
       myDocuments === 1 ? "1 document uploaded" : `${myDocuments} documents uploaded`
     );
+
+    const chatAvatar = document.getElementById("chatPreviewAvatar");
+    const tutorPhoto = data.personal_tutor?.profile_photo || "";
+    const tutorName = data.personal_tutor?.full_name || "Tutor";
+    if (chatAvatar) {
+      chatAvatar.src = tutorPhoto ? resolveAssetUrl(tutorPhoto) : getAvatarFromName(tutorName);
+    }
   } catch (error) {
     setText("meetingSummary", "Unable to load dashboard metrics.");
     setText("unreadMessageCount", "Unable to load unread message count.");
@@ -87,8 +102,14 @@ async function loadRecentMeetings() {
   }
 
   try {
-    const response = await window.ApiClient.get("meeting");
-    const meetings = Array.isArray(response.data) ? response.data.slice(0, 2) : [];
+    let meetings = [];
+    const fromDashboard = studentDashboardState.data?.upcoming_meetings;
+    if (Array.isArray(fromDashboard)) {
+      meetings = fromDashboard.slice(0, 2);
+    } else {
+      const response = await window.ApiClient.get("meeting");
+      meetings = Array.isArray(response.data) ? response.data.slice(0, 2) : [];
+    }
 
     if (meetings.length === 0) {
       container.innerHTML = '<div class="meeting-card"><div class="meeting-info"><h3>No meetings</h3><p>No upcoming or recorded meetings yet.</p></div></div>';
@@ -142,38 +163,61 @@ async function loadRecentComments() {
   }
 
   try {
-    const response = await window.ApiClient.get("blog_comment");
-    const comments = Array.isArray(response.data) ? response.data.slice(0, 4) : [];
+    const feedback = Array.isArray(studentDashboardState.data?.recent_document_feedback)
+      ? studentDashboardState.data.recent_document_feedback.slice(0, 4)
+      : [];
+    const comments = feedback.length ? feedback : null;
 
-    if (comments.length === 0) {
-      container.innerHTML = '<div class="comment-item"><div class="flex items-center gap-3"><p>No comments available yet.</p></div></div>';
+    if (!comments) {
+      const response = await window.ApiClient.get("blog_comment");
+      const fallback = Array.isArray(response.data) ? response.data.slice(0, 4) : [];
+      renderCommentRows(fallback, false, container);
       return;
     }
 
-    container.innerHTML = comments
-      .map(function (comment) {
-        const displayName = comment.full_name || comment.display_name || comment.user_name || "Unknown user";
-        const avatar = comment.profile_photo
-          ? resolveAssetUrl(comment.profile_photo)
-          : getAvatarFromName(displayName);
-        return `
-          <div class="comment-item">
-            <div class="flex items-center gap-3">
-              <img src="${avatar}" class="w-10 h-10 rounded-full" alt="User avatar">
-              <p>${escapeHtml(displayName)}</p>
-            </div>
-            <div class="flex items-center gap-3 text-gray-500">
-              <i class="bi bi-chat"></i>
-              <div class="w-px h-5 bg-gray-300"></div>
-              <i class="bi bi-three-dots-vertical"></i>
-            </div>
-          </div>
-        `;
-      })
-      .join("");
+    renderCommentRows(comments, true, container);
   } catch (error) {
     container.innerHTML = '<div class="comment-item"><div class="flex items-center gap-3"><p>Unable to load comments right now.</p></div></div>';
   }
+}
+
+function renderCommentRows(comments, isTutorFeedback, container) {
+  if (!container) {
+    return;
+  }
+  if (!comments.length) {
+    container.innerHTML = '<div class="comment-item"><div class="flex items-center gap-3"><p>No comments available yet.</p></div></div>';
+    return;
+  }
+
+  container.innerHTML = comments
+    .map(function (comment) {
+      const displayName = isTutorFeedback
+        ? (comment.tutor_full_name || "Tutor")
+        : (comment.full_name || comment.display_name || comment.user_name || "Unknown user");
+      const avatarPath = isTutorFeedback ? "" : (comment.profile_photo || "");
+      const avatar = avatarPath ? resolveAssetUrl(avatarPath) : getAvatarFromName(displayName);
+      const preview = isTutorFeedback
+        ? (comment.comment || "")
+        : "";
+      return `
+        <div class="comment-item">
+          <div class="flex items-center gap-3">
+            <img src="${avatar}" class="w-10 h-10 rounded-full" alt="User avatar">
+            <div>
+              <p>${escapeHtml(displayName)}</p>
+              ${preview ? `<p class="text-xs text-gray-500">${escapeHtml(preview.slice(0, 60))}${preview.length > 60 ? "..." : ""}</p>` : ""}
+            </div>
+          </div>
+          <div class="flex items-center gap-3 text-gray-500">
+            <i class="bi bi-chat"></i>
+            <div class="w-px h-5 bg-gray-300"></div>
+            <i class="bi bi-three-dots-vertical"></i>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
 }
 
 function setText(id, value) {
