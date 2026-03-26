@@ -291,8 +291,10 @@ async function loadTutorDocumentComments() {
 
 async function uploadStudentDocument() {
   const fileInput = document.getElementById("fileUpload");
+  const fileNameInput = document.getElementById("fileName");
   const uploadButton = document.getElementById("uploadBtn");
   const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+  const preferredName = String(fileNameInput?.value || "").trim();
 
   if (!file) {
     setStatus("Please select a file first.", true);
@@ -305,6 +307,9 @@ async function uploadStudentDocument() {
 
   const formData = new FormData();
   formData.append("file", file);
+  if (preferredName) {
+    formData.append("file_name", preferredName);
+  }
 
   try {
     const response = await window.ApiClient.request({

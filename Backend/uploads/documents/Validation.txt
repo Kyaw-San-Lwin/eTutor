@@ -1,0 +1,174 @@
+Private Sub Label2_Click()
+
+End Sub
+
+
+Private Sub BtnCancel_Click()
+Dim ans As Integer
+ans = MsgBox("Are you Done? Its will auto save!", vbYesNo + vbQuestion, "exit msg")
+
+If ans = vbYes Then
+    ThisWorkbook.Save
+    Unload Me
+Else
+'do nothing
+End If
+End Sub
+
+Private Sub BtnClear_Click()
+
+TextName.Value = ""
+TextCode.Value = ""
+TextAddress.Value = ""
+TextDate.Value = ""
+TextEmail.Value = ""
+TextPPhone.Value = ""
+TextSPhone.Value = ""
+TextPayment.Value = ""
+TextExpdate.Value = ""
+
+End Sub
+
+
+
+Private Sub TextEmail_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
+    If (KeyAscii > 96 And KeyAscii < 123) Or KeyAscii = 64 Or KeyAscii = 46 Then
+        KeyAscii = KeyAscii
+    Else
+        KeyAscii = 0
+        
+    End If
+End Sub
+
+
+Private Sub TextName_Change()
+    On Error Resume Next
+    Me.TextName.Value = StrConv(Me.TextName.Value, vbProperCase)
+End Sub
+
+Private Sub TextName_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
+    If (KeyAscii > 64 And KeyAscii < 91) Or (KeyAscii > 96 And KeyAscii < 123) Or KeyAscii = 32 Or KeyAscii = 46 Then
+        KeyAscii = KeyAscii
+    Else
+        KeyAscii = 0
+    End If
+End Sub
+
+
+Private Sub TextPayment_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
+    If (KeyAscii > 47 And KeyAscii < 58) Or KeyAscii = 32 Then
+        KeyAscii = KeyAscii
+    Else
+        KeyAscii = 0
+    End If
+End Sub
+
+Private Sub TextPPhone_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
+    If (KeyAscii > 47 And KeyAscii < 58) Or KeyAscii = 43 Or KeyAscii = 45 Or KeyAscii = 32 Then
+        KeyAscii = KeyAscii
+    Else
+        KeyAscii = 0
+    End If
+End Sub
+
+
+Private Sub TextSPhone_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
+    If (KeyAscii > 47 And KeyAscii < 58) Or KeyAscii = 43 Or KeyAscii = 45 Or KeyAscii = 32 Then
+        KeyAscii = KeyAscii
+    Else
+        KeyAscii = 0
+    End If
+End Sub
+
+Private Sub Label1_Click()
+
+End Sub
+
+Private Sub Submit_Click()
+If TextName.Value = "" And TextCode.Value = "" And TextAddress.Value = "" And TextDate.Value = "" And TextEmail.Value = "" And TextPPhone.Value = "" And TextPayment.Value = "" Then
+MsgBox "Please Proivide Data in Each fields", vbInformation
+Exit Sub
+End If
+
+If Not Len(TextCode) = 7 Then
+MsgBox "Please Enter Member code Format ABC and 00 in count which length is 7 characters", vbCritical
+Exit Sub
+End If
+
+Dim regex As Object
+Set regex = CreateObject("VBScript.RegExp")
+    
+regex.Pattern = "^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"
+    
+If Not regex.Test(TextEmail) Then
+MsgBox "Email is not in format", vbCritical
+Exit Sub
+End If
+
+If Not Len(TextPPhone) = 16 And IsNumeric(phoneNumber) Then
+MsgBox "Primary Phone number is not in format, please insert clear format in show", vbCritical
+Exit Sub
+End If
+
+If Not Len(TextSPhone) = 16 And IsNumeric(phoneNumber) Then
+MsgBox "Secondary Phone number is not in format, please insert clear format in show", vbCritical
+Exit Sub
+End If
+
+If Not IsDate(TextDate) Then
+MsgBox "Date is not in format", vbCritical
+Exit Sub
+End If
+
+If Not Len(TextPayment) >= 16 And Len(TextPayment) <= 20 Then
+MsgBox "Payment code must have 16 or 20 characters", vbInformation
+Exit Sub
+End If
+
+
+If Not IsDate(TextExpdate) Then
+MsgBox "Expire Date is not in format", vbCritical
+Exit Sub
+End If
+
+Dim Row As Integer
+Dim sheet As Worksheet
+
+Set sheet = Sheets("Sheet2")
+Row = sheet.Cells(sheet.Rows.Count, "A").End(xlUp).Row + 1
+
+sheet.Cells(Row, 2).Value = TextName.Value
+sheet.Cells(Row, 1).Value = TextCode.Value
+sheet.Cells(Row, 3).Value = TextAddress.Value
+sheet.Cells(Row, 4).Value = TextDate.Value
+sheet.Cells(Row, 6).Value = TextEmail.Value
+sheet.Cells(Row, 7).Value = TextPPhone.Value
+sheet.Cells(Row, 8).Value = TextSPhone.Value
+sheet.Cells(Row, 9).Value = TextPayment.Value
+sheet.Cells(Row, 5).Value = TextExpdate.Value
+
+TextName.Value = ""
+TextCode.Value = ""
+TextAddress.Value = ""
+TextDate.Value = ""
+TextEmail.Value = ""
+TextPPhone.Value = ""
+TextSPhone.Value = ""
+TextPayment.Value = ""
+TextExpdate.Value = ""
+End Sub
+
+Private Sub TextBox1_Change()
+
+End Sub
+
+
+
+Merits of Using Macros for an Interactive Form
+
+
+Automation: Macros allow you to automate the data entry process, reducing manual effort and potential errors. Once the macro is set up, users can simply click a button to perform various actions, such as submitting the form or clearing form fields.
+
+Customization: Macros provide flexibility to customize the form's behavior and validation rules based on specific requirements. You can add additional features like data formatting, calculations, or conditional formatting to enhance the form's functionality.
+
+Enhanced User Experience: Macros enable the addition of confirmatory buttons and dynamic responses, improving the user interface and interactivity. Users can receive instant feedback, error messages, or success notifications, making the form more user-friendly.

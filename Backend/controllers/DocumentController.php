@@ -60,7 +60,70 @@ class DocumentController
         return is_array($data) ? $data : null;
     }
 
-    private function resolveUploadedFilePath(string $subDir): string
+    private function detectUploadedMime(string $tmpPath): string
+    {
+        if ($tmpPath === '' || !is_file($tmpPath)) {
+            return '';
+        }
+
+        if (function_exists('mime_content_type')) {
+            $detected = @mime_content_type($tmpPath);
+            if (is_string($detected) && $detected !== '') {
+                return strtolower($detected);
+            }
+        }
+
+        if (class_exists('finfo')) {
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $detected = $finfo->file($tmpPath);
+            if (is_string($detected) && $detected !== '') {
+                return strtolower($detected);
+            }
+        }
+
+        return '';
+    }
+
+    private function classifyDocumentExtension(string $ext): string
+    {
+        $ext = strtolower(trim($ext));
+        if ($ext === 'txt') {
+            return 'text';
+        }
+        if ($ext === 'pdf') {
+            return 'pdf';
+        }
+        if ($ext === 'doc' || $ext === 'docx') {
+            return 'word';
+        }
+        return 'document';
+    }
+
+    private function sanitizeFileBaseName(string $value): string
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return '';
+        }
+
+        $value = preg_replace('/\.[a-z0-9]{1,8}$/i', '', $value) ?? '';
+        $value = preg_replace('/[^a-zA-Z0-9 _.-]/', '', $value) ?? '';
+        $value = preg_replace('/\s+/', ' ', $value) ?? '';
+        $value = trim($value, " .\t\n\r\0\x0B");
+
+        if ($value === '') {
+            return '';
+        }
+
+        if (strlen($value) > 80) {
+            $value = substr($value, 0, 80);
+            $value = rtrim($value, " .");
+        }
+
+        return $value;
+    }
+
+    private function resolveUploadedFilePath(string $subDir, string $preferredFileName = ''): string
     {
         if (!isset($_FILES['file'])) {
             return '';
@@ -82,10 +145,35 @@ class DocumentController
         }
 
         $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-        $allowed = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt', 'jpg', 'jpeg', 'png'];
-        if (!in_array($ext, $allowed, true)) {
-            Response::json(["success" => false, "message" => "Unsupported file type"], 400);
+        $mime = $this->detectUploadedMime($tmpPath);
+
+        $allowedExtToMime = [
+            'txt' => ['text/plain'],
+            'pdf' => ['application/pdf'],
+            'doc' => ['application/msword', 'application/octet-stream'],
+            'docx' => [
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/zip',
+                'application/octet-stream'
+            ]
+        ];
+
+        if (!isset($allowedExtToMime[$ext])) {
+            Response::json([
+                "success" => false,
+                "message" => "Unsupported file type. Allowed: txt, pdf, doc, docx"
+            ], 400);
         }
+
+        $allowedMimes = $allowedExtToMime[$ext];
+        if ($mime !== '' && !in_array($mime, $allowedMimes, true)) {
+            Response::json([
+                "success" => false,
+                "message" => "File content does not match extension"
+            ], 400);
+        }
+
+        $GLOBALS['uploaded_file_kind'] = $this->classifyDocumentExtension($ext);
 
         $root = realpath(__DIR__ . '/..');
         if ($root === false) {
@@ -97,7 +185,20 @@ class DocumentController
             Response::json(["success" => false, "message" => "Failed to initialize upload directory"], 500);
         }
 
-        $safeName = bin2hex(random_bytes(8)) . '_' . time() . '.' . $ext;
+        $customBaseName = $this->sanitizeFileBaseName($preferredFileName);
+        $originalBaseName = $this->sanitizeFileBaseName((string) pathinfo($name, PATHINFO_FILENAME));
+        $baseName = $customBaseName !== '' ? $customBaseName : $originalBaseName;
+
+        if ($baseName !== '') {
+            $safeName = $baseName . '.' . $ext;
+            $counter = 1;
+            while (file_exists($targetDir . DIRECTORY_SEPARATOR . $safeName) && $counter <= 9999) {
+                $safeName = $baseName . '_' . $counter . '.' . $ext;
+                $counter++;
+            }
+        } else {
+            $safeName = bin2hex(random_bytes(8)) . '_' . time() . '.' . $ext;
+        }
         $targetPath = $targetDir . DIRECTORY_SEPARATOR . $safeName;
         if (!move_uploaded_file($tmpPath, $targetPath)) {
             Response::json(["success" => false, "message" => "Failed to store uploaded file"], 500);
@@ -475,7 +576,8 @@ class DocumentController
             return;
         }
 
-        $filePath = $this->resolveUploadedFilePath('documents');
+        $preferredFileName = trim((string) ($data['file_name'] ?? $data['filename'] ?? ''));
+        $filePath = $this->resolveUploadedFilePath('documents', $preferredFileName);
         if ($filePath === '') {
             $filePath = trim((string) ($data['file_path'] ?? ''));
         }
@@ -501,7 +603,13 @@ class DocumentController
 
         $this->safeLogActivity("Document Create", "Created document for student ID: " . $studentId);
 
-        Response::json(["success" => true, "message" => "Document created"], 201);
+        Response::json([
+            "success" => true,
+            "message" => "Document created",
+            "data" => [
+                "file_type" => $GLOBALS['uploaded_file_kind'] ?? null
+            ]
+        ], 201);
     }
 
     public function update()
