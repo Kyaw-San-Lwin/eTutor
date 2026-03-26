@@ -177,6 +177,21 @@ textarea{
     background: #c0392b;
 }
 
+.comment-toggle-btn {
+    margin-top: 10px;
+    background: #0f766e;
+    color: #ffffff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.comment-toggle-btn:hover {
+    background: #115e59;
+}
+
 /* ================= TABLET (1024px) ================= */
 @media (max-width: 1024px) {
 

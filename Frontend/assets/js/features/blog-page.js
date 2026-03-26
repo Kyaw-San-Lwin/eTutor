@@ -29,7 +29,8 @@ let blogState = {
   commentsByPostId: new Map(),
   currentUserId: Number((window.AuthStorage.getUser() || {}).user_id || (window.AuthStorage.getUser() || {}).id || 0),
   page: 1,
-  pageSize: 5
+  pageSize: 5,
+  expandedPostIds: new Set()
 };
 
 function bindLogout() {
@@ -67,6 +68,15 @@ function bindCommentActions() {
   }
 
   posts.addEventListener("click", async function (event) {
+    const toggleButton = event.target.closest("[data-toggle-comments-post-id]");
+    if (toggleButton) {
+      const togglePostId = Number(toggleButton.dataset.toggleCommentsPostId || 0);
+      if (togglePostId > 0) {
+        toggleCommentsForPost(togglePostId);
+      }
+      return;
+    }
+
     const button = event.target.closest("[data-comment-post-id]");
     if (!button) {
       return;
@@ -182,13 +192,15 @@ function renderBlogs() {
 
   postsContainer.innerHTML = pagedBlogs.map(function (blog) {
     const comments = blogState.commentsByPostId.get(Number(blog.blog_id)) || [];
+    const postId = Number(blog.blog_id);
+    const isExpanded = blogState.expandedPostIds.has(postId);
     const commentsHtml = comments.length
       ? comments.map(renderComment).join("")
       : '<div class="comment"><p>No comments yet.</p></div>';
     const canDelete = canManagePosts && Number(blog.user_id || 0) === blogState.currentUserId;
 
     return `
-      <div class="post-card" data-blog-id="${Number(blog.blog_id)}">
+      <div class="post-card" data-blog-id="${postId}">
         <div class="post-header">
           <img src="${getDefaultAvatar(blog.full_name || blog.display_name || blog.user_name || "User")}" alt="Author avatar">
           <div>
@@ -206,14 +218,20 @@ function renderBlogs() {
         </button>
         ` : ``}
 
-        <div class="comment-list">
+        <div class="mt-3">
+          <button type="button" class="comment-toggle-btn" data-toggle-comments-post-id="${postId}">
+            ${isExpanded ? "Hide Comments" : `View Comments (${comments.length})`}
+          </button>
+        </div>
+
+        <div class="comment-list" id="comment-list-${postId}" style="${isExpanded ? "" : "display:none;"}">
           ${commentsHtml}
         </div>
 
         ${canManagePosts ? `
         <div class="comment-box">
-          <input id="comment-${Number(blog.blog_id)}" placeholder="Write a comment...">
-          <button type="button" data-comment-post-id="${Number(blog.blog_id)}">Send</button>
+          <input id="comment-${postId}" placeholder="Write a comment...">
+          <button type="button" data-comment-post-id="${postId}">Send</button>
         </div>
         ` : ``}
       </div>
@@ -361,6 +379,7 @@ async function createComment(postId, button) {
   try {
     await window.ApiClient.post("blog_comment", "", { post_id: postId, comment });
     input.value = "";
+    blogState.expandedPostIds.add(Number(postId));
     blogState.page = 1;
     setStatus("Comment added successfully.", false);
     await loadBlogs();
@@ -438,6 +457,20 @@ function getDefaultAvatar(name) {
     .join("") || "U";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="100%" height="100%" fill="#1d4ed8"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="#ffffff">${initials}</text></svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function toggleCommentsForPost(postId) {
+  const normalizedPostId = Number(postId || 0);
+  if (normalizedPostId <= 0) {
+    return;
+  }
+
+  if (blogState.expandedPostIds.has(normalizedPostId)) {
+    blogState.expandedPostIds.delete(normalizedPostId);
+  } else {
+    blogState.expandedPostIds.add(normalizedPostId);
+  }
+  renderBlogs();
 }
 
 function formatDate(value) {
