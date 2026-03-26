@@ -27,7 +27,9 @@ const documentState = {
   selectedStudentId: 0,
   selectedDocumentId: 0,
   commentsByDocumentId: new Map(),
-  previewGuardActive: false
+  previewGuardActive: false,
+  page: 1,
+  pageSize: 8
 };
 
 async function initializePage(role) {
@@ -35,7 +37,10 @@ async function initializePage(role) {
 
   if (role === "student") {
     bindStudentUpload();
-    await loadStudentDocuments();
+    await Promise.allSettled([
+      loadStudentDocuments(),
+      loadStudentDocumentComments()
+    ]);
     return;
   }
 
@@ -64,10 +69,16 @@ function bindSearchAndFilter() {
   const filterSelect = document.getElementById("filter");
 
   if (searchInput) {
-    searchInput.addEventListener("input", renderDocuments);
+    searchInput.addEventListener("input", function () {
+      documentState.page = 1;
+      renderDocuments();
+    });
   }
   if (filterSelect) {
-    filterSelect.addEventListener("change", renderDocuments);
+    filterSelect.addEventListener("change", function () {
+      documentState.page = 1;
+      renderDocuments();
+    });
   }
 }
 
@@ -87,12 +98,6 @@ function bindTableActions() {
       if (documentId > 0) {
         documentState.viewedDocumentIds.add(documentId);
         renderDocuments();
-        if (documentState.role === "tutor") {
-          const doc = findDocumentById(documentId);
-          if (doc) {
-            openStudentPanel(Number(doc.student_id || 0), documentId);
-          }
-        }
         if (readOnlyPreview) {
           if (!previewable) {
             setStatus("This file type is download-only in browser preview mode.", true);
@@ -110,13 +115,13 @@ function bindTableActions() {
       return;
     }
 
-    const studentButton = event.target.closest("[data-student-id]");
-    if (!studentButton) {
+    const commentButton = event.target.closest("[data-comment-document-id]");
+    if (!commentButton) {
       return;
     }
 
-    const studentId = Number(studentButton.dataset.studentId || 0);
-    const documentId = Number(studentButton.dataset.documentId || 0);
+    const studentId = Number(commentButton.dataset.commentStudentId || 0);
+    const documentId = Number(commentButton.dataset.commentDocumentId || 0);
     if (studentId <= 0) {
       return;
     }
@@ -194,7 +199,8 @@ function bindTutorProfilePanel() {
   document.addEventListener("click", function (event) {
     const withinPanel = panel.contains(event.target);
     const isStudentCell = Boolean(event.target.closest("[data-student-id]"));
-    if (!withinPanel && !isStudentCell) {
+    const isCommentAction = Boolean(event.target.closest("[data-comment-document-id]"));
+    if (!withinPanel && !isStudentCell && !isCommentAction) {
       panel.classList.remove("show");
     }
   });
@@ -217,19 +223,46 @@ async function loadLastLogin() {
 async function loadStudentDocuments() {
   const table = document.getElementById("fileTable");
   if (table) {
-    table.innerHTML = `<tr><td colspan="4">Loading documents...</td></tr>`;
+    table.innerHTML = `<tr><td colspan="5">Loading documents...</td></tr>`;
   }
 
   try {
     const response = await window.ApiClient.get("document", "", { limit: 100, offset: 0 });
     documentState.documents = Array.isArray(response.data) ? response.data : [];
+    documentState.page = 1;
     renderDocuments();
     setStatus("", false);
   } catch (error) {
     if (table) {
-      table.innerHTML = `<tr><td colspan="4">${escapeHtml(error.message || "Unable to load documents.")}</td></tr>`;
+      table.innerHTML = `<tr><td colspan="5">${escapeHtml(error.message || "Unable to load documents.")}</td></tr>`;
     }
     setStatus(error.message || "Unable to load documents.", true);
+  }
+}
+
+async function loadStudentDocumentComments() {
+  try {
+    const response = await window.ApiClient.get("document_comment");
+    const comments = Array.isArray(response.data) ? response.data : [];
+    const map = new Map();
+    comments.forEach(function (row) {
+      const documentId = parseInt(String(row.document_id ?? ""), 10);
+      if (Number.isFinite(documentId) && documentId > 0) {
+        map.set(documentId, Object.assign({}, row, {
+          document_id: documentId,
+          comment: String(row.comment || "")
+        }));
+      }
+    });
+    documentState.commentsByDocumentId = map;
+    if (documentState.role === "student") {
+      renderDocuments();
+    }
+  } catch (error) {
+    if (documentState.role === "student") {
+      documentState.commentsByDocumentId = new Map();
+      renderDocuments();
+    }
   }
 }
 
@@ -258,16 +291,17 @@ async function loadAssignedStudents() {
 async function loadTutorDocuments() {
   const table = document.getElementById("fileTable");
   if (table) {
-    table.innerHTML = `<tr><td colspan="5">Loading documents...</td></tr>`;
+    table.innerHTML = `<tr><td colspan="6">Loading documents...</td></tr>`;
   }
 
   try {
     const response = await window.ApiClient.get("document", "", { limit: 100, offset: 0 });
     documentState.documents = Array.isArray(response.data) ? response.data : [];
+    documentState.page = 1;
     renderDocuments();
   } catch (error) {
     if (table) {
-      table.innerHTML = `<tr><td colspan="5">${escapeHtml(error.message || "Unable to load documents.")}</td></tr>`;
+      table.innerHTML = `<tr><td colspan="6">${escapeHtml(error.message || "Unable to load documents.")}</td></tr>`;
     }
   }
 }
@@ -278,14 +312,23 @@ async function loadTutorDocumentComments() {
     const comments = Array.isArray(response.data) ? response.data : [];
     const map = new Map();
     comments.forEach(function (row) {
-      const documentId = Number(row.document_id || 0);
-      if (documentId > 0) {
-        map.set(documentId, row);
+      const documentId = parseInt(String(row.document_id ?? ""), 10);
+      if (Number.isFinite(documentId) && documentId > 0) {
+        map.set(documentId, Object.assign({}, row, {
+          document_id: documentId,
+          comment: String(row.comment || "")
+        }));
       }
     });
     documentState.commentsByDocumentId = map;
+    if (documentState.role === "tutor") {
+      renderDocuments();
+    }
   } catch (error) {
     documentState.commentsByDocumentId = new Map();
+    if (documentState.role === "tutor") {
+      renderDocuments();
+    }
   }
 }
 
@@ -369,17 +412,80 @@ function renderDocuments() {
   });
 
   if (!filteredDocuments.length) {
-    const colspan = documentState.role === "tutor" ? 5 : 4;
+    const colspan = documentState.role === "tutor" ? 6 : 5;
     table.innerHTML = `<tr><td colspan="${colspan}">No documents found.</td></tr>`;
+    renderDocumentPagination(0);
     return;
   }
+
+  const totalPages = Math.max(1, Math.ceil(filteredDocuments.length / documentState.pageSize));
+  if (documentState.page > totalPages) {
+    documentState.page = totalPages;
+  }
+  const start = (documentState.page - 1) * documentState.pageSize;
+  const pageRows = filteredDocuments.slice(start, start + documentState.pageSize);
 
   if (documentState.role === "tutor") {
-    table.innerHTML = filteredDocuments.map(renderTutorDocumentRow).join("");
+    table.innerHTML = pageRows.map(renderTutorDocumentRow).join("");
+    renderDocumentPagination(totalPages);
     return;
   }
 
-  table.innerHTML = filteredDocuments.map(renderStudentDocumentRow).join("");
+  table.innerHTML = pageRows.map(renderStudentDocumentRow).join("");
+  renderDocumentPagination(totalPages);
+}
+
+function renderDocumentPagination(totalPages) {
+  const table = document.getElementById("fileTable");
+  if (!table) {
+    return;
+  }
+  const wrapper = table.closest("table");
+  if (!wrapper) {
+    return;
+  }
+  const hostId = "documentPagination";
+  let host = document.getElementById(hostId);
+  if (!host) {
+    host = document.createElement("div");
+    host.id = hostId;
+    host.className = "flex items-center justify-end gap-3 mt-3";
+    wrapper.insertAdjacentElement("afterend", host);
+  }
+
+  if (totalPages <= 1) {
+    host.innerHTML = "";
+    return;
+  }
+
+  host.innerHTML = `
+    <button type="button" id="documentPrevPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Prev</button>
+    <span class="text-sm text-gray-600">Page ${documentState.page} / ${totalPages}</span>
+    <button type="button" id="documentNextPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Next</button>
+  `;
+
+  const prev = document.getElementById("documentPrevPageBtn");
+  const next = document.getElementById("documentNextPageBtn");
+  if (prev) {
+    prev.disabled = documentState.page <= 1;
+    prev.addEventListener("click", function () {
+      if (documentState.page <= 1) {
+        return;
+      }
+      documentState.page -= 1;
+      renderDocuments();
+    });
+  }
+  if (next) {
+    next.disabled = documentState.page >= totalPages;
+    next.addEventListener("click", function () {
+      if (documentState.page >= totalPages) {
+        return;
+      }
+      documentState.page += 1;
+      renderDocuments();
+    });
+  }
 }
 
 function renderStudentDocumentRow(doc) {
@@ -391,6 +497,20 @@ function renderStudentDocumentRow(doc) {
   const previewable = isPreviewableExtension(extension);
   const badgeClass = previewable ? "preview-badge preview-ok" : "preview-badge preview-download-only";
   const badgeText = previewable ? "Preview" : "Download only";
+  const existingComment = documentState.commentsByDocumentId.get(documentId);
+  const commentText = String(existingComment?.comment || "").trim();
+  const commentCell = commentText
+    ? `<span title="${escapeHtml(commentText)}" style="font-size:12px;color:#374151;display:inline-block;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+         ${escapeHtml(commentText)}
+       </span>`
+    : `<span style="font-size:12px;color:#9ca3af;">No comment</span>`;
+  const viewCell = previewable
+    ? `<a href="${escapeHtml(fileUrl)}" target="_blank" rel="noopener" data-view-document-id="${documentId}" data-readonly-preview="1" data-previewable="1" aria-label="View document">
+         <i class="bi ${viewed ? 'bi-eye-fill' : 'bi-eye'}"></i>
+       </a>`
+    : `<span title="Preview not supported for this file type. Use Download." style="opacity:.45;cursor:not-allowed;">
+         <i class="bi bi-eye-slash"></i>
+       </span>`;
 
   return `
     <tr>
@@ -402,11 +522,8 @@ function renderStudentDocumentRow(doc) {
       </td>
       <td>${escapeHtml(formatDate(doc.uploaded_at))}</td>
       <td><a href="${escapeHtml(fileUrl)}" target="_blank" rel="noopener" download="${escapeHtml(fileName)}" class="download-btn">Download</a></td>
-      <td>
-        <a href="${escapeHtml(fileUrl)}" target="_blank" rel="noopener" data-view-document-id="${documentId}" data-readonly-preview="1" data-previewable="${previewable ? '1' : '0'}" aria-label="View document">
-          <i class="bi ${viewed ? 'bi-eye-fill' : 'bi-eye'}"></i>
-        </a>
-      </td>
+      <td>${viewCell}</td>
+      <td>${commentCell}</td>
     </tr>
   `;
 }
@@ -422,27 +539,34 @@ function renderTutorDocumentRow(doc) {
   const previewable = isPreviewableExtension(extension);
   const badgeClass = previewable ? "preview-badge preview-ok" : "preview-badge preview-download-only";
   const badgeText = previewable ? "Preview" : "Download only";
+  const existingComment = documentState.commentsByDocumentId.get(documentId);
+  const hasComment = Boolean(existingComment && String(existingComment.comment || "").trim() !== "");
+  const viewCell = previewable
+    ? `<a href="${escapeHtml(fileUrl)}" target="_blank" rel="noopener" data-view-document-id="${documentId}" data-readonly-preview="1" data-previewable="1" aria-label="View document">
+         <i class="bi ${viewed ? 'bi-eye-fill' : 'bi-eye'}"></i>
+       </a>`
+    : `<span title="Preview not supported for this file type. Use Download." style="opacity:.45;cursor:not-allowed;">
+         <i class="bi bi-eye-slash"></i>
+       </span>`;
+  const commentCell = hasComment
+    ? `<span title="${escapeHtml(existingComment.comment || "")}" style="font-size:12px;color:#374151;display:inline-block;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+         ${escapeHtml(existingComment.comment || "")}
+       </span>`
+    : `<button type="button" class="download-btn" data-comment-student-id="${studentId}" data-comment-document-id="${documentId}" style="padding:6px 10px;">Comment</button>`;
 
   return `
     <tr>
       <td>
-        <button type="button" class="student-name" data-student-id="${studentId}" data-document-id="${documentId}">
-          ${escapeHtml(studentName)}
-        </button>
+        <span>${escapeHtml(studentName)}</span>
       </td>
       <td>
-        <a href="${escapeHtml(fileUrl)}" target="_blank" rel="noopener" class="file-name" data-view-document-id="${documentId}">
-          ${escapeHtml(fileName)}
-        </a>
+        <span class="file-name">${escapeHtml(fileName)}</span>
         <span class="${badgeClass}" style="margin-left:8px;font-size:11px;padding:2px 8px;border-radius:999px;">${badgeText}</span>
       </td>
       <td>${escapeHtml(formatDate(doc.uploaded_at))}</td>
       <td><a href="${escapeHtml(fileUrl)}" target="_blank" rel="noopener" download="${escapeHtml(fileName)}" class="download-btn">Download</a></td>
-      <td>
-        <a href="${escapeHtml(fileUrl)}" target="_blank" rel="noopener" data-view-document-id="${documentId}" data-readonly-preview="1" data-previewable="${previewable ? '1' : '0'}" aria-label="View document">
-          <i class="bi ${viewed ? 'bi-eye-fill' : 'bi-eye'}"></i>
-        </a>
-      </td>
+      <td>${viewCell}</td>
+      <td>${commentCell}</td>
     </tr>
   `;
 }
@@ -807,6 +931,11 @@ async function submitTutorComment() {
       comment: comment
     });
     setStatus("Comment sent.", false);
+    documentState.commentsByDocumentId.set(documentId, {
+      document_id: documentId,
+      comment: comment
+    });
+    renderDocuments();
     await loadTutorDocumentComments();
 
     if (commentInput) {

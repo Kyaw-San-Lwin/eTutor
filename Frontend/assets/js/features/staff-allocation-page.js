@@ -18,7 +18,9 @@ const allocationState = {
   tutors: [],
   activeByStudentId: new Map(),
   selectedStudentId: 0,
-  selectedStudentIds: []
+  selectedStudentIds: [],
+  page: 1,
+  pageSize: 10
 };
 const MAX_BULK_SELECTION = 10;
 
@@ -54,10 +56,16 @@ function bindAllocationActions() {
   const selectAll = document.getElementById("selectAllStudents");
 
   if (searchInput) {
-    searchInput.addEventListener("input", renderStudents);
+    searchInput.addEventListener("input", function () {
+      allocationState.page = 1;
+      renderStudents();
+    });
   }
   if (filterSelect) {
-    filterSelect.addEventListener("change", renderStudents);
+    filterSelect.addEventListener("change", function () {
+      allocationState.page = 1;
+      renderStudents();
+    });
   }
 
   if (cancelBtn) {
@@ -186,6 +194,7 @@ async function loadAllocationData() {
       });
 
     populateTutorSelect();
+    allocationState.page = 1;
     renderStudents();
     updateBulkButtonVisibility();
     syncSelectAllCheckbox();
@@ -210,12 +219,20 @@ function renderStudents() {
 
   if (!filtered.length) {
     table.innerHTML = '<tr><td colspan="5">No unallocated students found.</td></tr>';
+    renderAllocationPagination(0);
     updateBulkButtonVisibility();
     syncSelectAllCheckbox();
     return;
   }
 
-  table.innerHTML = filtered.map(function (student, index) {
+  const totalPages = Math.max(1, Math.ceil(filtered.length / allocationState.pageSize));
+  if (allocationState.page > totalPages) {
+    allocationState.page = totalPages;
+  }
+  const start = (allocationState.page - 1) * allocationState.pageSize;
+  const pageRows = filtered.slice(start, start + allocationState.pageSize);
+
+  table.innerHTML = pageRows.map(function (student, index) {
     const studentId = Number(student.student_id || 0);
     const isChecked = allocationState.selectedStudentIds.includes(studentId);
     const activeTutorId = allocationState.activeByStudentId.get(studentId) || 0;
@@ -243,9 +260,60 @@ function renderStudents() {
       </tr>
     `;
   }).join("");
+  renderAllocationPagination(totalPages);
 
   updateBulkButtonVisibility();
   syncSelectAllCheckbox();
+}
+
+function renderAllocationPagination(totalPages) {
+  const table = document.getElementById("studentTable");
+  if (!table) {
+    return;
+  }
+  const wrapper = table.closest(".table-container") || table.closest("table");
+  if (!wrapper) {
+    return;
+  }
+  const hostId = "allocationPagination";
+  let host = document.getElementById(hostId);
+  if (!host) {
+    host = document.createElement("div");
+    host.id = hostId;
+    host.className = "flex items-center justify-end gap-3 mt-3";
+    wrapper.insertAdjacentElement("afterend", host);
+  }
+  if (totalPages <= 1) {
+    host.innerHTML = "";
+    return;
+  }
+  host.innerHTML = `
+    <button type="button" id="allocationPrevPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Prev</button>
+    <span class="text-sm text-gray-600">Page ${allocationState.page} / ${totalPages}</span>
+    <button type="button" id="allocationNextPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Next</button>
+  `;
+  const prev = document.getElementById("allocationPrevPageBtn");
+  const next = document.getElementById("allocationNextPageBtn");
+  if (prev) {
+    prev.disabled = allocationState.page <= 1;
+    prev.addEventListener("click", function () {
+      if (allocationState.page <= 1) {
+        return;
+      }
+      allocationState.page -= 1;
+      renderStudents();
+    });
+  }
+  if (next) {
+    next.disabled = allocationState.page >= totalPages;
+    next.addEventListener("click", function () {
+      if (allocationState.page >= totalPages) {
+        return;
+      }
+      allocationState.page += 1;
+      renderStudents();
+    });
+  }
 }
 
 function getVisibleStudents() {

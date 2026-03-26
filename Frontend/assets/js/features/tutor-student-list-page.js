@@ -12,7 +12,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 });
 
 const tutorStudentState = {
-  students: []
+  students: [],
+  page: 1,
+  pageSize: 10
 };
 
 function bindShell() {
@@ -28,10 +30,16 @@ function bindShell() {
   const filterSelect = document.getElementById("filterProgram");
 
   if (searchInput) {
-    searchInput.addEventListener("input", renderStudents);
+    searchInput.addEventListener("input", function () {
+      tutorStudentState.page = 1;
+      renderStudents();
+    });
   }
   if (filterSelect) {
-    filterSelect.addEventListener("change", renderStudents);
+    filterSelect.addEventListener("change", function () {
+      tutorStudentState.page = 1;
+      renderStudents();
+    });
   }
 }
 
@@ -79,6 +87,7 @@ async function loadAssignedStudents() {
         riskLevel: row.risk_level || "normal"
       };
     });
+    tutorStudentState.page = 1;
 
     populateProgramFilter();
     renderStudents();
@@ -144,10 +153,18 @@ function renderStudents() {
 
   if (!filtered.length) {
     table.innerHTML = '<tr><td colspan="4">No assigned students found.</td></tr>';
+    renderTutorStudentPagination(0);
     return;
   }
 
-  table.innerHTML = filtered.map(function (student) {
+  const totalPages = Math.max(1, Math.ceil(filtered.length / tutorStudentState.pageSize));
+  if (tutorStudentState.page > totalPages) {
+    tutorStudentState.page = totalPages;
+  }
+  const start = (tutorStudentState.page - 1) * tutorStudentState.pageSize;
+  const pageRows = filtered.slice(start, start + tutorStudentState.pageSize);
+
+  table.innerHTML = pageRows.map(function (student) {
     return `
       <tr>
         <td class="student-name">
@@ -160,6 +177,57 @@ function renderStudents() {
       </tr>
     `;
   }).join("");
+  renderTutorStudentPagination(totalPages);
+}
+
+function renderTutorStudentPagination(totalPages) {
+  const table = document.getElementById("studentTable");
+  if (!table) {
+    return;
+  }
+  const wrapper = table.closest(".table-container") || table.closest("table");
+  if (!wrapper) {
+    return;
+  }
+  const hostId = "tutorStudentPagination";
+  let host = document.getElementById(hostId);
+  if (!host) {
+    host = document.createElement("div");
+    host.id = hostId;
+    host.className = "flex items-center justify-end gap-3 mt-3";
+    wrapper.insertAdjacentElement("afterend", host);
+  }
+  if (totalPages <= 1) {
+    host.innerHTML = "";
+    return;
+  }
+  host.innerHTML = `
+    <button type="button" id="tutorStudentPrevPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Prev</button>
+    <span class="text-sm text-gray-600">Page ${tutorStudentState.page} / ${totalPages}</span>
+    <button type="button" id="tutorStudentNextPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Next</button>
+  `;
+  const prev = document.getElementById("tutorStudentPrevPageBtn");
+  const next = document.getElementById("tutorStudentNextPageBtn");
+  if (prev) {
+    prev.disabled = tutorStudentState.page <= 1;
+    prev.addEventListener("click", function () {
+      if (tutorStudentState.page <= 1) {
+        return;
+      }
+      tutorStudentState.page -= 1;
+      renderStudents();
+    });
+  }
+  if (next) {
+    next.disabled = tutorStudentState.page >= totalPages;
+    next.addEventListener("click", function () {
+      if (tutorStudentState.page >= totalPages) {
+        return;
+      }
+      tutorStudentState.page += 1;
+      renderStudents();
+    });
+  }
 }
 
 function setStatus(message, isError) {

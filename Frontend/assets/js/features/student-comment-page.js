@@ -11,6 +11,13 @@ document.addEventListener("DOMContentLoaded", async function () {
   ]);
 });
 
+const commentState = {
+  comments: [],
+  documentNameMap: new Map(),
+  page: 1,
+  pageSize: 5
+};
+
 function bindLogout() {
   const logoutLink = document.querySelector(".logout");
   if (logoutLink) {
@@ -56,10 +63,28 @@ async function loadDocumentComments() {
       documentNameMap.set(Number(doc.document_id), getFileName(doc.file_path));
     });
 
-    renderComments(comments, documentNameMap);
+    commentState.comments = comments;
+    commentState.documentNameMap = documentNameMap;
+    commentState.page = 1;
+    renderCommentPage();
   } catch (error) {
     container.innerHTML = `<div class="meeting-card"><p class="message-text">${escapeHtml(error.message || "Unable to load comments.")}</p></div>`;
   }
+}
+
+function renderCommentPage() {
+  const total = commentState.comments.length;
+  const totalPages = Math.max(1, Math.ceil(total / commentState.pageSize));
+  if (commentState.page > totalPages) {
+    commentState.page = totalPages;
+  }
+
+  const start = (commentState.page - 1) * commentState.pageSize;
+  const end = start + commentState.pageSize;
+  const pageItems = commentState.comments.slice(start, end);
+
+  renderComments(pageItems, commentState.documentNameMap);
+  renderPagination(totalPages, total);
 }
 
 function renderComments(comments, documentNameMap) {
@@ -102,6 +127,62 @@ function renderComments(comments, documentNameMap) {
       </div>
     `;
   }).join("");
+}
+
+function renderPagination(totalPages, totalItems) {
+  const container = document.getElementById("commentList");
+  if (!container) {
+    return;
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.style.display = "flex";
+  wrapper.style.justifyContent = "space-between";
+  wrapper.style.alignItems = "center";
+  wrapper.style.marginTop = "16px";
+  wrapper.style.gap = "12px";
+
+  const info = document.createElement("div");
+  info.className = "message-text";
+  info.textContent = `Page ${commentState.page} / ${Math.max(1, totalPages)} (${totalItems} comments)`;
+
+  const controls = document.createElement("div");
+  controls.style.display = "flex";
+  controls.style.gap = "8px";
+
+  const prev = document.createElement("button");
+  prev.type = "button";
+  prev.textContent = "Prev";
+  prev.className = "tab-btn";
+  prev.disabled = commentState.page <= 1;
+  prev.style.opacity = prev.disabled ? "0.5" : "1";
+  prev.style.cursor = prev.disabled ? "not-allowed" : "pointer";
+  prev.addEventListener("click", function () {
+    if (commentState.page > 1) {
+      commentState.page -= 1;
+      renderCommentPage();
+    }
+  });
+
+  const next = document.createElement("button");
+  next.type = "button";
+  next.textContent = "Next";
+  next.className = "tab-btn";
+  next.disabled = commentState.page >= totalPages;
+  next.style.opacity = next.disabled ? "0.5" : "1";
+  next.style.cursor = next.disabled ? "not-allowed" : "pointer";
+  next.addEventListener("click", function () {
+    if (commentState.page < totalPages) {
+      commentState.page += 1;
+      renderCommentPage();
+    }
+  });
+
+  controls.appendChild(prev);
+  controls.appendChild(next);
+  wrapper.appendChild(info);
+  wrapper.appendChild(controls);
+  container.appendChild(wrapper);
 }
 
 function formatDate(value) {

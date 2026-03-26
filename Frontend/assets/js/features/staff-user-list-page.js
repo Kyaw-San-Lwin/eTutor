@@ -24,7 +24,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 const listState = {
   roleFilter: "",
   users: [],
-  isAdmin: false
+  isAdmin: false,
+  page: 1,
+  pageSize: 10
 };
 
 function bindStaffShell() {
@@ -51,10 +53,16 @@ function bindStaffShell() {
   const searchInput = document.getElementById("searchInput");
   const filterSelect = document.getElementById("filterProgram");
   if (searchInput) {
-    searchInput.addEventListener("input", renderUsers);
+    searchInput.addEventListener("input", function () {
+      listState.page = 1;
+      renderUsers();
+    });
   }
   if (filterSelect) {
-    filterSelect.addEventListener("change", renderUsers);
+    filterSelect.addEventListener("change", function () {
+      listState.page = 1;
+      renderUsers();
+    });
   }
 }
 
@@ -123,6 +131,7 @@ async function loadUsers(roleFilter) {
     listState.users = rows.filter(function (row) {
       return String(row.role_name || "").toLowerCase() === roleFilter;
     });
+    listState.page = 1;
 
     populateFilterOptions();
     renderUsers();
@@ -196,10 +205,18 @@ function renderUsers() {
 
   if (!filteredUsers.length) {
     table.innerHTML = `<tr><td colspan="5">No records found.</td></tr>`;
+    renderUserPagination(0);
     return;
   }
 
-  table.innerHTML = filteredUsers.map(function (user, index) {
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / listState.pageSize));
+  if (listState.page > totalPages) {
+    listState.page = totalPages;
+  }
+  const start = (listState.page - 1) * listState.pageSize;
+  const pageRows = filteredUsers.slice(start, start + listState.pageSize);
+
+  table.innerHTML = pageRows.map(function (user, index) {
     const displayName = user.full_name || user.user_name || "N/A";
     const phone = user.contact_number || "N/A";
     const category = roleFilter === "tutor"
@@ -232,6 +249,7 @@ function renderUsers() {
       </tr>
     `;
   }).join("");
+  renderUserPagination(totalPages);
 
   if (listState.isAdmin) {
     table.querySelectorAll("[data-reset-user-id]").forEach(function (button) {
@@ -239,6 +257,56 @@ function renderUsers() {
         const login = String(button.getAttribute("data-reset-login") || "").trim();
         goToResetPassword(login);
       });
+    });
+  }
+}
+
+function renderUserPagination(totalPages) {
+  const table = document.getElementById("studentTable");
+  if (!table) {
+    return;
+  }
+  const wrapper = table.closest(".table-container") || table.closest("table");
+  if (!wrapper) {
+    return;
+  }
+  const hostId = "staffUserPagination";
+  let host = document.getElementById(hostId);
+  if (!host) {
+    host = document.createElement("div");
+    host.id = hostId;
+    host.className = "flex items-center justify-end gap-3 mt-3";
+    wrapper.insertAdjacentElement("afterend", host);
+  }
+  if (totalPages <= 1) {
+    host.innerHTML = "";
+    return;
+  }
+  host.innerHTML = `
+    <button type="button" id="staffUserPrevPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Prev</button>
+    <span class="text-sm text-gray-600">Page ${listState.page} / ${totalPages}</span>
+    <button type="button" id="staffUserNextPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Next</button>
+  `;
+  const prev = document.getElementById("staffUserPrevPageBtn");
+  const next = document.getElementById("staffUserNextPageBtn");
+  if (prev) {
+    prev.disabled = listState.page <= 1;
+    prev.addEventListener("click", function () {
+      if (listState.page <= 1) {
+        return;
+      }
+      listState.page -= 1;
+      renderUsers();
+    });
+  }
+  if (next) {
+    next.disabled = listState.page >= totalPages;
+    next.addEventListener("click", function () {
+      if (listState.page >= totalPages) {
+        return;
+      }
+      listState.page += 1;
+      renderUsers();
     });
   }
 }

@@ -18,7 +18,9 @@ const reallocationState = {
   tutors: [],
   activeAllocations: [],
   selectedStudentId: 0,
-  selectedStudentIds: []
+  selectedStudentIds: [],
+  page: 1,
+  pageSize: 10
 };
 const MAX_BULK_SELECTION = 10;
 
@@ -54,10 +56,16 @@ function bindReallocationActions() {
   const modal = document.getElementById("reassignModal");
 
   if (searchInput) {
-    searchInput.addEventListener("input", renderReallocationTable);
+    searchInput.addEventListener("input", function () {
+      reallocationState.page = 1;
+      renderReallocationTable();
+    });
   }
   if (filterSelect) {
-    filterSelect.addEventListener("change", renderReallocationTable);
+    filterSelect.addEventListener("change", function () {
+      reallocationState.page = 1;
+      renderReallocationTable();
+    });
   }
   if (openBulkBtn) {
     openBulkBtn.addEventListener("click", function () {
@@ -214,6 +222,7 @@ async function loadReallocationData() {
     });
 
     populateBulkTutorSelect();
+    reallocationState.page = 1;
     renderReallocationTable();
     updateBulkButtonVisibility();
     syncSelectAllCheckbox();
@@ -235,12 +244,20 @@ function renderReallocationTable() {
 
   if (!rows.length) {
     table.innerHTML = '<tr><td colspan="6">No active allocations found.</td></tr>';
+    renderReallocationPagination(0);
     updateBulkButtonVisibility();
     syncSelectAllCheckbox();
     return;
   }
 
-  table.innerHTML = rows.map(function (allocation, index) {
+  const totalPages = Math.max(1, Math.ceil(rows.length / reallocationState.pageSize));
+  if (reallocationState.page > totalPages) {
+    reallocationState.page = totalPages;
+  }
+  const start = (reallocationState.page - 1) * reallocationState.pageSize;
+  const pageRows = rows.slice(start, start + reallocationState.pageSize);
+
+  table.innerHTML = pageRows.map(function (allocation, index) {
     const studentId = Number(allocation.student_id || 0);
     const currentTutorId = Number(allocation.tutor_id || 0);
     const student = getStudentByStudentId(studentId);
@@ -275,9 +292,60 @@ function renderReallocationTable() {
       </tr>
     `;
   }).join("");
+  renderReallocationPagination(totalPages);
 
   updateBulkButtonVisibility();
   syncSelectAllCheckbox();
+}
+
+function renderReallocationPagination(totalPages) {
+  const table = document.getElementById("reallocationTable");
+  if (!table) {
+    return;
+  }
+  const wrapper = table.closest(".table-container") || table.closest("table");
+  if (!wrapper) {
+    return;
+  }
+  const hostId = "reallocationPagination";
+  let host = document.getElementById(hostId);
+  if (!host) {
+    host = document.createElement("div");
+    host.id = hostId;
+    host.className = "flex items-center justify-end gap-3 mt-3";
+    wrapper.insertAdjacentElement("afterend", host);
+  }
+  if (totalPages <= 1) {
+    host.innerHTML = "";
+    return;
+  }
+  host.innerHTML = `
+    <button type="button" id="reallocationPrevPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Prev</button>
+    <span class="text-sm text-gray-600">Page ${reallocationState.page} / ${totalPages}</span>
+    <button type="button" id="reallocationNextPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Next</button>
+  `;
+  const prev = document.getElementById("reallocationPrevPageBtn");
+  const next = document.getElementById("reallocationNextPageBtn");
+  if (prev) {
+    prev.disabled = reallocationState.page <= 1;
+    prev.addEventListener("click", function () {
+      if (reallocationState.page <= 1) {
+        return;
+      }
+      reallocationState.page -= 1;
+      renderReallocationTable();
+    });
+  }
+  if (next) {
+    next.disabled = reallocationState.page >= totalPages;
+    next.addEventListener("click", function () {
+      if (reallocationState.page >= totalPages) {
+        return;
+      }
+      reallocationState.page += 1;
+      renderReallocationTable();
+    });
+  }
 }
 
 function getVisibleAllocations() {

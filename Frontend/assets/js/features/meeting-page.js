@@ -25,7 +25,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 const meetingState = {
   meetings: [],
   myTutor: null,
-  studentMap: new Map()
+  studentMap: new Map(),
+  page: 1,
+  pageSize: 6
 };
 
 function bindLogout() {
@@ -69,6 +71,7 @@ async function initializeStudentMeetings() {
     meetingState.meetings = meetingsResponse.status === "fulfilled" && Array.isArray(meetingsResponse.value.data)
       ? meetingsResponse.value.data
       : [];
+    meetingState.page = 1;
 
     meetingState.myTutor = tutorResponse.status === "fulfilled"
       ? (tutorResponse.value.data || null)
@@ -171,6 +174,7 @@ async function loadTutorMeetings() {
   try {
     const response = await window.ApiClient.get("meeting");
     meetingState.meetings = Array.isArray(response.data) ? response.data : [];
+    meetingState.page = 1;
     renderTutorMeetings();
   } catch (error) {
     container.innerHTML = `<div class="meeting-card"><p class="message-text">${escapeHtml(error.message || "Unable to load meetings.")}</p></div>`;
@@ -253,10 +257,18 @@ function renderStudentMeetings() {
     return;
   }
 
-  if (!meetingState.meetings.length) {
+  const totalItems = meetingState.meetings.length;
+  if (!totalItems) {
     container.innerHTML = '<div class="meeting-card"><p class="message-text">No meetings available.</p></div>';
+    renderMeetingPagination(0);
     return;
   }
+  const totalPages = Math.max(1, Math.ceil(totalItems / meetingState.pageSize));
+  if (meetingState.page > totalPages) {
+    meetingState.page = totalPages;
+  }
+  const start = (meetingState.page - 1) * meetingState.pageSize;
+  const pagedMeetings = meetingState.meetings.slice(start, start + meetingState.pageSize);
 
   const tutorName = meetingState.myTutor?.tutor_full_name
     || meetingState.myTutor?.tutor_user_name
@@ -266,7 +278,7 @@ function renderStudentMeetings() {
     ? resolveAssetUrl(meetingState.myTutor.tutor_profile_photo)
     : getAvatarFromName(tutorName);
 
-  container.innerHTML = meetingState.meetings.map(function (meeting) {
+  container.innerHTML = pagedMeetings.map(function (meeting) {
     return renderMeetingCard({
       displayName: tutorName,
       displayEmail: tutorEmail,
@@ -274,6 +286,7 @@ function renderStudentMeetings() {
       meeting
     });
   }).join("");
+  renderMeetingPagination(totalPages);
 }
 
 function renderTutorMeetings() {
@@ -282,12 +295,20 @@ function renderTutorMeetings() {
     return;
   }
 
-  if (!meetingState.meetings.length) {
+  const totalItems = meetingState.meetings.length;
+  if (!totalItems) {
     container.innerHTML = '<div class="meeting-card"><p class="message-text">No meetings available.</p></div>';
+    renderMeetingPagination(0);
     return;
   }
+  const totalPages = Math.max(1, Math.ceil(totalItems / meetingState.pageSize));
+  if (meetingState.page > totalPages) {
+    meetingState.page = totalPages;
+  }
+  const start = (meetingState.page - 1) * meetingState.pageSize;
+  const pagedMeetings = meetingState.meetings.slice(start, start + meetingState.pageSize);
 
-  container.innerHTML = meetingState.meetings.map(function (meeting) {
+  container.innerHTML = pagedMeetings.map(function (meeting) {
     const student = meetingState.studentMap.get(Number(meeting.student_id)) || {
       name: `Student ${meeting.student_id}`,
       email: "",
@@ -302,6 +323,69 @@ function renderTutorMeetings() {
       meeting
     });
   }).join("");
+  renderMeetingPagination(totalPages);
+}
+
+function renderMeetingPagination(totalPages) {
+  const anchor = document.getElementById("meetingContainer");
+  if (!anchor) {
+    return;
+  }
+  const hostId = "meetingPagination";
+  let host = document.getElementById(hostId);
+  if (!host) {
+    host = document.createElement("div");
+    host.id = hostId;
+    host.className = "flex items-center justify-end gap-3 mt-4";
+    anchor.insertAdjacentElement("afterend", host);
+  }
+
+  if (totalPages <= 1) {
+    host.innerHTML = "";
+    return;
+  }
+
+  host.innerHTML = `
+    <button type="button" id="meetingPrevPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Prev</button>
+    <span class="text-sm text-gray-600">Page ${meetingState.page} / ${totalPages}</span>
+    <button type="button" id="meetingNextPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Next</button>
+  `;
+
+  const prev = document.getElementById("meetingPrevPageBtn");
+  const next = document.getElementById("meetingNextPageBtn");
+
+  if (prev) {
+    prev.disabled = meetingState.page <= 1;
+    prev.addEventListener("click", function () {
+      if (meetingState.page <= 1) {
+        return;
+      }
+      meetingState.page -= 1;
+      if (documentStateFromMeetingRole() === "student") {
+        renderStudentMeetings();
+      } else {
+        renderTutorMeetings();
+      }
+    });
+  }
+  if (next) {
+    next.disabled = meetingState.page >= totalPages;
+    next.addEventListener("click", function () {
+      if (meetingState.page >= totalPages) {
+        return;
+      }
+      meetingState.page += 1;
+      if (documentStateFromMeetingRole() === "student") {
+        renderStudentMeetings();
+      } else {
+        renderTutorMeetings();
+      }
+    });
+  }
+}
+
+function documentStateFromMeetingRole() {
+  return String(document.body.dataset.meetingRole || "").toLowerCase();
 }
 
 function renderMeetingCard(data) {

@@ -27,7 +27,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 let blogState = {
   blogs: [],
   commentsByPostId: new Map(),
-  currentUserId: Number((window.AuthStorage.getUser() || {}).user_id || (window.AuthStorage.getUser() || {}).id || 0)
+  currentUserId: Number((window.AuthStorage.getUser() || {}).user_id || (window.AuthStorage.getUser() || {}).id || 0),
+  page: 1,
+  pageSize: 5
 };
 
 function bindLogout() {
@@ -146,6 +148,9 @@ async function loadBlogs() {
     const comments = Array.isArray(commentsResponse.data) ? commentsResponse.data : [];
     blogState.blogs = blogs;
     blogState.commentsByPostId = groupCommentsByPostId(comments);
+    if (blogState.page < 1) {
+      blogState.page = 1;
+    }
     renderBlogs();
   } catch (error) {
     postsContainer.innerHTML = `<div class="post-card"><p class="post-text">${escapeHtml(error.message || "Unable to load blogs.")}</p></div>`;
@@ -158,15 +163,24 @@ function renderBlogs() {
     return;
   }
 
-  if (!blogState.blogs.length) {
+  const totalItems = blogState.blogs.length;
+  if (!totalItems) {
     postsContainer.innerHTML = '<div class="post-card"><p class="post-text">No blog posts yet.</p></div>';
+    renderBlogPagination(0);
     return;
   }
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / blogState.pageSize));
+  if (blogState.page > totalPages) {
+    blogState.page = totalPages;
+  }
+  const start = (blogState.page - 1) * blogState.pageSize;
+  const pagedBlogs = blogState.blogs.slice(start, start + blogState.pageSize);
 
   const role = document.body.dataset.blogRole || "";
   const canManagePosts = role === "student" || role === "tutor";
 
-  postsContainer.innerHTML = blogState.blogs.map(function (blog) {
+  postsContainer.innerHTML = pagedBlogs.map(function (blog) {
     const comments = blogState.commentsByPostId.get(Number(blog.blog_id)) || [];
     const commentsHtml = comments.length
       ? comments.map(renderComment).join("")
@@ -205,6 +219,58 @@ function renderBlogs() {
       </div>
     `;
   }).join("");
+
+  renderBlogPagination(totalPages);
+}
+
+function renderBlogPagination(totalPages) {
+  const postsContainer = document.getElementById("posts");
+  if (!postsContainer) {
+    return;
+  }
+
+  const hostId = "blogPagination";
+  let host = document.getElementById(hostId);
+  if (!host) {
+    host = document.createElement("div");
+    host.id = hostId;
+    host.className = "flex items-center justify-end gap-3 mt-4";
+    postsContainer.insertAdjacentElement("afterend", host);
+  }
+
+  if (totalPages <= 1) {
+    host.innerHTML = "";
+    return;
+  }
+
+  host.innerHTML = `
+    <button type="button" id="blogPrevPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Prev</button>
+    <span class="text-sm text-gray-600">Page ${blogState.page} / ${totalPages}</span>
+    <button type="button" id="blogNextPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Next</button>
+  `;
+
+  const prev = document.getElementById("blogPrevPageBtn");
+  const next = document.getElementById("blogNextPageBtn");
+  if (prev) {
+    prev.disabled = blogState.page <= 1;
+    prev.addEventListener("click", function () {
+      if (blogState.page <= 1) {
+        return;
+      }
+      blogState.page -= 1;
+      renderBlogs();
+    });
+  }
+  if (next) {
+    next.disabled = blogState.page >= totalPages;
+    next.addEventListener("click", function () {
+      if (blogState.page >= totalPages) {
+        return;
+      }
+      blogState.page += 1;
+      renderBlogs();
+    });
+  }
 }
 
 function bindDeleteActions() {
@@ -267,6 +333,7 @@ async function createBlogPost() {
   try {
     await window.ApiClient.post("blog", "", { title, content });
     textarea.value = "";
+    blogState.page = 1;
     setStatus("Blog post created successfully.", false);
     await loadBlogs();
   } catch (error) {
@@ -294,6 +361,7 @@ async function createComment(postId, button) {
   try {
     await window.ApiClient.post("blog_comment", "", { post_id: postId, comment });
     input.value = "";
+    blogState.page = 1;
     setStatus("Comment added successfully.", false);
     await loadBlogs();
   } catch (error) {

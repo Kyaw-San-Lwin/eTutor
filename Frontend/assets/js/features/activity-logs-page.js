@@ -16,6 +16,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   bindFilters();
 });
 
+const activityLogState = {
+  total: 0,
+  limit: 20,
+  offset: 0
+};
+
 function bindShell() {
   const logoutLink = document.querySelector(".logout");
   if (logoutLink) {
@@ -83,9 +89,13 @@ async function loadActivityLogs() {
     setText("summaryTotal", data.total ?? 0);
     setText("summaryLimit", data.limit ?? query.limit);
     setText("summaryOffset", data.offset ?? query.offset);
+    activityLogState.total = Number(data.total ?? 0);
+    activityLogState.limit = Number(data.limit ?? query.limit);
+    activityLogState.offset = Number(data.offset ?? query.offset);
 
     if (!items.length) {
       tableBody.innerHTML = '<tr><td colspan="6" class="py-2 text-gray-500">No activity logs found.</td></tr>';
+      renderActivityPagination();
       setStatus("No logs for selected filters.", false);
       return;
     }
@@ -104,9 +114,66 @@ async function loadActivityLogs() {
     }).join("");
 
     setStatus("Activity logs loaded.", false);
+    renderActivityPagination();
   } catch (error) {
     tableBody.innerHTML = '<tr><td colspan="6" class="py-2 text-red-500">Unable to load activity logs.</td></tr>';
     setStatus(error.message || "Unable to load activity logs.", true);
+  }
+}
+
+function renderActivityPagination() {
+  const tableBody = document.getElementById("activityLogRows");
+  if (!tableBody) {
+    return;
+  }
+  const wrapper = tableBody.closest(".table-container") || tableBody.closest("table");
+  if (!wrapper) {
+    return;
+  }
+  const hostId = "activityLogPagination";
+  let host = document.getElementById(hostId);
+  if (!host) {
+    host = document.createElement("div");
+    host.id = hostId;
+    host.className = "flex items-center justify-end gap-3 mt-3";
+    wrapper.insertAdjacentElement("afterend", host);
+  }
+  const totalPages = Math.max(1, Math.ceil(activityLogState.total / Math.max(1, activityLogState.limit)));
+  const currentPage = Math.floor(activityLogState.offset / Math.max(1, activityLogState.limit)) + 1;
+  if (totalPages <= 1) {
+    host.innerHTML = "";
+    return;
+  }
+
+  host.innerHTML = `
+    <button type="button" id="activityLogPrevPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Prev</button>
+    <span class="text-sm text-gray-600">Page ${currentPage} / ${totalPages}</span>
+    <button type="button" id="activityLogNextPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Next</button>
+  `;
+
+  const prev = document.getElementById("activityLogPrevPageBtn");
+  const next = document.getElementById("activityLogNextPageBtn");
+  if (prev) {
+    prev.disabled = currentPage <= 1;
+    prev.addEventListener("click", function () {
+      const newOffset = Math.max(0, activityLogState.offset - activityLogState.limit);
+      const offsetInput = document.getElementById("offsetInput");
+      if (offsetInput) {
+        offsetInput.value = String(newOffset);
+      }
+      loadActivityLogs();
+    });
+  }
+  if (next) {
+    next.disabled = currentPage >= totalPages;
+    next.addEventListener("click", function () {
+      const newOffset = activityLogState.offset + activityLogState.limit;
+      const offsetInput = document.getElementById("offsetInput");
+      if (offsetInput) {
+        offsetInput.value = String(newOffset);
+      }
+      loadActivityLogs();
+    });
   }
 }
 

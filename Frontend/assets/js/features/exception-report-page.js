@@ -16,6 +16,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   await loadExceptions();
 });
 
+const exceptionState = {
+  rows: [],
+  page: 1,
+  pageSize: 10
+};
+
 function bindShell() {
   const logoutLink = document.querySelector(".logout");
   if (logoutLink) {
@@ -129,12 +135,21 @@ function renderExceptionTable(noTutor, inactive28, lowInactive) {
     });
   });
 
+  exceptionState.rows = rows;
   if (!rows.length) {
     tbody.innerHTML = '<tr><td colspan="4" class="text-gray-500">No exception records found.</td></tr>';
+    renderExceptionPagination(0);
     return;
   }
 
-  tbody.innerHTML = rows.map(function (row) {
+  const totalPages = Math.max(1, Math.ceil(rows.length / exceptionState.pageSize));
+  if (exceptionState.page > totalPages) {
+    exceptionState.page = totalPages;
+  }
+  const start = (exceptionState.page - 1) * exceptionState.pageSize;
+  const pageRows = rows.slice(start, start + exceptionState.pageSize);
+
+  tbody.innerHTML = pageRows.map(function (row) {
     const badgeClass = row.severity === "high" ? "high" : (row.severity === "medium" ? "medium" : "low");
     const badgeText = row.severity === "high" ? "High" : (row.severity === "medium" ? "Medium" : "Low");
     return `
@@ -146,6 +161,90 @@ function renderExceptionTable(noTutor, inactive28, lowInactive) {
       </tr>
     `;
   }).join("");
+  renderExceptionPagination(totalPages);
+}
+
+function renderExceptionPagination(totalPages) {
+  const tableBody = document.getElementById("exceptionRows");
+  if (!tableBody) {
+    return;
+  }
+  const wrapper = tableBody.closest(".table-container") || tableBody.closest("table");
+  if (!wrapper) {
+    return;
+  }
+  const hostId = "exceptionPagination";
+  let host = document.getElementById(hostId);
+  if (!host) {
+    host = document.createElement("div");
+    host.id = hostId;
+    host.className = "flex items-center justify-end gap-3 mt-3";
+    wrapper.insertAdjacentElement("afterend", host);
+  }
+  if (totalPages <= 1) {
+    host.innerHTML = "";
+    return;
+  }
+  host.innerHTML = `
+    <button type="button" id="exceptionPrevPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Prev</button>
+    <span class="text-sm text-gray-600">Page ${exceptionState.page} / ${totalPages}</span>
+    <button type="button" id="exceptionNextPageBtn" class="px-3 py-1 rounded border border-gray-300 bg-white text-sm">Next</button>
+  `;
+  const prev = document.getElementById("exceptionPrevPageBtn");
+  const next = document.getElementById("exceptionNextPageBtn");
+  if (prev) {
+    prev.disabled = exceptionState.page <= 1;
+    prev.addEventListener("click", function () {
+      if (exceptionState.page <= 1) {
+        return;
+      }
+      exceptionState.page -= 1;
+      renderExceptionRowsFromState();
+    });
+  }
+  if (next) {
+    next.disabled = exceptionState.page >= totalPages;
+    next.addEventListener("click", function () {
+      if (exceptionState.page >= totalPages) {
+        return;
+      }
+      exceptionState.page += 1;
+      renderExceptionRowsFromState();
+    });
+  }
+}
+
+function renderExceptionRowsFromState() {
+  const rows = exceptionState.rows || [];
+  // Re-render with source rows directly.
+  const tbody = document.getElementById("exceptionRows");
+  if (!tbody) {
+    return;
+  }
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="text-gray-500">No exception records found.</td></tr>';
+    renderExceptionPagination(0);
+    return;
+  }
+  const totalPages = Math.max(1, Math.ceil(rows.length / exceptionState.pageSize));
+  if (exceptionState.page > totalPages) {
+    exceptionState.page = totalPages;
+  }
+  const start = (exceptionState.page - 1) * exceptionState.pageSize;
+  const pageRows = rows.slice(start, start + exceptionState.pageSize);
+  tbody.innerHTML = pageRows.map(function (row) {
+    const badgeClass = row.severity === "high" ? "high" : (row.severity === "medium" ? "medium" : "low");
+    const badgeText = row.severity === "high" ? "High" : (row.severity === "medium" ? "Medium" : "Low");
+    return `
+      <tr>
+        <td>${escapeHtml(row.type)}</td>
+        <td>${row.detail}</td>
+        <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+        <td>${escapeHtml(row.date || "N/A")}</td>
+      </tr>
+    `;
+  }).join("");
+  renderExceptionPagination(totalPages);
 }
 
 function setText(id, value) {
