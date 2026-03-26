@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/activityMiddleware.php';
 require_once __DIR__ . '/../services/PermissionService.php';
+require_once __DIR__ . '/../services/NotificationService.php';
 
 class MeetingRecordingController
 {
@@ -293,6 +294,13 @@ class MeetingRecordingController
                 Response::json(["success" => false, "message" => "Recording already exists for this meeting"], 409);
             }
             Response::json(["success" => false, "message" => "Failed to create meeting recording"], 500);
+        }
+
+        try {
+            $notifier = new NotificationService($this->conn);
+            $notifier->sendMeetingRecordingNotification($mid, $userId);
+        } catch (Throwable $e) {
+            // Non-blocking: recording upload should stay successful even if mail fails.
         }
 
         $this->safeLogActivity($userId, "Meeting Recording Create", "Uploaded recording for meeting ID: " . $mid);

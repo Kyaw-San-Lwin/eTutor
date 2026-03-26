@@ -347,6 +347,7 @@ async function uploadStudentDocument() {
   if (uploadButton) {
     uploadButton.disabled = true;
   }
+  setUploadProgress(0, "Uploading... 0%");
 
   const formData = new FormData();
   formData.append("file", file);
@@ -355,12 +356,11 @@ async function uploadStudentDocument() {
   }
 
   try {
-    const response = await window.ApiClient.request({
-      controller: "document",
-      method: "POST",
-      body: formData
+    const response = await uploadDocumentWithProgress(formData, function (percent) {
+      setUploadProgress(percent, `Uploading... ${percent}%`);
     });
 
+    setUploadProgress(100, "Upload complete");
     setStatus(response.message || "Document uploaded successfully.", false);
     if (fileInput) {
       fileInput.value = "";
@@ -370,10 +370,67 @@ async function uploadStudentDocument() {
   } catch (error) {
     setStatus(error.message || "Unable to upload document.", true);
   } finally {
+    setTimeout(function () {
+      setUploadProgress(0, "");
+    }, 500);
     if (uploadButton) {
       uploadButton.disabled = false;
     }
   }
+}
+
+function uploadDocumentWithProgress(formData, onProgress) {
+  return new Promise(function (resolve, reject) {
+    const xhr = new XMLHttpRequest();
+    const url = `${window.AppConfig.apiBaseUrl}?controller=document`;
+    xhr.open("POST", url, true);
+
+    const token = window.AuthStorage.getAccessToken();
+    if (token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    }
+
+    xhr.upload.addEventListener("progress", function (event) {
+      if (!event.lengthComputable || typeof onProgress !== "function") {
+        return;
+      }
+      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)));
+      onProgress(percent);
+    });
+
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) {
+        return;
+      }
+
+      let payload;
+      try {
+        payload = JSON.parse(xhr.responseText || "{}");
+      } catch (e) {
+        payload = { success: xhr.status >= 200 && xhr.status < 300, message: xhr.responseText || "Unexpected response" };
+      }
+
+      if (xhr.status === 401) {
+        window.AuthStorage.clear();
+        window.location.replace(window.AppConfig.pages.login);
+        reject(new Error(payload.message || "Session expired"));
+        return;
+      }
+
+      if (xhr.status < 200 || xhr.status >= 300 || payload.success === false) {
+        reject(new Error(payload.message || `Upload failed with status ${xhr.status}`));
+        return;
+      }
+
+      resolve(payload);
+    };
+
+    xhr.onerror = function () {
+      reject(new Error("Network error during upload."));
+    };
+
+    xhr.send(formData);
+  });
 }
 
 function renderDocuments() {
@@ -1025,6 +1082,26 @@ function setStatus(message, isError) {
 
   status.textContent = message;
   status.className = `text-sm mt-2 ${isError ? "text-red-500" : "text-green-600"}`;
+}
+
+function setUploadProgress(percent, label) {
+  const wrap = document.getElementById("uploadProgressWrap");
+  const bar = document.getElementById("uploadProgressBar");
+  const text = document.getElementById("uploadProgressText");
+  if (!wrap || !bar || !text) {
+    return;
+  }
+
+  const safePercent = Math.max(0, Math.min(100, Number(percent || 0)));
+  if (label) {
+    wrap.style.display = "block";
+    bar.style.width = `${safePercent}%`;
+    text.textContent = label;
+  } else {
+    wrap.style.display = "none";
+    bar.style.width = "0%";
+    text.textContent = "0%";
+  }
 }
 
 function resolveAssetUrl(path) {

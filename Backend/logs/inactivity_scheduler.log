@@ -1,0 +1,11 @@
+[Fri 03/27/2026  2:34:03.53] run_inactivity_warning days=28 
+{
+    "success": true,
+    "task": "run_inactivity_warning",
+    "summary": {
+        "days": 28,
+        "candidates": 0,
+        "sent": 0,
+        "failed": 0
+    }
+}

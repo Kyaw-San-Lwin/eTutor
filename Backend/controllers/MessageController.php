@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/activityMiddleware.php';
 require_once __DIR__ . '/../services/ValidationService.php';
+require_once __DIR__ . '/../services/NotificationService.php';
 
 class MessageController
 {
@@ -194,6 +195,13 @@ class MessageController
         $stmt->bind_param("iis", $senderId, $receiverId, $message);
         if (!$stmt->execute()) {
             Response::json(["success" => false, "message" => "Failed to send message"], 500);
+        }
+
+        try {
+            $notifier = new NotificationService($this->conn);
+            $notifier->sendMessageNotification($senderId, (int) $receiverId);
+        } catch (Throwable $e) {
+            // Non-blocking: message must still be delivered in-app even if email fails.
         }
 
         $this->safeLogActivity("Message Create", "Sent message to user ID: " . $receiverId);

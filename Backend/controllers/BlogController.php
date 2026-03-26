@@ -122,6 +122,9 @@ class BlogController
         }
 
         $whereSql = count($where) > 0 ? (' WHERE ' . implode(' AND ', $where)) : '';
+        $profilePhotoSelect = $this->hasColumn('users', 'profile_photo')
+            ? "u.profile_photo AS profile_photo"
+            : "NULL AS profile_photo";
 
         $sql = "
             SELECT
@@ -134,6 +137,13 @@ class BlogController
                     NULLIF(sf.full_name, ''),
                     u.user_name
                 ) AS display_name,
+                COALESCE(
+                    NULLIF(s.full_name, ''),
+                    NULLIF(t.full_name, ''),
+                    NULLIF(sf.full_name, ''),
+                    u.user_name
+                ) AS full_name,
+                {$profilePhotoSelect},
                 u.email,
                 p.title,
                 p.content,

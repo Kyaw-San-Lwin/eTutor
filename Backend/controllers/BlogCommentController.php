@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/activityMiddleware.php';
+require_once __DIR__ . '/../services/NotificationService.php';
 
 class BlogCommentController
 {
@@ -201,6 +202,13 @@ class BlogCommentController
         $stmt->bind_param("iis", $pid, $userId, $comment);
         if (!$stmt->execute()) {
             Response::json(["success" => false, "message" => "Failed to create blog comment"], 500);
+        }
+
+        try {
+            $notifier = new NotificationService($this->conn);
+            $notifier->sendBlogCommentNotification($pid, $userId);
+        } catch (Throwable $e) {
+            // Non-blocking: comment creation should not fail on mail transport issues.
         }
 
         $this->safeLogActivity($userId, "Blog Comment Create", "Added comment to blog post ID: " . $pid);

@@ -77,6 +77,12 @@ async function loadDashboardMetrics(viewContext) {
     if (chatAvatar) {
       chatAvatar.src = tutorPhoto ? resolveAssetUrl(tutorPhoto) : getAvatarFromName(tutorName);
     }
+
+    const titleNode = document.getElementById("staffViewTitle");
+    if (titleNode && viewContext.enabled) {
+      const studentName = data.student?.full_name || "Student";
+      titleNode.textContent = `Student Dashboard (Staff View): ${studentName}`;
+    }
   } catch (error) {
     setText("meetingSummary", "Unable to load dashboard metrics.");
     setText("unreadMessageCount", "Unable to load unread message count.");
@@ -195,7 +201,7 @@ function renderCommentRows(comments, isTutorFeedback, container) {
       const displayName = isTutorFeedback
         ? (comment.tutor_full_name || "Tutor")
         : (comment.full_name || comment.display_name || comment.user_name || "Unknown user");
-      const avatarPath = isTutorFeedback ? "" : (comment.profile_photo || "");
+      const avatarPath = isTutorFeedback ? (comment.tutor_profile_photo || "") : (comment.profile_photo || "");
       const avatar = avatarPath ? resolveAssetUrl(avatarPath) : getAvatarFromName(displayName);
       const preview = isTutorFeedback
         ? (comment.comment || "")

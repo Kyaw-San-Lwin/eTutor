@@ -32,12 +32,17 @@ document.addEventListener("DOMContentLoaded", async function () {
   ]);
 });
 
+const tutorDashboardState = {
+  data: null
+};
+
 async function loadDashboardMetrics(viewContext) {
   try {
     const response = viewContext.enabled
       ? await window.ApiClient.get("dashboard", "userDashboard", { user_id: viewContext.userId })
       : await window.ApiClient.get("dashboard");
     const data = response.data || {};
+    tutorDashboardState.data = data;
     const metrics = data.metrics || {};
 
     const scheduledMeetings = Number(metrics.scheduled_meetings || 0);
@@ -62,10 +67,28 @@ async function loadDashboardMetrics(viewContext) {
       "assignedStudentSummary",
       assignedStudents === 1 ? "1 active student assigned" : `${assignedStudents} active students assigned`
     );
+
+    const chatAvatar = document.getElementById("chatPreviewAvatar");
+    const tutorName = data.full_name || data.user_name || (window.AuthStorage.getUser()?.full_name || "Tutor");
+    const tutorPhoto = data.profile_photo || data?.profile?.profile_photo || (window.AuthStorage.getUser()?.profile_photo || "");
+    if (chatAvatar) {
+      chatAvatar.src = tutorPhoto ? resolveAssetUrl(tutorPhoto) : getAvatarFromName(tutorName);
+    }
+
+    const titleNode = document.getElementById("staffViewTitle");
+    if (titleNode && viewContext.enabled) {
+      titleNode.textContent = `Tutor Dashboard (Staff View): ${tutorName}`;
+    }
   } catch (error) {
     setText("meetingSummary", "Unable to load dashboard metrics.");
     setText("unreadMessageCount", "Unable to load unread message count.");
     setText("assignedStudentSummary", "Unable to load assigned students.");
+
+    const chatAvatar = document.getElementById("chatPreviewAvatar");
+    if (chatAvatar) {
+      const fallbackName = window.AuthStorage.getUser()?.full_name || window.AuthStorage.getUser()?.user_name || "Tutor";
+      chatAvatar.src = getAvatarFromName(fallbackName);
+    }
   }
 }
 
@@ -87,8 +110,14 @@ async function loadRecentMeetings() {
   }
 
   try {
-    const response = await window.ApiClient.get("meeting");
-    const meetings = Array.isArray(response.data) ? response.data.slice(0, 2) : [];
+    let meetings = [];
+    const fromDashboard = tutorDashboardState.data?.upcoming_meetings;
+    if (Array.isArray(fromDashboard)) {
+      meetings = fromDashboard.slice(0, 2);
+    } else {
+      const response = await window.ApiClient.get("meeting");
+      meetings = Array.isArray(response.data) ? response.data.slice(0, 2) : [];
+    }
 
     if (meetings.length === 0) {
       container.innerHTML = '<div class="meeting-card"><div class="meeting-info"><h3>No meetings</h3><p>No upcoming or recorded meetings yet.</p></div></div>';
@@ -142,8 +171,14 @@ async function loadRecentComments() {
   }
 
   try {
-    const response = await window.ApiClient.get("blog_comment");
-    const comments = Array.isArray(response.data) ? response.data.slice(0, 4) : [];
+    let comments = [];
+    const fromDashboard = tutorDashboardState.data?.recent_blog_comments;
+    if (Array.isArray(fromDashboard)) {
+      comments = fromDashboard.slice(0, 4);
+    } else {
+      const response = await window.ApiClient.get("blog_comment");
+      comments = Array.isArray(response.data) ? response.data.slice(0, 4) : [];
+    }
 
     if (comments.length === 0) {
       container.innerHTML = '<div class="comment-item"><div class="flex items-center gap-3"><p>No comments available yet.</p></div></div>';

@@ -71,6 +71,35 @@ class ReportController
         return $d && $d->format('Y-m-d') === $date;
     }
 
+    private function normalizeBrowserName(string $raw): string
+    {
+        $ua = strtolower(trim($raw));
+        if ($ua === '') {
+            return 'Unknown';
+        }
+
+        if (strpos($ua, 'edg/') !== false || strpos($ua, 'edge/') !== false) {
+            return 'Edge';
+        }
+        if (strpos($ua, 'opr/') !== false || strpos($ua, 'opera') !== false) {
+            return 'Opera';
+        }
+        if (strpos($ua, 'chrome/') !== false && strpos($ua, 'edg/') === false && strpos($ua, 'opr/') === false) {
+            return 'Chrome';
+        }
+        if (strpos($ua, 'firefox/') !== false) {
+            return 'Firefox';
+        }
+        if (strpos($ua, 'safari/') !== false && strpos($ua, 'chrome/') === false) {
+            return 'Safari';
+        }
+        if (strpos($ua, 'trident/') !== false || strpos($ua, 'msie ') !== false) {
+            return 'Internet Explorer';
+        }
+
+        return 'Other';
+    }
+
     public function list()
     {
         if (!$this->requireAdmin()) {
@@ -617,6 +646,109 @@ class ReportController
         }
 
         $this->safeLogActivity("Report ActiveUsers", "Viewed most active users report");
+        Response::json(["success" => true, "data" => $rows]);
+    }
+
+    public function pageViews()
+    {
+        if (!$this->requireAdmin()) {
+            return;
+        }
+
+        $days = filter_var($_GET['days'] ?? 30, FILTER_VALIDATE_INT);
+        $limit = filter_var($_GET['limit'] ?? 20, FILTER_VALIDATE_INT);
+
+        if ($days === false || $days <= 0 || $days > 365) {
+            Response::json(["success" => false, "message" => "days must be between 1 and 365"], 400);
+        }
+        if ($limit === false || $limit <= 0 || $limit > 100) {
+            Response::json(["success" => false, "message" => "limit must be between 1 and 100"], 400);
+        }
+
+        $stmt = $this->conn->prepare("
+            SELECT page_visited, COUNT(*) AS views
+            FROM activity_logs
+            WHERE access_time >= (NOW() - INTERVAL ? DAY)
+            GROUP BY page_visited
+            ORDER BY views DESC
+            LIMIT ?
+        ");
+        if (!$stmt) {
+            Response::json(["success" => false, "message" => "Failed to prepare page views report"], 500);
+        }
+
+        $stmt->bind_param("ii", $days, $limit);
+        if (!$stmt->execute()) {
+            Response::json(["success" => false, "message" => "Failed to fetch page views report"], 500);
+        }
+
+        $rows = [];
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $rows[] = [
+                "page_visited" => (string) ($row['page_visited'] ?? 'unknown'),
+                "views" => (int) ($row['views'] ?? 0)
+            ];
+        }
+
+        $this->safeLogActivity("Report PageViews", "Viewed most viewed pages report");
+        Response::json(["success" => true, "data" => $rows]);
+    }
+
+    public function browsers()
+    {
+        if (!$this->requireAdmin()) {
+            return;
+        }
+
+        $days = filter_var($_GET['days'] ?? 30, FILTER_VALIDATE_INT);
+        $limit = filter_var($_GET['limit'] ?? 20, FILTER_VALIDATE_INT);
+
+        if ($days === false || $days <= 0 || $days > 365) {
+            Response::json(["success" => false, "message" => "days must be between 1 and 365"], 400);
+        }
+        if ($limit === false || $limit <= 0 || $limit > 100) {
+            Response::json(["success" => false, "message" => "limit must be between 1 and 100"], 400);
+        }
+
+        $stmt = $this->conn->prepare("
+            SELECT browser_used
+            FROM activity_logs
+            WHERE access_time >= (NOW() - INTERVAL ? DAY)
+            LIMIT 5000
+        ");
+        if (!$stmt) {
+            Response::json(["success" => false, "message" => "Failed to prepare browser usage report"], 500);
+        }
+
+        $stmt->bind_param("i", $days);
+        if (!$stmt->execute()) {
+            Response::json(["success" => false, "message" => "Failed to fetch browser usage report"], 500);
+        }
+
+        $totals = [];
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $name = $this->normalizeBrowserName((string) ($row['browser_used'] ?? ''));
+            if (!isset($totals[$name])) {
+                $totals[$name] = 0;
+            }
+            $totals[$name]++;
+        }
+
+        arsort($totals);
+        $rows = [];
+        foreach ($totals as $name => $count) {
+            $rows[] = [
+                "browser_used" => $name,
+                "total" => (int) $count
+            ];
+            if (count($rows) >= $limit) {
+                break;
+            }
+        }
+
+        $this->safeLogActivity("Report Browsers", "Viewed browser usage report");
         Response::json(["success" => true, "data" => $rows]);
     }
 

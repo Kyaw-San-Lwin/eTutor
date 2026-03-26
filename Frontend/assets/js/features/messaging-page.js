@@ -29,6 +29,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     lastLoginValue: document.getElementById("lastLoginValue")
   };
 
+  if (elements.chatAvatar && !elements.chatAvatar.getAttribute("src")) {
+    elements.chatAvatar.src = getAvatarFromName("User");
+  }
+
   bindStaticEvents(state, elements);
 
   await Promise.allSettled([

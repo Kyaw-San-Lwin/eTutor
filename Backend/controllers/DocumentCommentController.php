@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/activityMiddleware.php';
 require_once __DIR__ . '/../services/PermissionService.php';
+require_once __DIR__ . '/../services/NotificationService.php';
 
 class DocumentCommentController
 {
@@ -296,6 +297,13 @@ class DocumentCommentController
                 Response::json(["success" => false, "message" => "Comment already exists for this document"], 409);
             }
             Response::json(["success" => false, "message" => "Failed to create document comment"], 500);
+        }
+
+        try {
+            $notifier = new NotificationService($this->conn);
+            $notifier->sendDocumentCommentNotification($did, $tutorId);
+        } catch (Throwable $e) {
+            // Non-blocking: keep API success even if email fails.
         }
 
         $this->safeLogActivity($userId, "Document Comment Create", "Created comment for document ID: " . $did);

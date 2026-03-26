@@ -393,6 +393,11 @@ class MeetingController
         $meetingLink = $validated['meeting_link'];
         $outcome = $validated['outcome'];
         $status = $validated['status'];
+        $rawOutcomeProvided = array_key_exists('outcome', $data);
+        $rawOutcome = trim((string) ($data['outcome'] ?? ''));
+        if ($rawOutcomeProvided && $rawOutcome !== '') {
+            $status = 'completed';
+        }
 
         $stmt = $this->conn->prepare("
             UPDATE meetings

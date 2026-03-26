@@ -63,7 +63,7 @@
             </div>
 
             <div class="mb-4">
-                <h1 class="text-2xl font-semibold">Student Dashboard (Staff View)</h1>
+                <h1 id="staffViewTitle" class="text-2xl font-semibold">Student Dashboard (Staff View)</h1>
             </div>
 
             <div class="dashboard-grid">
@@ -99,7 +99,7 @@
                         <div class="bg-white p-6 rounded-xl chat-card">
                             <h3 class="text-lg font-semibold">Chats</h3>
                             <p id="unreadMessageCount" class="text-gray-500 text-sm mb-6">Loading unread messages...</p>
-                            <img src="../../Images/profile 2.jpg" class="w-12 h-12 rounded-full">
+                            <img id="chatPreviewAvatar" src="" class="w-12 h-12 rounded-full" alt="Chat preview avatar">
                             <div class="mt-auto">
                                 <a href="javascript:void(0)" class="text-blue-600 block">All messages -></a>
                             </div>
@@ -159,12 +159,6 @@
         </div>
 
     </div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        window.initDashboardWelcome?.();
-    });
-</script>
 
 </body>
 </html>

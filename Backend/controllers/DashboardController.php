@@ -150,6 +150,87 @@ class DashboardController
                 "i",
                 $userId
             );
+
+            $photoSelect = $this->hasColumn('users', 'profile_photo')
+                ? ", u.profile_photo"
+                : ", NULL AS profile_photo";
+            $tutorStmt = $this->conn->prepare("
+                SELECT
+                    COALESCE(NULLIF(t.full_name, ''), u.user_name) AS full_name
+                    {$photoSelect}
+                FROM tutors t
+                JOIN users u ON u.user_id = t.user_id
+                WHERE t.tutor_id = ?
+                LIMIT 1
+            ");
+            if ($tutorStmt) {
+                $tutorStmt->bind_param("i", $tutorId);
+                if ($tutorStmt->execute()) {
+                    $tutorRow = $tutorStmt->get_result()->fetch_assoc();
+                    if ($tutorRow) {
+                        $data["full_name"] = (string) ($tutorRow['full_name'] ?? '');
+                        $data["profile_photo"] = (string) ($tutorRow['profile_photo'] ?? '');
+                    }
+                }
+            }
+
+            $upcomingMeetings = [];
+            $meetingStmt = $this->conn->prepare("
+                SELECT meeting_id, meeting_type, meeting_date, meeting_time, status, meeting_link, outcome
+                FROM meetings
+                WHERE tutor_id = ?
+                  AND meeting_date >= CURDATE()
+                ORDER BY meeting_date ASC, meeting_time ASC
+                LIMIT 5
+            ");
+            if ($meetingStmt) {
+                $meetingStmt->bind_param("i", $tutorId);
+                if ($meetingStmt->execute()) {
+                    $result = $meetingStmt->get_result();
+                    while ($row = $result->fetch_assoc()) {
+                        $upcomingMeetings[] = $row;
+                    }
+                }
+            }
+            $data["upcoming_meetings"] = $upcomingMeetings;
+
+            $commenterPhotoSelect = $this->hasColumn('users', 'profile_photo')
+                ? ", cu.profile_photo AS profile_photo"
+                : ", NULL AS profile_photo";
+            $recentComments = [];
+            $commentStmt = $this->conn->prepare("
+                SELECT
+                    bc.blogcomment_id,
+                    bc.post_id,
+                    bc.comment,
+                    bc.created_at,
+                    COALESCE(
+                        NULLIF(s.full_name, ''),
+                        NULLIF(t.full_name, ''),
+                        NULLIF(sf.full_name, ''),
+                        cu.user_name
+                    ) AS full_name
+                    {$commenterPhotoSelect}
+                FROM blog_comments bc
+                JOIN blog_posts bp ON bp.blog_id = bc.post_id
+                JOIN users cu ON cu.user_id = bc.user_id
+                LEFT JOIN students s ON s.user_id = cu.user_id
+                LEFT JOIN tutors t ON t.user_id = cu.user_id
+                LEFT JOIN staff sf ON sf.user_id = cu.user_id
+                WHERE bp.user_id = ?
+                ORDER BY bc.created_at DESC
+                LIMIT 5
+            ");
+            if ($commentStmt) {
+                $commentStmt->bind_param("i", $userId);
+                if ($commentStmt->execute()) {
+                    $result = $commentStmt->get_result();
+                    while ($row = $result->fetch_assoc()) {
+                        $recentComments[] = $row;
+                    }
+                }
+            }
+            $data["recent_blog_comments"] = $recentComments;
         } elseif ($role === 'student') {
             $studentId = $this->scalar("SELECT student_id FROM students WHERE user_id = ? LIMIT 1", "i", $userId);
             $data["metrics"]["student_id"] = $studentId;

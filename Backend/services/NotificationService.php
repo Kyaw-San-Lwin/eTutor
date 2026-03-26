@@ -134,6 +134,39 @@ class NotificationService
         return $result && $result->num_rows > 0 ? $result->fetch_assoc() : null;
     }
 
+    private function getUserByUserId(int $userId): ?array
+    {
+        $stmt = $this->conn->prepare("
+            SELECT
+                u.user_id,
+                u.user_name,
+                u.email,
+                COALESCE(
+                    NULLIF(s.full_name, ''),
+                    NULLIF(t.full_name, ''),
+                    NULLIF(sf.full_name, ''),
+                    u.user_name
+                ) AS display_name
+            FROM users u
+            LEFT JOIN students s ON s.user_id = u.user_id
+            LEFT JOIN tutors t ON t.user_id = u.user_id
+            LEFT JOIN staff sf ON sf.user_id = u.user_id
+            WHERE u.user_id = ?
+            LIMIT 1
+        ");
+        if (!$stmt) {
+            return null;
+        }
+
+        $stmt->bind_param("i", $userId);
+        if (!$stmt->execute()) {
+            return null;
+        }
+
+        $result = $stmt->get_result();
+        return $result && $result->num_rows > 0 ? $result->fetch_assoc() : null;
+    }
+
     private function sendMail(string $to, string $subject, string $message): bool
     {
         $this->mailLog("send_attempt transport={$this->mailTransport} to={$to} subject={$subject}");
@@ -260,5 +293,159 @@ class NotificationService
             . "If you did not request this, ignore this email.";
 
         return $this->sendMail($email, $subject, $message);
+    }
+
+    public function sendMessageNotification(int $senderUserId, int $receiverUserId): void
+    {
+        $sender = $this->getUserByUserId($senderUserId);
+        $receiver = $this->getUserByUserId($receiverUserId);
+        if (!$sender || !$receiver || empty($receiver['email'])) {
+            $this->mailLog("message_skip sender_user_id={$senderUserId} receiver_user_id={$receiverUserId} reason=missing_party");
+            return;
+        }
+
+        $senderName = (string) ($sender['display_name'] ?? $sender['user_name'] ?? 'User');
+        $receiverName = (string) ($receiver['display_name'] ?? $receiver['user_name'] ?? 'User');
+        $subject = "New message notification";
+        $message = "Hello {$receiverName}, you have a new message from {$senderName} in eTutor.";
+
+        $this->sendMail((string) $receiver['email'], $subject, $message);
+    }
+
+    public function sendBlogCommentNotification(int $postId, int $commenterUserId): void
+    {
+        $stmt = $this->conn->prepare("
+            SELECT p.blog_id, p.user_id, u.email
+            FROM blog_posts p
+            JOIN users u ON p.user_id = u.user_id
+            WHERE p.blog_id = ?
+            LIMIT 1
+        ");
+        if (!$stmt) {
+            return;
+        }
+        $stmt->bind_param("i", $postId);
+        if (!$stmt->execute()) {
+            return;
+        }
+        $result = $stmt->get_result();
+        $post = $result && $result->num_rows > 0 ? $result->fetch_assoc() : null;
+        if (!$post) {
+            return;
+        }
+
+        $ownerUserId = (int) ($post['user_id'] ?? 0);
+        $ownerEmail = (string) ($post['email'] ?? '');
+        if ($ownerUserId <= 0 || $ownerEmail === '' || $ownerUserId === $commenterUserId) {
+            return;
+        }
+
+        $commenter = $this->getUserByUserId($commenterUserId);
+        $owner = $this->getUserByUserId($ownerUserId);
+        if (!$commenter || !$owner) {
+            return;
+        }
+
+        $commenterName = (string) ($commenter['display_name'] ?? $commenter['user_name'] ?? 'User');
+        $ownerName = (string) ($owner['display_name'] ?? $owner['user_name'] ?? 'User');
+        $subject = "New comment on your blog post";
+        $message = "Hello {$ownerName}, {$commenterName} commented on your blog post in eTutor.";
+
+        $this->sendMail($ownerEmail, $subject, $message);
+    }
+
+    public function sendDocumentCommentNotification(int $documentId, int $tutorId): void
+    {
+        $stmt = $this->conn->prepare("
+            SELECT d.document_id, s.student_id, su.user_id AS student_user_id, su.email AS student_email
+            FROM documents d
+            JOIN students s ON d.student_id = s.student_id
+            JOIN users su ON s.user_id = su.user_id
+            WHERE d.document_id = ?
+            LIMIT 1
+        ");
+        if (!$stmt) {
+            return;
+        }
+        $stmt->bind_param("i", $documentId);
+        if (!$stmt->execute()) {
+            return;
+        }
+        $result = $stmt->get_result();
+        $doc = $result && $result->num_rows > 0 ? $result->fetch_assoc() : null;
+        if (!$doc) {
+            return;
+        }
+
+        $studentUserId = (int) ($doc['student_user_id'] ?? 0);
+        $studentEmail = (string) ($doc['student_email'] ?? '');
+        if ($studentUserId <= 0 || $studentEmail === '') {
+            return;
+        }
+
+        $tutor = $this->getUserByTutorId($tutorId);
+        $student = $this->getUserByUserId($studentUserId);
+        if (!$tutor || !$student) {
+            return;
+        }
+
+        $tutorName = (string) ($tutor['display_name'] ?? $tutor['user_name'] ?? 'Tutor');
+        $studentName = (string) ($student['display_name'] ?? $student['user_name'] ?? 'Student');
+        $subject = "New document feedback notification";
+        $message = "Hello {$studentName}, your tutor {$tutorName} added feedback to one of your uploaded documents in eTutor.";
+
+        $this->sendMail($studentEmail, $subject, $message);
+    }
+
+    public function sendMeetingRecordingNotification(int $meetingId, int $uploaderUserId): void
+    {
+        $stmt = $this->conn->prepare("
+            SELECT
+                m.meeting_id,
+                su.user_id AS student_user_id,
+                su.email AS student_email,
+                tu.user_id AS tutor_user_id,
+                tu.email AS tutor_email
+            FROM meetings m
+            JOIN students s ON m.student_id = s.student_id
+            JOIN users su ON s.user_id = su.user_id
+            JOIN tutors t ON m.tutor_id = t.tutor_id
+            JOIN users tu ON t.user_id = tu.user_id
+            WHERE m.meeting_id = ?
+            LIMIT 1
+        ");
+        if (!$stmt) {
+            return;
+        }
+        $stmt->bind_param("i", $meetingId);
+        if (!$stmt->execute()) {
+            return;
+        }
+        $result = $stmt->get_result();
+        $meeting = $result && $result->num_rows > 0 ? $result->fetch_assoc() : null;
+        if (!$meeting) {
+            return;
+        }
+
+        $uploader = $this->getUserByUserId($uploaderUserId);
+        $student = $this->getUserByUserId((int) ($meeting['student_user_id'] ?? 0));
+        $tutor = $this->getUserByUserId((int) ($meeting['tutor_user_id'] ?? 0));
+        if (!$student || !$tutor) {
+            return;
+        }
+
+        $uploaderName = (string) ($uploader['display_name'] ?? $uploader['user_name'] ?? 'Your tutor');
+        $studentName = (string) ($student['display_name'] ?? $student['user_name'] ?? 'Student');
+        $studentEmail = (string) ($meeting['student_email'] ?? '');
+        if ($studentEmail !== '') {
+            $this->sendMail($studentEmail, "Meeting recording uploaded", "Hello {$studentName}, {$uploaderName} uploaded a meeting recording in eTutor.");
+        }
+
+        $tutorUserId = (int) ($meeting['tutor_user_id'] ?? 0);
+        $tutorEmail = (string) ($meeting['tutor_email'] ?? '');
+        if ($tutorEmail !== '' && $tutorUserId > 0 && $tutorUserId !== $uploaderUserId) {
+            $tutorName = (string) ($tutor['display_name'] ?? $tutor['user_name'] ?? 'Tutor');
+            $this->sendMail($tutorEmail, "Meeting recording uploaded", "Hello {$tutorName}, a meeting recording was uploaded for one of your meetings in eTutor.");
+        }
     }
 }

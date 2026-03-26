@@ -171,7 +171,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="bg-white p-6 rounded-lg shadow">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold">System Activity</h2>
+                        <h2 id="pageViewsChartTitle" class="text-lg font-semibold">Most Viewed Pages (Last 30 Days)</h2>
                         <select id="chartRangeDays" class="border rounded px-2 py-1 text-sm">
                             <option value="7">Last 7 Days</option>
                             <option value="30">Last 30 Days</option>
@@ -179,14 +179,30 @@
                         </select>
                     </div>
                     <div class="h-64">
-                        <canvas id="messageChart"></canvas>
+                        <canvas id="pageViewsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 id="browsersChartTitle" class="text-lg font-semibold mb-4">Browser Usage (Last 30 Days)</h2>
+                    <div class="h-64">
+                        <canvas id="browsersChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 id="systemActivityChartTitle" class="text-lg font-semibold mb-4">System Activity (Last 30 Days)</h2>
+                    <div class="h-64">
+                        <canvas id="systemActivityChart"></canvas>
                     </div>
                 </div>
 
                 <div class="bg-white p-6 rounded-lg shadow">
                     <h2 id="activeUsersChartTitle" class="text-lg font-semibold mb-4">Most Active Users (Last 30 Days)</h2>
                     <div class="h-64">
-                        <canvas id="tutorChart"></canvas>
+                        <canvas id="activeUsersChart"></canvas>
                     </div>
                 </div>
             </div>

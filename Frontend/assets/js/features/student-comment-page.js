@@ -104,7 +104,7 @@ function renderComments(comments, documentNameMap) {
     const fileName = documentNameMap.get(Number(comment.document_id)) || `Document #${comment.document_id}`;
     const avatar = comment.tutor_profile_photo
       ? resolveAssetUrl(comment.tutor_profile_photo)
-      : `${window.AppConfig.frontendBase}/Images/profile 2.jpg`;
+      : getAvatarFromName(tutor);
 
     return `
       <div class="meeting-card">
@@ -260,4 +260,15 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function getAvatarFromName(name) {
+  const safeName = String(name || "User").trim() || "User";
+  const initials = safeName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(function (part) { return part.charAt(0).toUpperCase(); })
+    .join("") || "U";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect width="100%" height="100%" fill="#1d4ed8"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="18" fill="#ffffff">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }

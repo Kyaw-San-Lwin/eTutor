@@ -20,8 +20,10 @@ document.addEventListener("DOMContentLoaded", async function () {
   ]);
 });
 
-let messageChartInstance = null;
-let tutorChartInstance = null;
+let pageViewsChartInstance = null;
+let browsersChartInstance = null;
+let systemActivityChartInstance = null;
+let activeUsersChartInstance = null;
 
 function bindStaffShell() {
   const logoutLink = document.querySelector(".logout");
@@ -52,10 +54,62 @@ function bindStaffShell() {
 }
 
 function initCharts() {
-  const messageCanvas = document.getElementById("messageChart");
-  if (messageCanvas && typeof Chart !== "undefined") {
-    const messageCtx = messageCanvas.getContext("2d");
-    messageChartInstance = new Chart(messageCtx, {
+  const pageViewsCanvas = document.getElementById("pageViewsChart");
+  if (pageViewsCanvas && typeof Chart !== "undefined") {
+    const pageViewsCtx = pageViewsCanvas.getContext("2d");
+    pageViewsChartInstance = new Chart(pageViewsCtx, {
+      type: "bar",
+      data: {
+        labels: [],
+        datasets: [{
+          label: "Views",
+          data: [],
+          borderWidth: 1,
+          pointRadius: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: true } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  const browsersCanvas = document.getElementById("browsersChart");
+  if (browsersCanvas && typeof Chart !== "undefined") {
+    const browsersCtx = browsersCanvas.getContext("2d");
+    browsersChartInstance = new Chart(browsersCtx, {
+      type: "bar",
+      data: {
+        labels: [],
+        datasets: [{
+          label: "Usage",
+          data: [],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true },
+          x: {
+            ticks: {
+              autoSkip: true,
+              maxRotation: 0,
+              minRotation: 0
+            }
+          }
+        }
+      }
+    });
+  }
+
+  const systemActivityCanvas = document.getElementById("systemActivityChart");
+  if (systemActivityCanvas && typeof Chart !== "undefined") {
+    const systemActivityCtx = systemActivityCanvas.getContext("2d");
+    systemActivityChartInstance = new Chart(systemActivityCtx, {
       type: "line",
       data: {
         labels: [],
@@ -76,10 +130,10 @@ function initCharts() {
     });
   }
 
-  const tutorCanvas = document.getElementById("tutorChart");
-  if (tutorCanvas && typeof Chart !== "undefined") {
-    const tutorCtx = tutorCanvas.getContext("2d");
-    tutorChartInstance = new Chart(tutorCtx, {
+  const activeUsersCanvas = document.getElementById("activeUsersChart");
+  if (activeUsersCanvas && typeof Chart !== "undefined") {
+    const activeUsersCtx = activeUsersCanvas.getContext("2d");
+    activeUsersChartInstance = new Chart(activeUsersCtx, {
       type: "bar",
       data: {
         labels: [],
@@ -92,21 +146,36 @@ function initCharts() {
       options: {
         responsive: true,
         plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true } }
+        scales: {
+          y: { beginAtZero: true },
+          x: {
+            ticks: {
+              autoSkip: true,
+              maxRotation: 0,
+              minRotation: 0
+            }
+          }
+        }
       }
     });
   }
 }
 
 async function loadLiveChartData(user) {
-  if (!messageChartInstance || !tutorChartInstance) {
+  if (!pageViewsChartInstance || !browsersChartInstance || !systemActivityChartInstance || !activeUsersChartInstance) {
     return;
   }
 
   if (!user || !user.is_admin) {
-    updateCharts(
-      getLast7DayLabels(),
-      new Array(7).fill(0),
+    updatePageViewsAndBrowsersCharts(
+      ["Admin access required"],
+      [0],
+      ["Admin access required"],
+      [0]
+    );
+    updateSystemAndActiveUserCharts(
+      ["Admin access required"],
+      [0],
       ["Admin access required"],
       [0]
     );
@@ -115,10 +184,30 @@ async function loadLiveChartData(user) {
 
   try {
     const days = getSelectedChartRangeDays();
-    const [trendResponse, activeUsersResponse] = await Promise.all([
+    const [pageViewsResponse, browsersResponse, trendResponse, activeUsersResponse] = await Promise.all([
+      window.ApiClient.get("report", "pageViews", { days: days, limit: 8 }),
+      window.ApiClient.get("report", "browsers", { days: days, limit: 8 }),
       window.ApiClient.get("report", "activityTrend", { days: days }),
       window.ApiClient.get("report", "activeUsers", { days: days })
     ]);
+
+    const pageViews = Array.isArray(pageViewsResponse.data) ? pageViewsResponse.data : [];
+    const pageLabels = pageViews.length
+      ? pageViews.map(function (entry) { return String(entry.page_visited || "unknown"); })
+      : ["No data"];
+    const pageValues = pageViews.length
+      ? pageViews.map(function (entry) { return Number(entry.views || 0); })
+      : [0];
+
+    const browserRows = Array.isArray(browsersResponse.data) ? browsersResponse.data : [];
+    const barLabels = browserRows.length
+      ? browserRows.map(function (entry) { return String(entry.browser_used || "Unknown"); })
+      : ["No data"];
+    const barValues = browserRows.length
+      ? browserRows.map(function (entry) { return Number(entry.total || 0); })
+      : [0];
+
+    updatePageViewsAndBrowsersCharts(pageLabels, pageValues, barLabels, barValues);
 
     const trendRows = Array.isArray(trendResponse.data) ? trendResponse.data : [];
     const dateRange = buildDateRange(days);
@@ -142,37 +231,57 @@ async function loadLiveChartData(user) {
     });
 
     const activeUsers = Array.isArray(activeUsersResponse.data) ? activeUsersResponse.data : [];
-    const barLabels = activeUsers.length
+    const activeLabels = activeUsers.length
       ? activeUsers.map(function (entry) { return String(entry.full_name || entry.display_name || entry.user_name || "Unknown"); })
       : ["No data"];
-    const barValues = activeUsers.length
+    const activeValues = activeUsers.length
       ? activeUsers.map(function (entry) { return Number(entry.actions || 0); })
       : [0];
 
-    updateCharts(dayLabels, lineValues, barLabels, barValues);
-    setActiveUsersChartTitle(days);
+    updateSystemAndActiveUserCharts(dayLabels, lineValues, activeLabels, activeValues);
+    setChartTitles(days);
   } catch (error) {
-    updateCharts(
-      buildDateRange(7).map(function (item) { return item.label; }),
-      new Array(7).fill(0),
+    updatePageViewsAndBrowsersCharts(
+      ["No data"],
+      [0],
       ["No data"],
       [0]
     );
-    setActiveUsersChartTitle(getSelectedChartRangeDays());
+    updateSystemAndActiveUserCharts(
+      ["No data"],
+      [0],
+      ["No data"],
+      [0]
+    );
+    setChartTitles(getSelectedChartRangeDays());
   }
 }
 
-function updateCharts(lineLabels, lineValues, barLabels, barValues) {
-  if (messageChartInstance) {
-    messageChartInstance.data.labels = lineLabels;
-    messageChartInstance.data.datasets[0].data = lineValues;
-    messageChartInstance.update();
+function updatePageViewsAndBrowsersCharts(pageLabels, pageValues, browserLabels, browserValues) {
+  if (pageViewsChartInstance) {
+    pageViewsChartInstance.data.labels = pageLabels;
+    pageViewsChartInstance.data.datasets[0].data = pageValues;
+    pageViewsChartInstance.update();
   }
 
-  if (tutorChartInstance) {
-    tutorChartInstance.data.labels = barLabels;
-    tutorChartInstance.data.datasets[0].data = barValues;
-    tutorChartInstance.update();
+  if (browsersChartInstance) {
+    browsersChartInstance.data.labels = browserLabels;
+    browsersChartInstance.data.datasets[0].data = browserValues;
+    browsersChartInstance.update();
+  }
+}
+
+function updateSystemAndActiveUserCharts(systemLabels, systemValues, activeLabels, activeValues) {
+  if (systemActivityChartInstance) {
+    systemActivityChartInstance.data.labels = systemLabels;
+    systemActivityChartInstance.data.datasets[0].data = systemValues;
+    systemActivityChartInstance.update();
+  }
+
+  if (activeUsersChartInstance) {
+    activeUsersChartInstance.data.labels = activeLabels;
+    activeUsersChartInstance.data.datasets[0].data = activeValues;
+    activeUsersChartInstance.update();
   }
 }
 
@@ -209,10 +318,25 @@ function bindChartRangeChange(user) {
   });
 }
 
-function setActiveUsersChartTitle(days) {
-  const title = document.getElementById("activeUsersChartTitle");
-  if (title) {
-    title.textContent = `Most Active Users (Last ${days} Days)`;
+function setChartTitles(days) {
+  const pageViewsTitle = document.getElementById("pageViewsChartTitle");
+  if (pageViewsTitle) {
+    pageViewsTitle.textContent = `Most Viewed Pages (Last ${days} Days)`;
+  }
+
+  const browsersTitle = document.getElementById("browsersChartTitle");
+  if (browsersTitle) {
+    browsersTitle.textContent = `Browser Usage (Last ${days} Days)`;
+  }
+
+  const systemTitle = document.getElementById("systemActivityChartTitle");
+  if (systemTitle) {
+    systemTitle.textContent = `System Activity (Last ${days} Days)`;
+  }
+
+  const activeTitle = document.getElementById("activeUsersChartTitle");
+  if (activeTitle) {
+    activeTitle.textContent = `Most Active Users (Last ${days} Days)`;
   }
 }
 

@@ -10,6 +10,50 @@ use Firebase\JWT\Key;
 
 class AuthController
 {
+    private function envBool(string $key, bool $default = false): bool
+    {
+        if (array_key_exists($key, $_ENV)) {
+            $envValue = $_ENV[$key];
+            if (is_bool($envValue)) {
+                return $envValue;
+            }
+            $raw = trim((string) $envValue);
+            if ($raw !== '') {
+                return in_array(strtolower($raw), ['1', 'true', 'yes', 'on'], true);
+            }
+        }
+
+        $raw = getenv($key);
+        if ($raw === false || $raw === null || trim((string) $raw) === '') {
+            return $default;
+        }
+
+        return in_array(strtolower(trim((string) $raw)), ['1', 'true', 'yes', 'on'], true);
+    }
+
+    private function hasActiveTutorAllocationForStudentUser(mysqli $conn, int $userId): bool
+    {
+        $stmt = $conn->prepare("
+            SELECT a.allocation_id
+            FROM students s
+            JOIN allocations a ON a.student_id = s.student_id
+            WHERE s.user_id = ?
+              AND a.status = 'active'
+            LIMIT 1
+        ");
+        if (!$stmt) {
+            return false;
+        }
+
+        $stmt->bind_param("i", $userId);
+        if (!$stmt->execute()) {
+            return false;
+        }
+
+        $result = $stmt->get_result();
+        return $result && $result->num_rows > 0;
+    }
+
     private function isFirstLoginUser(mysqli $conn, int $userId, $lastLogin = null): bool
     {
         $stmt = $conn->prepare("
@@ -156,6 +200,18 @@ class AuthController
             }
 
             if (password_verify($password, $user['password'])) {
+                $roleName = strtolower((string) ($user['role_name'] ?? ''));
+                $enforceActiveTutor = $this->envBool('ETUTOR_REQUIRE_ACTIVE_TUTOR_ON_STUDENT_LOGIN', false);
+                if (
+                    $enforceActiveTutor
+                    && $roleName === 'student'
+                    && !$this->hasActiveTutorAllocationForStudentUser($conn, (int) $user['user_id'])
+                ) {
+                    Response::json([
+                        "message" => "No personal tutor is allocated to this student yet. Please contact staff."
+                    ], 403);
+                }
+
                 $isFirstLogin = $this->isFirstLoginUser($conn, (int) $user['user_id'], $user['last_login'] ?? null);
                 $updateLastLogin = $conn->prepare("UPDATE users SET last_login = NOW() WHERE user_id = ?");
                 if ($updateLastLogin) {

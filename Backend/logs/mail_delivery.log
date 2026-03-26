@@ -8,3 +8,5 @@
 [2026-03-25 21:15:33] send_attempt transport=smtp to=kyawsanlwin2004@gmail.com subject=Student reallocated
 [2026-03-25 21:15:34] send_result transport=smtp to=saya@gmail.com success=true
 [2026-03-25 21:15:37] send_result transport=smtp to=kyawsanlwin2004@gmail.com success=true
+[2026-03-26 21:14:44] send_attempt transport=smtp to=kyawsanlwin2004@gmail.com subject=New comment on your blog post
+[2026-03-26 21:14:49] send_result transport=smtp to=kyawsanlwin2004@gmail.com success=true

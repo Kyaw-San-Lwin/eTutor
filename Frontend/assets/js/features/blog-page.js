@@ -202,7 +202,7 @@ function renderBlogs() {
     return `
       <div class="post-card" data-blog-id="${postId}">
         <div class="post-header">
-          <img src="${getDefaultAvatar(blog.full_name || blog.display_name || blog.user_name || "User")}" alt="Author avatar">
+          <img src="${(blog.profile_photo || blog.author_profile_photo) ? resolveAssetUrl(blog.profile_photo || blog.author_profile_photo) : getDefaultAvatar(blog.full_name || blog.display_name || blog.user_name || "User")}" alt="Author avatar">
           <div>
             <h2>${escapeHtml(blog.full_name || blog.display_name || blog.user_name || "Unknown user")}</h2>
             <p>${escapeHtml(blog.email || "")}</p>
