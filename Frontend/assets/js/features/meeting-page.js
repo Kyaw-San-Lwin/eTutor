@@ -93,6 +93,28 @@ async function initializeTutorMeetings() {
   ]);
 }
 
+async function loadTutorIdentity() {
+  try {
+    const response = await window.ApiClient.get("user", "me");
+    const data = response.data || {};
+    const profile = data.profile || {};
+
+    meetingState.currentTutor = {
+      name: profile.full_name || profile.display_name || data.full_name || data.user_name || "Tutor",
+      secondary: data.email || profile.department || data.user_name || "",
+      image: profile.profile_photo ? resolveAssetUrl(profile.profile_photo) : getAvatarFromName(profile.full_name || data.full_name || data.user_name || "Tutor")
+    };
+  } catch (error) {
+    const fallbackUser = window.AuthStorage?.getUser?.() || {};
+    const fallbackName = fallbackUser.full_name || fallbackUser.user_name || "Tutor";
+    meetingState.currentTutor = {
+      name: fallbackName,
+      secondary: fallbackUser.email || fallbackUser.user_name || "",
+      image: getAvatarFromName(fallbackName)
+    };
+  }
+}
+
 function bindTutorForm() {
   const postButton = document.getElementById("postMeetingBtn");
   const typeSelect = document.getElementById("meetingType");
@@ -192,6 +214,8 @@ async function createTutorMeeting() {
   const meetingPlatform = getValue("meetingPlatform").trim();
   const meetingLink = getValue("meetingLink").trim();
   const meetingLocation = getValue("meetingLocation").trim();
+  const selectedStudent = meetingState.studentMap.get(studentId) || null;
+  const studentName = selectedStudent?.name || "";
 
   setStatus("meetingStatus", "", false);
 
@@ -210,7 +234,7 @@ async function createTutorMeeting() {
     return;
   }
 
-  const encodedOutcome = `${meetingName ? `[title:${meetingName}]` : ""}${note ? `${meetingName ? " " : ""}${note}` : ""}`.trim();
+  const encodedOutcome = `${meetingName ? `[title:${meetingName}]` : ""}${studentName ? `${meetingName ? " " : ""}[student:${studentName}]` : ""}${note ? `${meetingName || studentName ? " " : ""}${note}` : ""}`.trim();
   const payload = {
     student_id: studentId,
     meeting_date: meetingDate,
@@ -288,7 +312,6 @@ function renderStudentMeetings() {
   }).join("");
   renderMeetingPagination(totalPages);
 }
-
 function renderTutorMeetings() {
   const container = document.getElementById("meetingContainer");
   if (!container) {
@@ -308,18 +331,24 @@ function renderTutorMeetings() {
   const start = (meetingState.page - 1) * meetingState.pageSize;
   const pagedMeetings = meetingState.meetings.slice(start, start + meetingState.pageSize);
 
+  const tutorName = meetingState.currentTutor?.name || "Tutor";
+  const tutorSecondary = meetingState.currentTutor?.secondary || "";
+  const tutorImage = meetingState.currentTutor?.image || getAvatarFromName(tutorName);
+
   container.innerHTML = pagedMeetings.map(function (meeting) {
     const student = meetingState.studentMap.get(Number(meeting.student_id)) || {
       name: `Student ${meeting.student_id}`,
       email: "",
       programme: ""
     };
-    const emailOrProgramme = student.email || student.programme || "";
+    const meta = parseOutcomeMeta(meeting.outcome || "");
+    const recipient = meta.student || student.name;
 
     return renderMeetingCard({
-      displayName: student.name,
-      displayEmail: emailOrProgramme,
-      displayImage: getAvatarFromName(student.name),
+      displayName: tutorName,
+      displayEmail: tutorSecondary,
+      displayImage: tutorImage,
+      targetLine: `To: ${recipient}`,
       meeting
     });
   }).join("");
@@ -414,6 +443,7 @@ function renderMeetingCard(data) {
         <div>
           <p class="tutor-name">${escapeHtml(data.displayName)}</p>
           <p class="tutor-email">${escapeHtml(data.displayEmail)}</p>
+          ${data.targetLine ? `<p class="tutor-email">${escapeHtml(data.targetLine)}</p>` : ""}
           <p class="tutor-email">${escapeHtml(displayTitle)}</p>
         </div>
       </div>
@@ -437,6 +467,12 @@ function parseOutcomeMeta(outcome) {
   if (titleMatch) {
     title = titleMatch[1].trim();
     text = text.replace(titleMatch[0], "").trim();
+  }
+
+  const studentMatch = text.match(/\[student:([^\]]+)\]/i);
+  if (studentMatch) {
+    student = studentMatch[1].trim();
+    text = text.replace(studentMatch[0], "").trim();
   }
 
   const platformMatch = text.match(/\[platform:([^\]]+)\]/i);

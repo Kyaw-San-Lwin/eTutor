@@ -10,3 +10,9 @@
 [2026-03-25 21:15:37] send_result transport=smtp to=kyawsanlwin2004@gmail.com success=true
 [2026-03-26 21:14:44] send_attempt transport=smtp to=kyawsanlwin2004@gmail.com subject=New comment on your blog post
 [2026-03-26 21:14:49] send_result transport=smtp to=kyawsanlwin2004@gmail.com success=true
+[2026-03-27 13:28:09] send_attempt transport=smtp to=student@gmail.com subject=New document feedback notification
+[2026-03-27 13:28:15] send_result transport=smtp to=student@gmail.com success=true
+[2026-03-27 13:28:25] send_attempt transport=smtp to=student@gmail.com subject=New document feedback notification
+[2026-03-27 13:28:31] send_result transport=smtp to=student@gmail.com success=true
+[2026-03-27 13:31:50] send_attempt transport=smtp to=student@gmail.com subject=New comment on your blog post
+[2026-03-27 13:31:58] send_result transport=smtp to=student@gmail.com success=true

@@ -11,6 +11,7 @@
     flex-direction:column;
     gap:20px;
     align-items:center;
+    min-width:0;
 }
 
 /* Upload Section */
@@ -96,7 +97,7 @@ th{
 
 td:first-child, th:first-child{
     white-space: nowrap;
-    min-width: 180px;   /* ✅ gives enough space for names */
+    min-width: 180px;
 }
 
 tbody tr:hover{
@@ -135,21 +136,22 @@ tbody tr:hover{
     text-decoration:underline;
 }
 
-
 /* PROFILE PANEL */
 .student-profile{
     position:fixed;
     top:0;
-    right:-320px;
-    width:300px;
+    right:-390px;
+    width:360px;
+    max-width:calc(100vw - 32px);
     height:100vh;
     background:white;
     box-shadow:-5px 0 15px rgba(0,0,0,0.1);
-    transition:0.3s;
+    transition:right 0.3s ease;
     display:flex;
     justify-content:center;
     align-items:flex-start;
-    padding-top:80px;
+    padding:48px 20px 24px;
+    overflow-y:auto;
 }
 
 .student-profile.show{
@@ -158,23 +160,38 @@ tbody tr:hover{
 
 /* PROFILE CARD */
 .profile-card{
+    width:100%;
+    max-width:320px;
     text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
 }
 
 .profile-card img{
-    width:200px;
-    height:200px;
+    width:180px;
+    height:180px;
     border-radius:50%;
     object-fit:cover;
-    margin-bottom:15px;
+    margin-bottom:0;
 }
 
 .profile-card h3{
     font-size:18px;
     font-weight:600;
-    margin-bottom:20px;
+    margin-bottom:0;
+    word-break:break-word;
 }
 
+#studentMeta{
+    width:100%;
+    color:#374151;
+    line-height:1.6;
+    text-align:center;
+    white-space:normal;
+    word-break:break-word;
+}
 
 /* MESSAGE BUTTON */
 .message-btn{
@@ -208,17 +225,19 @@ tbody tr:hover{
 }
 
 .comment-box {
-    margin-top: 15px;
+    width:100%;
+    margin-top: 6px;
     display: flex;
     gap: 8px;
-    align-items: center;
+    align-items: stretch;
 }
 
 .comment-box textarea {
     flex: 1;
+    min-width:0;
     resize: none;
-    height: 60px;
-    padding: 8px;
+    height: 72px;
+    padding: 10px;
     border-radius: 8px;
     border: 1px solid #ccc;
     font-size: 14px;
@@ -231,6 +250,7 @@ tbody tr:hover{
     padding: 10px 12px;
     border-radius: 8px;
     cursor: pointer;
+    align-self:flex-end;
 }
 
 .send-btn:hover {
@@ -253,6 +273,21 @@ tbody tr:hover{
     .student-avatar{
         width:28px;
         height:28px;
+    }
+
+    .student-profile{
+        width:320px;
+        right:-340px;
+        padding:36px 16px 20px;
+    }
+
+    .profile-card{
+        max-width:280px;
+    }
+
+    .profile-card img{
+        width:150px;
+        height:150px;
     }
 }
 
@@ -291,28 +326,52 @@ tbody tr:hover{
     }
 
     .student-profile{
-        width: 180px;
+        width:min(320px, 100vw - 16px);
+        right:calc(-1 * min(320px, 100vw - 16px));
+        padding:24px 14px 18px;
     }
 
     .profile-card{
+        max-width:none;
         text-align:center;
-        padding:10px;
+        padding:0;
+        gap:12px;
     }
 
     .profile-card img{
         width:120px;
         height:120px;
-        margin-bottom:10px;
+        margin-bottom:0;
     }
 
     .profile-card h3{
         font-size:16px;
-        margin-bottom:10px;
+        margin-bottom:0;
+    }
+
+    #studentMeta{
+        font-size:13px;
+        line-height:1.5;
     }
 
     .message-btn{
         padding:6px 12px;
         font-size:12px;
         gap:5px;
+    }
+
+    .comment-box {
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .comment-box textarea {
+        height:64px;
+        font-size:13px;
+    }
+
+    .send-btn {
+        width:100%;
+        align-self:stretch;
     }
 }

@@ -112,3 +112,200 @@ table tbody tr td {
         font-size: 0.6rem;
     }
 }
+.staff-dashboard-main{
+    min-width:0;
+}
+
+.dashboard-header{
+    width:100%;
+}
+
+.dashboard-topbar{
+    gap:16px;
+}
+
+.dashboard-header-actions{
+    flex-shrink:0;
+}
+
+.dashboard-user{
+    min-width:0;
+}
+
+.dashboard-user p{
+    white-space:nowrap;
+}
+
+.dashboard-metrics{
+    grid-template-columns:repeat(4, minmax(0, 1fr));
+}
+
+.dashboard-chart-grid{
+    align-items:stretch;
+}
+
+.dashboard-chart-grid > div,
+.recent-activity-card{
+    min-width:0;
+}
+
+.recent-activity-card{
+    overflow-x:auto;
+}
+
+@media (max-width: 1024px) {
+
+    .staff-dashboard-main{
+        padding:20px;
+    }
+
+    .dashboard-topbar{
+        align-items:flex-start;
+        flex-wrap:wrap;
+    }
+
+    .dashboard-header-actions{
+        width:100%;
+        justify-content:space-between;
+    }
+
+    .dashboard-metrics{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+        gap:16px;
+    }
+
+    .dashboard-chart-grid{
+        grid-template-columns:1fr;
+        gap:16px;
+    }
+
+    .dashboard-chart-grid > div,
+    .recent-activity-card{
+        padding:18px;
+    }
+
+    .dashboard-chart-grid .h-64{
+        height:240px;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .staff-dashboard-main{
+        padding:14px;
+    }
+
+    .dashboard-header{
+        margin-bottom:18px;
+    }
+
+    .dashboard-topbar{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:12px;
+    }
+
+    .dashboard-header-actions{
+        width:100%;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+    }
+
+    .dashboard-user{
+        flex:1 1 auto;
+        justify-content:flex-end;
+    }
+
+    .dashboard-user p{
+        white-space:normal;
+        word-break:break-word;
+    }
+
+    #dashboardSubheading{
+        font-size:14px;
+        line-height:1.5;
+    }
+
+    .dashboard-metrics{
+        grid-template-columns:1fr;
+        gap:12px;
+    }
+
+    .dashboard-metrics > div{
+        min-height:unset;
+        text-align:left;
+    }
+
+    .dashboard-chart-grid,
+    .dashboard-chart-grid.grid.grid-cols-1.md\:grid-cols-2{
+        grid-template-columns:1fr;
+        gap:12px;
+    }
+
+    .dashboard-chart-grid > div,
+    .recent-activity-card{
+        padding:14px;
+        border-radius:14px;
+    }
+
+    .dashboard-chart-grid .flex.items-center.justify-between.mb-4{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
+    }
+
+    #chartRangeDays{
+        width:100%;
+    }
+
+    .dashboard-chart-grid .h-64{
+        height:220px;
+    }
+
+    .recent-activity-card table{
+        min-width:520px;
+    }
+
+    #welcomeModal .max-w-lg{
+        width:calc(100% - 24px);
+        padding:24px 18px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .staff-dashboard-main{
+        padding:12px;
+    }
+
+    .dashboard-header-actions{
+        flex-wrap:wrap;
+    }
+
+    .dashboard-user{
+        width:100%;
+        justify-content:flex-start;
+    }
+
+    .dashboard-metrics > div{
+        padding:12px;
+    }
+
+    .dashboard-metrics > div h2{
+        font-size:1.5rem;
+    }
+
+    .dashboard-chart-grid > div,
+    .recent-activity-card{
+        padding:12px;
+    }
+
+    .dashboard-chart-grid .h-64{
+        height:200px;
+    }
+
+    .recent-activity-card table{
+        min-width:460px;
+    }
+}

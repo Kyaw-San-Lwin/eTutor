@@ -116,17 +116,17 @@
         </aside>
 
         <!-- MAIN CONTENT -->
-        <main class="flex-1 p-6">
+        <main class="flex-1 p-6 staff-dashboard-main">
 
             <!-- Top bar -->
-            <div class="mb-6">
-                <div class="flex justify-between items-center">
+            <div class="mb-6 dashboard-header">
+                <div class="flex justify-between items-center dashboard-topbar">
                     <h1 class="text-2xl font-bold">Dashboard</h1>
 
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-4 dashboard-header-actions">
                         <i class="bi bi-bell text-xl"></i>
 
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 dashboard-user">
                             <div class="w-10 h-10 rounded-full overflow-hidden bg-blue-200">
                                 <img id="staffHeaderAvatar" src="" alt="Profile">
                             </div>
@@ -143,21 +143,21 @@
             </div>
 
             <!-- Cards -->
-            <div class="grid grid-cols-4 gap-6 mb-6">
+            <div class="grid grid-cols-4 gap-6 mb-6 dashboard-metrics">
                 <div class="bg-white p-5 rounded-lg shadow">
                     <p class="text-gray-500">Total Users</p>
                     <h2 id="metricTotalUsers" class="text-3xl font-bold">0</h2>
-                    <p class="text-green-500 text-sm">↑ 255 new this month</p>
+                    <p class="text-green-500 text-sm">â†‘ 255 new this month</p>
                 </div>
                 <div class="bg-white p-5 rounded-lg shadow">
                     <p class="text-gray-500">Active Tutors</p>
                     <h2 id="metricActiveTutors" class="text-3xl font-bold">0</h2>
-                    <p class="text-green-500 text-sm">↑ 3 new this month</p>
+                    <p class="text-green-500 text-sm">â†‘ 3 new this month</p>
                 </div>
                 <div class="bg-white p-5 rounded-lg shadow">
                     <p class="text-gray-500">Active Students</p>
                     <h2 id="metricActiveStudents" class="text-3xl font-bold">0</h2>
-                    <p class="text-green-500 text-sm">↑ 67 new this month</p>
+                    <p class="text-green-500 text-sm">â†‘ 67 new this month</p>
                 </div>
                 <div class="bg-white p-5 rounded-lg shadow">
                     <p class="text-gray-500">Messages (7 days)</p>
@@ -168,7 +168,7 @@
             </div>
 
             <!-- Charts Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 dashboard-chart-grid">
                 <div class="bg-white p-6 rounded-lg shadow">
                     <div class="flex items-center justify-between mb-4">
                         <h2 id="pageViewsChartTitle" class="text-lg font-semibold">Most Viewed Pages (Last 30 Days)</h2>
@@ -191,7 +191,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 dashboard-chart-grid">
                 <div class="bg-white p-6 rounded-lg shadow">
                     <h2 id="systemActivityChartTitle" class="text-lg font-semibold mb-4">System Activity (Last 30 Days)</h2>
                     <div class="h-64">
@@ -208,7 +208,7 @@
             </div>
 
             <!-- Recent Activity -->
-            <div class="bg-white p-6 rounded-lg shadow mt-6">
+            <div class="bg-white p-6 rounded-lg shadow mt-6 recent-activity-card">
                 <h2 class="text-lg font-semibold mb-4">Recent Activity</h2>
                 <table class="w-full text-left">
                     <thead class="text-gray-500 border-b">
@@ -245,13 +245,13 @@
                 We're glad to have you here. Start exploring your dashboard.
             </p>
 
-            <!-- 🔥 NEW SECURITY MESSAGE -->
+            <!-- ðŸ”¥ NEW SECURITY MESSAGE -->
             <p class="text-red-500 text-sm mb-6">
-                ⚠️ For security reasons, please change your password immediately. 
+                âš ï¸ For security reasons, please change your password immediately. 
                 Your current password was set by staff and is not secure.
             </p>
 
-            <!-- 🔥 UPDATED BUTTON -->
+            <!-- ðŸ”¥ UPDATED BUTTON -->
             <a href="./Edit_Profile.html#passwordChange">
                 <button 
                     class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition">
