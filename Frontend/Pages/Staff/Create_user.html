@@ -127,30 +127,30 @@
           <p>Create User Account</p>
         </div>
 
-        <form id="registerForm">
+        <form id="registerForm" autocomplete="off">
 
           <div class="input-group">
             <label>Full Name</label>
-            <input type="text" id="name" placeholder="Enter full name">
+            <input type="text" id="name" autocomplete="off" placeholder="Enter full name">
             <p id="nameError"></p>
           </div>
 
           <div class="input-group">
             <label>Email</label>
-            <input type="email" id="email" placeholder="Enter email">
+            <input type="email" id="email" autocomplete="off" placeholder="Enter email">
             <p id="emailError"></p>
           </div>
 
           <div class="input-group">
             <label>Phone Number</label>
-            <input type="text" id="phNum" placeholder="Enter phone number">
+            <input type="text" id="phNum" autocomplete="off" placeholder="Enter phone number">
             <p id="phoneError"></p>
           </div>
 
           <!-- ROLE -->
           <div class="input-group">
             <label>Role</label>
-            <select id="role">
+            <select id="role" autocomplete="off">
               <option value="" disabled selected>Select Role</option>
               <option value="student">Student</option>
               <option value="tutor">Tutor</option>
@@ -162,7 +162,7 @@
           <!-- PROGRAM -->
           <div id="programContainer" class="input-group hidden">
             <label>Program</label>
-            <select id="program">
+            <select id="program" autocomplete="off">
               <option value="" disabled selected>Select program</option>
               <option>Computer Science</option>
               <option>Business</option>
@@ -175,7 +175,7 @@
           <!-- STAFF TYPE -->
           <div id="staffTypeContainer" class="input-group hidden">
             <label>Staff Type</label>
-            <select id="staffType">
+            <select id="staffType" autocomplete="off">
               <option value="" disabled selected>Select staff</option>
               <option value="normal">Staff</option>
               <option value="authorised">Authorised Staff</option>
@@ -186,7 +186,7 @@
           <!-- DEPARTMENT -->
           <div id="departmentContainer" class="input-group hidden">
             <label>Department</label>
-            <select id="department">
+            <select id="department" autocomplete="off">
               <option value="" disabled selected>Select department</option>
               <option>Computer Science</option>
               <option>Business</option>
@@ -197,13 +197,13 @@
 
           <div class="input-group">
             <label>Password</label>
-            <input type="password" id="password" placeholder="Enter password">
+            <input type="password" id="password" autocomplete="new-password" placeholder="Enter password">
             <p id="passwordError"></p>
           </div>
 
           <div class="input-group">
             <label>Confirm Password</label>
-            <input type="password" id="confirmPassword" placeholder="Enter the same password">
+            <input type="password" id="confirmPassword" autocomplete="new-password" placeholder="Enter the same password">
             <p id="confirmPasswordError"></p>
           </div>
 

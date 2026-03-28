@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   bindShell();
   bindResetForm();
   prefillResetLoginFromQuery();
+  clearResetFormAutofill();
   await loadLastLogin();
 });
 
@@ -124,6 +125,23 @@ function prefillResetLoginFromQuery() {
   const presetLogin = getResetLoginFromQuery();
   if (presetLogin) {
     loginInput.value = presetLogin;
+  }
+}
+
+function clearResetFormAutofill() {
+  const loginInput = document.getElementById("resetLogin");
+  const newPasswordInput = document.getElementById("resetNewPassword");
+  const confirmPasswordInput = document.getElementById("resetConfirmPassword");
+  const presetLogin = getResetLoginFromQuery();
+
+  if (loginInput) {
+    loginInput.value = presetLogin || "";
+  }
+  if (newPasswordInput) {
+    newPasswordInput.value = "";
+  }
+  if (confirmPasswordInput) {
+    confirmPasswordInput.value = "";
   }
 }
 
