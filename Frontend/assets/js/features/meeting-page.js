@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 const meetingState = {
   meetings: [],
   myTutor: null,
+  currentTutor: null,
   studentMap: new Map(),
   page: 1,
   pageSize: 6
@@ -88,6 +89,7 @@ async function initializeTutorMeetings() {
   toggleMeetingTypeFields();
 
   await Promise.allSettled([
+    loadTutorIdentity(),
     loadAssignedStudents(),
     loadTutorMeetings()
   ]);
@@ -439,7 +441,6 @@ function renderMeetingCard(data) {
   return `
     <div class="meeting-card">
       <div class="flex items-center gap-4 mb-4">
-        <img src="${escapeHtml(data.displayImage)}" alt="Profile" class="profile-pic">
         <div>
           <p class="tutor-name">${escapeHtml(data.displayName)}</p>
           <p class="tutor-email">${escapeHtml(data.displayEmail)}</p>
@@ -462,6 +463,7 @@ function parseOutcomeMeta(outcome) {
   let platform = "";
   let location = "";
   let title = "";
+  let student = "";
 
   const titleMatch = text.match(/\[title:([^\]]+)\]/i);
   if (titleMatch) {
@@ -489,6 +491,7 @@ function parseOutcomeMeta(outcome) {
 
   return {
     title,
+    student,
     platform,
     location,
     note: text

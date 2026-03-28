@@ -11,9 +11,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   const canManagePosts = role === "student" || role === "tutor";
 
   bindLogout();
+  bindCommentActions();
   if (canManagePosts) {
     bindComposerActions();
-    bindCommentActions();
     bindDeleteActions();
   }
 

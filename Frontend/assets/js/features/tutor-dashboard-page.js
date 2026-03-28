@@ -138,7 +138,6 @@ async function loadRecentMeetings() {
 
         return `
           <div class="meeting-card">
-            <img src="../../Images/meeting example pic.jpg" alt="Meeting image">
             <div class="meeting-info">
               <h3>${title}</h3>
               <p>${timeLabel}</p>

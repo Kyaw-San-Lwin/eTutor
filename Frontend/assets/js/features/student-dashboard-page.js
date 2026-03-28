@@ -136,7 +136,6 @@ async function loadRecentMeetings() {
 
         return `
           <div class="meeting-card">
-            <img src="../../Images/meeting example pic.jpg" alt="Meeting image">
             <div class="meeting-info">
               <h3>${title}</h3>
               <p>${timeLabel}</p>
@@ -175,9 +174,9 @@ async function loadRecentComments() {
     const comments = feedback.length ? feedback : null;
 
     if (!comments) {
-      const response = await window.ApiClient.get("blog_comment");
+      const response = await window.ApiClient.get("document_comment");
       const fallback = Array.isArray(response.data) ? response.data.slice(0, 4) : [];
-      renderCommentRows(fallback, false, container);
+      renderCommentRows(fallback, true, container);
       return;
     }
 
@@ -203,9 +202,7 @@ function renderCommentRows(comments, isTutorFeedback, container) {
         : (comment.full_name || comment.display_name || comment.user_name || "Unknown user");
       const avatarPath = isTutorFeedback ? (comment.tutor_profile_photo || "") : (comment.profile_photo || "");
       const avatar = avatarPath ? resolveAssetUrl(avatarPath) : getAvatarFromName(displayName);
-      const preview = isTutorFeedback
-        ? (comment.comment || "")
-        : "";
+      const preview = comment.comment || "";
       return `
         <div class="comment-item">
           <div class="flex items-center gap-3">

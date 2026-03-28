@@ -166,7 +166,7 @@ async function loadBaseContacts(user) {
       email: row.tutor_email || "",
       subtitle: row.tutor_department || "Tutor",
       avatar: row.tutor_profile_photo
-        ? resolveAssetUrl(row.tutor_profile_photo)
+        ? resolveAssetUrl(withCacheBuster(row.tutor_profile_photo))
           : getAvatarFromName(row.tutor_full_name || row.tutor_display_name || row.tutor_user_name || "Tutor")
     }];
   }
@@ -592,6 +592,15 @@ function getAvatarFromName(name) {
     .join("") || "U";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect width="100%" height="100%" fill="#1d4ed8"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="18" fill="#ffffff">${initials}</text></svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function withCacheBuster(path) {
+  const value = String(path || "").trim();
+  if (!value) {
+    return "";
+  }
+  const joiner = value.includes("?") ? "&" : "?";
+  return `${value}${joiner}v=${Date.now()}`;
 }
 
 function formatDate(value) {

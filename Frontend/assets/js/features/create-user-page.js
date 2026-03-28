@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   bindStaffShell();
   bindRoleVisibility();
   bindCreateUserSubmit();
+  resetCreateUserForm();
   await loadLastLogin();
 });
 
@@ -113,6 +114,30 @@ function bindCreateUserSubmit() {
       if (submitBtn) {
         submitBtn.disabled = false;
       }
+    }
+  });
+}
+
+function resetCreateUserForm() {
+  const form = document.getElementById("registerForm");
+  if (!form) {
+    return;
+  }
+  form.reset();
+  [
+    "name",
+    "email",
+    "phNum",
+    "role",
+    "program",
+    "staffType",
+    "department",
+    "password",
+    "confirmPassword"
+  ].forEach(function (id) {
+    const node = document.getElementById(id);
+    if (node) {
+      node.value = "";
     }
   });
 }

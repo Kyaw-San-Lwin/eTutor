@@ -60,8 +60,10 @@
 .meeting-card{
     background:white;
     border-radius:12px;
-    overflow:hidden;
     box-shadow:0 2px 6px rgba(0,0,0,0.05);
+    min-height:170px;
+    display:flex;
+    flex-direction:column;
 }
 
 .meeting-card img{
@@ -71,7 +73,22 @@
 }
 
 .meeting-info{
-    padding:16px;
+    padding:18px 18px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    height:100%;
+}
+
+.meeting-info h3{
+    margin:0;
+    font-size:28px;
+    font-weight:700;
+}
+
+.meeting-info p{
+    margin:0;
+    font-size:15px;
 }
 
 .date{
@@ -85,7 +102,8 @@
     color:white;
     padding:8px 16px;
     border-radius:6px;
-    margin-top:10px;
+    margin-top:auto;
+    align-self:flex-start;
     transition:0.2s;
 }
 
@@ -118,6 +136,7 @@
 
     .meeting-card{
         width:48%;
+        min-height:160px;
     }
 
 }
@@ -147,6 +166,7 @@
 
     .meeting-card{
         width:100%;
+        min-height:unset;
     }
 
     /* smaller meeting image */

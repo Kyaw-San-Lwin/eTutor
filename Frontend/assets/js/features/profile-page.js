@@ -120,7 +120,7 @@ async function loadAllocatedTutorProfile() {
     setText("profileEmail", data.tutor_email || "N/A");
     setText("profileThirdValue", data.tutor_user_name || "N/A");
     setText("profileDepartment", data.tutor_department || "N/A");
-    setProfileImage(data.tutor_profile_photo || "");
+    setProfileImage(withCacheBuster(data.tutor_profile_photo || ""));
   } catch (error) {
     renderProfileError(error.message || "Unable to load tutor profile.");
   }
@@ -147,6 +147,15 @@ function setProfileImage(path) {
 
   const name = document.getElementById("profileName")?.textContent || "User";
   image.src = path ? resolveAssetUrl(path) : getAvatarFromName(name);
+}
+
+function withCacheBuster(path) {
+  const value = String(path || "").trim();
+  if (!value) {
+    return "";
+  }
+  const joiner = value.includes("?") ? "&" : "?";
+  return `${value}${joiner}v=${Date.now()}`;
 }
 
 function setText(id, value) {
