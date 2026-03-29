@@ -190,11 +190,15 @@ async function loadRecentComments() {
         const avatar = comment.profile_photo
           ? resolveAssetUrl(comment.profile_photo)
           : getAvatarFromName(displayName);
+        const preview = String(comment.comment || "").trim();
         return `
           <div class="comment-item">
             <div class="flex items-center gap-3">
               <img src="${avatar}" class="w-10 h-10 rounded-full" alt="User avatar">
-              <p>${escapeHtml(displayName)}</p>
+              <div>
+                <p>${escapeHtml(displayName)}</p>
+                ${preview ? `<p class="text-xs text-gray-500">${escapeHtml(preview.slice(0, 80))}${preview.length > 80 ? "..." : ""}</p>` : ""}
+              </div>
             </div>
             <div class="flex items-center gap-3 text-gray-500">
               <i class="bi bi-chat"></i>

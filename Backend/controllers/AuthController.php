@@ -10,6 +10,185 @@ use Firebase\JWT\Key;
 
 class AuthController
 {
+    private function ensureLoginLockoutTable(mysqli $conn): void
+    {
+        $sql = "
+            CREATE TABLE IF NOT EXISTS login_lockouts (
+                lockout_id INT AUTO_INCREMENT PRIMARY KEY,
+                client_key VARCHAR(191) NOT NULL UNIQUE,
+                failed_attempts INT NOT NULL DEFAULT 0,
+                locked_until DATETIME NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+        ";
+        if (!$conn->query($sql)) {
+            error_log("LOGIN_LOCKOUT_TABLE_INIT_FAILED");
+        }
+    }
+
+    private function getClientKey(): string
+    {
+        $forwarded = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
+        $candidate = '';
+        if (is_string($forwarded) && trim($forwarded) !== '') {
+            $parts = explode(',', $forwarded);
+            $candidate = trim((string) ($parts[0] ?? ''));
+        }
+        if ($candidate === '') {
+            $candidate = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        }
+        return substr($candidate, 0, 190);
+    }
+
+    private function secondsRemainingFromDateTime(?string $lockedUntil): int
+    {
+        if (!$lockedUntil) {
+            return 0;
+        }
+        $lockedTs = strtotime($lockedUntil);
+        if ($lockedTs === false) {
+            return 0;
+        }
+        return max(0, $lockedTs - time());
+    }
+
+    private function getUserLockRemainingSeconds(mysqli $conn, int $userId): int
+    {
+        $stmt = $conn->prepare("
+            SELECT GREATEST(TIMESTAMPDIFF(SECOND, NOW(), locked_until), 0) AS remaining
+            FROM users
+            WHERE user_id = ?
+            LIMIT 1
+        ");
+        if (!$stmt) {
+            return 0;
+        }
+
+        $stmt->bind_param("i", $userId);
+        if (!$stmt->execute()) {
+            return 0;
+        }
+
+        $row = $stmt->get_result()->fetch_assoc();
+        return (int) ($row['remaining'] ?? 0);
+    }
+
+    private function formatCountdown(int $seconds): string
+    {
+        $safe = max(0, $seconds);
+        $minutes = intdiv($safe, 60);
+        $remaining = $safe % 60;
+        return sprintf('%02d:%02d', $minutes, $remaining);
+    }
+
+    private function getClientLockout(mysqli $conn, string $clientKey): ?array
+    {
+        $stmt = $conn->prepare("
+            SELECT failed_attempts, locked_until
+            FROM login_lockouts
+            WHERE client_key = ?
+            LIMIT 1
+        ");
+        if (!$stmt) {
+            return null;
+        }
+        $stmt->bind_param("s", $clientKey);
+        if (!$stmt->execute()) {
+            return null;
+        }
+        $row = $stmt->get_result()->fetch_assoc();
+        return is_array($row) ? $row : null;
+    }
+
+    private function getClientLockRemainingSeconds(mysqli $conn, string $clientKey): int
+    {
+        $stmt = $conn->prepare("
+            SELECT GREATEST(TIMESTAMPDIFF(SECOND, NOW(), locked_until), 0) AS remaining
+            FROM login_lockouts
+            WHERE client_key = ?
+            LIMIT 1
+        ");
+        if (!$stmt) {
+            return 0;
+        }
+        $stmt->bind_param("s", $clientKey);
+        if (!$stmt->execute()) {
+            return 0;
+        }
+        $row = $stmt->get_result()->fetch_assoc();
+        return (int) ($row['remaining'] ?? 0);
+    }
+
+    private function normalizeClientLockState(mysqli $conn, string $clientKey): int
+    {
+        $remaining = $this->getClientLockRemainingSeconds($conn, $clientKey);
+        if ($remaining > 60) {
+            $this->clearClientLockout($conn, $clientKey);
+            return 0;
+        }
+        return max(0, $remaining);
+    }
+
+    private function clearClientLockout(mysqli $conn, string $clientKey): void
+    {
+        $stmt = $conn->prepare("
+            INSERT INTO login_lockouts (client_key, failed_attempts, locked_until)
+            VALUES (?, 0, NULL)
+            ON DUPLICATE KEY UPDATE failed_attempts = 0, locked_until = NULL
+        ");
+        if (!$stmt) {
+            return;
+        }
+        $stmt->bind_param("s", $clientKey);
+        $stmt->execute();
+    }
+
+    private function registerClientFailedAttempt(mysqli $conn, string $clientKey): array
+    {
+        $row = $this->getClientLockout($conn, $clientKey);
+        $failedAttempts = (int) ($row['failed_attempts'] ?? 0) + 1;
+        $lockedUntil = null;
+        $isLocked = false;
+        $remaining = 0;
+
+        if ($failedAttempts >= 3) {
+            $isLocked = true;
+            $remaining = 60;
+            $lockedUntil = date('Y-m-d H:i:s', time() + 60);
+        }
+
+        if ($isLocked) {
+            $stmt = $conn->prepare("
+                INSERT INTO login_lockouts (client_key, failed_attempts, locked_until)
+                VALUES (?, 0, DATE_ADD(NOW(), INTERVAL 1 MINUTE))
+                ON DUPLICATE KEY UPDATE failed_attempts = 0, locked_until = DATE_ADD(NOW(), INTERVAL 1 MINUTE)
+            ");
+            if ($stmt) {
+                $stmt->bind_param("s", $clientKey);
+                $stmt->execute();
+                $fresh = $this->getClientLockout($conn, $clientKey);
+                $lockedUntil = (string) ($fresh['locked_until'] ?? $lockedUntil);
+                $remaining = $this->getClientLockRemainingSeconds($conn, $clientKey);
+            }
+        } else {
+            $stmt = $conn->prepare("
+                INSERT INTO login_lockouts (client_key, failed_attempts, locked_until)
+                VALUES (?, ?, NULL)
+                ON DUPLICATE KEY UPDATE failed_attempts = VALUES(failed_attempts), locked_until = NULL
+            ");
+            if ($stmt) {
+                $stmt->bind_param("si", $clientKey, $failedAttempts);
+                $stmt->execute();
+            }
+        }
+
+        return [
+            'is_locked' => $isLocked,
+            'remaining_seconds' => $remaining,
+            'locked_until' => $lockedUntil
+        ];
+    }
+
     private function envBool(string $key, bool $default = false): bool
     {
         if (array_key_exists($key, $_ENV)) {
@@ -109,6 +288,26 @@ class AuthController
         }
     }
 
+    private function ensureLoginAttemptColumns(mysqli $conn): bool
+    {
+        if (!$this->hasColumn($conn, 'users', 'failed_login_attempts')) {
+            $sql = "ALTER TABLE users ADD COLUMN failed_login_attempts INT NOT NULL DEFAULT 0 AFTER must_change_password";
+            if (!$conn->query($sql) && !$this->hasColumn($conn, 'users', 'failed_login_attempts')) {
+                error_log("LOGIN_LOCK_INIT_FAILED: failed_login_attempts");
+            }
+        }
+
+        if (!$this->hasColumn($conn, 'users', 'locked_until')) {
+            $sql = "ALTER TABLE users ADD COLUMN locked_until DATETIME NULL AFTER failed_login_attempts";
+            if (!$conn->query($sql) && !$this->hasColumn($conn, 'users', 'locked_until')) {
+                error_log("LOGIN_LOCK_INIT_FAILED: locked_until");
+            }
+        }
+
+        return $this->hasColumn($conn, 'users', 'failed_login_attempts')
+            && $this->hasColumn($conn, 'users', 'locked_until');
+    }
+
     private function getBearerTokenFromHeaders(): ?string
     {
         $headers = getallheaders();
@@ -155,6 +354,25 @@ class AuthController
         global $conn;
         $this->ensureTokenVersionColumn($conn);
         $this->ensureMustChangePasswordColumn($conn);
+        $lockFeatureReady = $this->ensureLoginAttemptColumns($conn);
+        $this->ensureLoginLockoutTable($conn);
+        $clientKey = $this->getClientKey();
+        $failedAttemptsSelect = $lockFeatureReady ? "users.failed_login_attempts" : "0 AS failed_login_attempts";
+        $lockedUntilSelect = $lockFeatureReady ? "users.locked_until" : "NULL AS locked_until";
+
+        $clientLockRow = $this->getClientLockout($conn, $clientKey);
+        $clientLockedUntil = (string) ($clientLockRow['locked_until'] ?? '');
+        $clientRemaining = $this->normalizeClientLockState($conn, $clientKey);
+        if ($clientRemaining > 0) {
+            Response::json([
+                "message" => "Too many failed attempts. Please wait " . $this->formatCountdown($clientRemaining) . " before trying again.",
+                "data" => [
+                    "lock_scope" => "client",
+                    "retry_after_seconds" => $clientRemaining,
+                    "locked_until" => $clientLockedUntil
+                ]
+            ], 429);
+        }
 
         $data = $this->getRequestData();
         if ($data === null) {
@@ -174,6 +392,8 @@ class AuthController
         users.account_status,
         users.token_version,
         users.must_change_password,
+        {$failedAttemptsSelect},
+        {$lockedUntilSelect},
         users.profile_photo,
         users.last_login,
         roles.role_name,
@@ -187,9 +407,13 @@ class AuthController
     WHERE users.email = ? OR users.user_name = ?
 ");
 
-
+        if (!$stmt) {
+            Response::json(["message" => "Failed to process login"], 500);
+        }
         $stmt->bind_param("ss", $login, $login);
-        $stmt->execute();
+        if (!$stmt->execute()) {
+            Response::json(["message" => "Failed to process login"], 500);
+        }
         $result = $stmt->get_result();
         if ($result->num_rows > 0) {
 
@@ -200,6 +424,19 @@ class AuthController
             }
 
             if (password_verify($password, $user['password'])) {
+                $this->clearClientLockout($conn, $clientKey);
+                if ($lockFeatureReady) {
+                    $resetAttemptsStmt = $conn->prepare("
+                        UPDATE users
+                        SET failed_login_attempts = 0, locked_until = NULL
+                        WHERE user_id = ?
+                    ");
+                    if ($resetAttemptsStmt) {
+                        $resetAttemptsStmt->bind_param("i", $user['user_id']);
+                        $resetAttemptsStmt->execute();
+                    }
+                }
+
                 $roleName = strtolower((string) ($user['role_name'] ?? ''));
                 $enforceActiveTutor = $this->envBool('ETUTOR_REQUIRE_ACTIVE_TUTOR_ON_STUDENT_LOGIN', false);
                 if (
@@ -247,9 +484,26 @@ class AuthController
                     ]
                 ]);
             } else {
+                $clientLock = $this->registerClientFailedAttempt($conn, $clientKey);
+
+                if (!empty($clientLock['is_locked'])) {
+                    $remaining = (int) ($clientLock['remaining_seconds'] ?? 60);
+                    $lockedUntil = (string) ($clientLock['locked_until'] ?? '');
+                    Response::json([
+                        "message" => "Too many failed attempts. Please wait " . $this->formatCountdown($remaining) . " before trying again.",
+                        "data" => [
+                            "lock_scope" => "client",
+                            "retry_after_seconds" => $remaining,
+                            "locked_until" => $lockedUntil
+                        ]
+                    ], 429);
+                }
+
                 Response::json(["message" => "Invalid credentials"], 401);
             }
         } else {
+            // Do not increment lock counter for unknown username/email.
+            // Lock policy must apply only to password failures on existing accounts.
             Response::json(["message" => "Invalid credentials"], 401);
         }
     }
