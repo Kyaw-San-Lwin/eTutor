@@ -327,6 +327,9 @@ class DashboardController
                 }
                 $data["upcoming_meetings"] = $upcomingMeetings;
 
+                $feedbackPhotoSelect = $this->hasColumn('users', 'profile_photo')
+                    ? ", tu.profile_photo AS tutor_profile_photo"
+                    : ", NULL AS tutor_profile_photo";
                 $recentFeedback = [];
                 $commentStmt = $this->conn->prepare("
                     SELECT dc.document_id,
@@ -334,6 +337,7 @@ class DashboardController
                            dc.comment,
                            dc.created_at AS commented_at,
                            COALESCE(NULLIF(t.full_name, ''), tu.user_name) AS tutor_full_name
+                           {$feedbackPhotoSelect}
                     FROM document_comments dc
                     JOIN documents d ON dc.document_id = d.document_id
                     JOIN tutors t ON dc.tutor_id = t.tutor_id
