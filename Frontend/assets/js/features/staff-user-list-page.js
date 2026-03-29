@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", async function () {
+﻿document.addEventListener("DOMContentLoaded", async function () {
   const roleFilter = document.body.dataset.userListRole || "";
   if (!roleFilter) {
     return;
@@ -228,19 +228,23 @@ function renderUsers() {
     const viewUrl = buildDashboardViewUrl(Number(user.user_id || 0), roleFilter);
 
     const actionCell = `
-      <td class="flex gap-2 items-center">
-        <a href="${viewUrl}" class="assign-btn">View Dashboard</a>
-        ${listState.isAdmin
-          ? `<button type="button" class="assign-btn" data-reset-user-id="${Number(user.user_id || 0)}" data-reset-login="${escapeHtml(user.email || user.user_name || "")}">Reset Password</button>`
-          : ""}
+      <td class="actions-cell">
+        <div class="action-buttons">
+          <a href="${viewUrl}" class="assign-btn">View Dashboard</a>
+          ${listState.isAdmin
+            ? `<button type="button" class="assign-btn" data-reset-user-id="${Number(user.user_id || 0)}" data-reset-login="${escapeHtml(user.email || user.user_name || "")}">Reset Password</button>`
+            : ""}
+        </div>
       </td>
     `;
 
     return `
       <tr>
-        <td class="student-name">
-          <img src="${avatar}" class="student-avatar" alt="Avatar">
-          ${escapeHtml(displayName)}
+        <td>
+          <div class="student-name">
+            <img src="${avatar}" class="student-avatar" alt="Avatar">
+            <span class="student-name-text">${escapeHtml(displayName)}</span>
+          </div>
         </td>
         <td>${escapeHtml(phone)}</td>
         <td>${escapeHtml(category)}</td>
@@ -414,3 +418,5 @@ function formatDateTime(value) {
     hour12: false
   });
 }
+
+

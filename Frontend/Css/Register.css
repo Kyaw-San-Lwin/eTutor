@@ -1,3 +1,11 @@
+﻿.create-main{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:40px;
+}
+
 /* FORM CONTAINER */
 .form-container{
     width:100%;
@@ -76,74 +84,4 @@
 
 .submit-btn:hover{
     background:#003f7d;
-}
-
-/* =========================
-   TABLET RESPONSIVE (≤1024px)
-========================= */
-@media (max-width: 1024px){
-
-    .form-container{
-        max-width: 380px;   /* slightly smaller */
-        padding: 28px;
-    }
-
-    .form-header h1{
-        font-size: 22px;
-    }
-
-    .form-header img{
-        width: 70px;
-    }
-
-    .input-group input,
-    .input-group select{
-        padding: 9px;
-    }
-}
-
-
-/* =========================
-   MOBILE RESPONSIVE (≤768px)
-========================= */
-@media (max-width: 768px){
-
-    .form-container{
-        max-width: 100%;   /* full width on mobile */
-        padding: 20px;
-        border-radius: 12px;
-    }
-
-    .form-header{
-        margin-bottom: 16px;
-    }
-
-    .form-header h1{
-        font-size: 20px;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .form-header img{
-        width: 60px;
-    }
-
-    .input-group{
-        margin-bottom: 14px;
-    }
-
-    .input-group label{
-        font-size: 13px;
-    }
-
-    .input-group input,
-    .input-group select{
-        padding: 8px;
-        font-size: 14px;
-    }
-
-    .submit-btn{
-        padding: 9px;
-        font-size: 14px;
-    }
 }

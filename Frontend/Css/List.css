@@ -1,4 +1,4 @@
-*{
+﻿*{
     margin:0;
     padding:0;
     box-sizing:border-box;
@@ -109,11 +109,16 @@ th{
 }
 
 .assign-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
     background:#1e3a8a;
     color:white;
-    padding:4px 12px;
+    padding:6px 12px;
     border-radius:5px;
     font-size:13px;
+    line-height:1.2;
+    white-space:nowrap;
     cursor:pointer;
     transition:0.2s;
 }
@@ -203,13 +208,54 @@ th{
         padding:6px;
     }
 
+    table{
+        min-width:720px;
+    }
+
     th,td{
         font-size:12px;
-        padding:6px;
+        padding:8px 8px;
+        vertical-align: middle;
+    }
+
+    .student-name{
+        gap:8px;
+        min-width:0;
+    }
+
+    .student-name-text{
+        white-space:normal;
+        line-height:1.25;
     }
 
     .student-avatar{
         width:24px;
         height:24px;
+        flex-shrink:0;
+    }
+
+    .actions-cell{
+        min-width:140px;
+    }
+
+    .action-buttons{
+        gap:6px;
     }
 }
+
+.student-name-text{
+    display:inline-block;
+    min-width:0;
+}
+
+.actions-cell{
+    vertical-align: middle;
+}
+
+.action-buttons{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+}
+

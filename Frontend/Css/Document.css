@@ -117,6 +117,132 @@ tbody tr:hover{
     text-decoration:underline;
 }
 
+
+/* Student Name */
+.student-name{
+    color:#2563eb;
+    cursor:pointer;
+    font-weight:500;
+    white-space: nowrap;
+}
+
+.student-name:hover{
+    text-decoration:underline;
+}
+
+/* PROFILE PANEL */
+.student-profile{
+    position:fixed;
+    top:0;
+    right:-390px;
+    width:360px;
+    max-width:calc(100vw - 32px);
+    height:100vh;
+    background:white;
+    box-shadow:-5px 0 15px rgba(0,0,0,0.1);
+    transition:right 0.3s ease;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:48px 20px 24px;
+    overflow-y:auto;
+}
+
+.student-profile.show{
+    right:0;
+}
+
+/* PROFILE CARD */
+.profile-card{
+    width:100%;
+    max-width:320px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+}
+
+.profile-card img{
+    width:180px;
+    height:180px;
+    border-radius:50%;
+    object-fit:cover;
+    margin-bottom:0;
+}
+
+.profile-card h3{
+    font-size:18px;
+    font-weight:600;
+    margin-bottom:0;
+    word-break:break-word;
+}
+
+#studentMeta{
+    width:100%;
+    color:#374151;
+    line-height:1.6;
+    text-align:center;
+    white-space:normal;
+    word-break:break-word;
+}
+
+/* MESSAGE BUTTON */
+.message-btn{
+    background:#2563eb;
+    color:white;
+    padding:10px 20px;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:auto;
+    transition:0.2s;
+}
+
+.message-btn:hover{
+    background:#1e40af;
+}
+
+.student-avatar{
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    object-fit:cover;
+}
+
+.comment-box {
+    width:100%;
+    margin-top: 6px;
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.comment-box textarea {
+    flex: 1;
+    min-width:0;
+    resize: none;
+    height: 72px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+.send-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    align-self:flex-end;
+}
+
+.send-btn:hover {
+    background: #45a049;
+}
 /* ===================== TABLET (1024px) ===================== */
 @media (max-width:1024px) {
 

@@ -201,22 +201,24 @@ function renderBlogs() {
 
     return `
       <div class="post-card" data-blog-id="${postId}">
-        <div class="post-header">
-          <img src="${(blog.profile_photo || blog.author_profile_photo) ? resolveAssetUrl(blog.profile_photo || blog.author_profile_photo) : getDefaultAvatar(blog.full_name || blog.display_name || blog.user_name || "User")}" alt="Author avatar">
-          <div>
-            <h2>${escapeHtml(blog.full_name || blog.display_name || blog.user_name || "Unknown user")}</h2>
-            <p>${escapeHtml(blog.email || "")}</p>
+        <div class="post-card-top">
+          <div class="post-header">
+            <img src="${(blog.profile_photo || blog.author_profile_photo) ? resolveAssetUrl(blog.profile_photo || blog.author_profile_photo) : getDefaultAvatar(blog.full_name || blog.display_name || blog.user_name || "User")}" alt="Author avatar">
+            <div>
+              <h2>${escapeHtml(blog.full_name || blog.display_name || blog.user_name || "Unknown user")}</h2>
+              <p>${escapeHtml(blog.email || "")}</p>
+            </div>
           </div>
+
+          ${canDelete ? `
+          <button class="delete-btn" data-delete-id="${Number(blog.blog_id)}" aria-label="Delete post" title="Delete post">
+            <i class="bi bi-trash"></i>
+          </button>
+          ` : ``}
         </div>
 
         <p class="post-text">${escapeHtml(blog.content || "")}</p>
         <p class="post-time">${escapeHtml(formatDateTime(blog.created_at))}</p>
-
-        ${canDelete ? `
-        <button class="delete-btn" data-delete-id="${Number(blog.blog_id)}">
-          <i class="bi bi-trash"></i> Delete
-        </button>
-        ` : ``}
 
         <div class="mt-3">
           <button type="button" class="comment-toggle-btn" data-toggle-comments-post-id="${postId}">

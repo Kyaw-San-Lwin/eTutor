@@ -223,8 +223,14 @@
         height: 35px;
     }
 
+    .profile-info {
+        align-items: flex-start;
+    }
+
     .name-time {
         gap: 3px;
+        flex-wrap: wrap;
+        align-items: center;
     }
 
     .tutor-name {
@@ -235,8 +241,19 @@
         font-size: 12px;
     }
 
+    .meeting-tabs {
+        width: 100%;
+        margin-top: 6px;
+        margin-left: 47px;
+    }
+
     .tab-btn {
-        padding: 2px 4px;
+        display: inline-block;
+        max-width: 100%;
+        white-space: normal;
+        word-break: break-word;
+        padding: 4px 8px;
         font-size: 12px;
+        line-height: 1.4;
     }
 }

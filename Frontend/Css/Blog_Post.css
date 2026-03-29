@@ -87,6 +87,13 @@ textarea{
 }
 
 /* HEADER */
+.post-card-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+}
+
 .post-header{
     display:flex;
     align-items:center;
@@ -164,17 +171,28 @@ textarea{
 }
 
 .delete-btn {
-    margin-top: 10px;
-    background: #e74c3c;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    align-self:flex-start;
+    background: rgba(255,255,255,0.14);
     color: white;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.18);
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 999px;
     cursor: pointer;
+    flex-shrink:0;
 }
 
 .delete-btn:hover {
-    background: #c0392b;
+    background: rgba(231,76,60,0.95);
+}
+
+.delete-btn i{
+    font-size:16px;
+    line-height:1;
 }
 
 .comment-toggle-btn {
@@ -250,8 +268,15 @@ textarea{
         padding: 20px;
     }
 
+    .post-card-top {
+        align-items:flex-start;
+        gap:12px;
+    }
+
     .post-header {
         gap: 10px;
+        flex:1;
+        min-width:0;
     }
 
     .post-header img {

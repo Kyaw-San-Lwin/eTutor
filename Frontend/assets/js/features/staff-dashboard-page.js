@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", async function () {
+﻿document.addEventListener("DOMContentLoaded", async function () {
   const user = window.Auth.requireAuth(["staff"]);
   if (!user) {
     return;
@@ -619,3 +619,4 @@ function getTargetViewFromQuery() {
     role: role
   };
 }
+

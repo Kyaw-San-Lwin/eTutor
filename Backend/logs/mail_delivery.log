@@ -1,0 +1,4 @@
+[2026-03-29 10:30:23] send_attempt transport=smtp to=kazuha@gmail.com subject=New comment on your blog post
+[2026-03-29 10:30:29] send_result transport=smtp to=kazuha@gmail.com success=true
+[2026-03-29 10:30:37] send_attempt transport=smtp to=student@gmail.com subject=New comment on your blog post
+[2026-03-29 10:30:42] send_result transport=smtp to=student@gmail.com success=true

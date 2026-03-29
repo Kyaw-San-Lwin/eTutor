@@ -1,4 +1,4 @@
-/* Main container */
+﻿/* Main container */
 .meeting-main {
     flex: 1;
     display: flex;
@@ -55,6 +55,81 @@
 .message-time {
     font-size: 12px;
     color: #9ca3af;
+}
+
+.meeting-complete-box {
+    margin-top: 18px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 16px;
+}
+
+.meeting-complete-input {
+    width: 100%;
+    min-height: 88px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 12px 14px;
+    resize: vertical;
+    outline: none;
+}
+
+.meeting-complete-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.meeting-complete-actions {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.meeting-complete-hint {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.meeting-complete-btn {
+    background: #166534;
+    color: #ffffff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.meeting-complete-btn:hover {
+    background: #14532d;
+}
+
+.meeting-complete-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.meeting-completion-note {
+    margin: 12px 0;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border: 1px solid #dbeafe;
+    border-radius: 10px;
+}
+
+.meeting-completion-label {
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #1d4ed8;
+}
+
+.meeting-completion-text {
+    font-size: 14px;
+    color: #1f2937;
 }
 
 /* For Tutor Meeting Page */
@@ -175,5 +250,14 @@
     .post-btn {
         padding: 6px 14px;
         font-size: 13px;
+    }
+
+    .meeting-complete-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .meeting-complete-btn {
+        width: 100%;
     }
 }

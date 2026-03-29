@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -18,6 +18,18 @@
     <script src="../../assets/js/features/staff-permissions-page.js"></script>
     <script src="../../assets/js/features/staff-dashboard-page.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    window.addEventListener("DOMContentLoaded", function () {
+        if (typeof window.Chart === "undefined") {
+            var fallback = document.createElement("script");
+            fallback.src = "https://unpkg.com/chart.js";
+            fallback.onerror = function () {
+                console.error("Chart.js failed to load from both CDNs.");
+            };
+            document.head.appendChild(fallback);
+        }
+    });
+</script>
 </head>
 
 <body class="bg-gray-100 font-sans">
@@ -147,17 +159,17 @@
                 <div class="bg-white p-5 rounded-lg shadow">
                     <p class="text-gray-500">Total Users</p>
                     <h2 id="metricTotalUsers" class="text-3xl font-bold">0</h2>
-                    <p class="text-green-500 text-sm">â†‘ 255 new this month</p>
+                    <p class="text-green-500 text-sm">^ 255 new this month</p>
                 </div>
                 <div class="bg-white p-5 rounded-lg shadow">
                     <p class="text-gray-500">Active Tutors</p>
                     <h2 id="metricActiveTutors" class="text-3xl font-bold">0</h2>
-                    <p class="text-green-500 text-sm">â†‘ 3 new this month</p>
+                    <p class="text-green-500 text-sm">^ 3 new this month</p>
                 </div>
                 <div class="bg-white p-5 rounded-lg shadow">
                     <p class="text-gray-500">Active Students</p>
                     <h2 id="metricActiveStudents" class="text-3xl font-bold">0</h2>
-                    <p class="text-green-500 text-sm">â†‘ 67 new this month</p>
+                    <p class="text-green-500 text-sm">^ 67 new this month</p>
                 </div>
                 <div class="bg-white p-5 rounded-lg shadow">
                     <p class="text-gray-500">Messages (7 days)</p>
@@ -245,13 +257,13 @@
                 We're glad to have you here. Start exploring your dashboard.
             </p>
 
-            <!-- ðŸ”¥ NEW SECURITY MESSAGE -->
+            <!-- Ã°Å¸â€Â¥ NEW SECURITY MESSAGE -->
             <p class="text-red-500 text-sm mb-6">
-                âš ï¸ For security reasons, please change your password immediately. 
+                Ã¢Å¡Â Ã¯Â¸Â For security reasons, please change your password immediately. 
                 Your current password was set by staff and is not secure.
             </p>
 
-            <!-- ðŸ”¥ UPDATED BUTTON -->
+            <!-- Ã°Å¸â€Â¥ UPDATED BUTTON -->
             <a href="./Edit_Profile.html#passwordChange">
                 <button 
                     class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition">
@@ -271,3 +283,6 @@
 
 </body>
 </html>
+
+
+

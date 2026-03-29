@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", async function () {
+﻿document.addEventListener("DOMContentLoaded", async function () {
   const role = document.body.dataset.meetingRole || "";
   if (!role) {
     return;
@@ -120,6 +120,7 @@ async function loadTutorIdentity() {
 function bindTutorForm() {
   const postButton = document.getElementById("postMeetingBtn");
   const typeSelect = document.getElementById("meetingType");
+  const meetingContainer = document.getElementById("meetingContainer");
 
   if (typeSelect) {
     typeSelect.addEventListener("change", toggleMeetingTypeFields);
@@ -127,6 +128,10 @@ function bindTutorForm() {
 
   if (postButton) {
     postButton.addEventListener("click", createTutorMeeting);
+  }
+
+  if (meetingContainer) {
+    meetingContainer.addEventListener("click", handleMeetingCardAction);
   }
 }
 
@@ -314,6 +319,7 @@ function renderStudentMeetings() {
   }).join("");
   renderMeetingPagination(totalPages);
 }
+
 function renderTutorMeetings() {
   const container = document.getElementById("meetingContainer");
   if (!container) {
@@ -419,10 +425,91 @@ function documentStateFromMeetingRole() {
   return String(document.body.dataset.meetingRole || "").toLowerCase();
 }
 
+async function handleMeetingCardAction(event) {
+  const completeButton = event.target.closest("[data-complete-meeting-id]");
+  if (!completeButton) {
+    return;
+  }
+
+  const meetingId = Number(completeButton.getAttribute("data-complete-meeting-id"));
+  const noteInput = document.querySelector(`[data-complete-note="${meetingId}"]`);
+  const completionNote = noteInput ? String(noteInput.value || "").trim() : "";
+
+  if (!meetingId) {
+    return;
+  }
+
+  if (!completionNote) {
+    setStatus("meetingStatus", "Please enter a tutor note before completing the meeting.", true);
+    if (noteInput) {
+      noteInput.focus();
+    }
+    return;
+  }
+
+  const meeting = meetingState.meetings.find(function (item) {
+    return Number(item.meeting_id) === meetingId;
+  });
+
+  if (!meeting) {
+    setStatus("meetingStatus", "Meeting not found.", true);
+    return;
+  }
+
+  const meta = parseOutcomeMeta(meeting.outcome || "");
+  const outcomeParts = [];
+
+  if (meta.platform) {
+    outcomeParts.push(`[platform:${meta.platform}]`);
+  }
+  if (meta.location) {
+    outcomeParts.push(`[location:${meta.location}]`);
+  }
+  if (meta.title) {
+    outcomeParts.push(`[title:${meta.title}]`);
+  }
+  if (meta.student) {
+    outcomeParts.push(`[student:${meta.student}]`);
+  }
+  if (meta.note) {
+    outcomeParts.push(meta.note);
+  }
+  outcomeParts.push(`[completed_note:${completionNote}]`);
+
+  completeButton.disabled = true;
+
+  const payload = {
+    id: meetingId,
+    meeting_type: meeting.meeting_type,
+    meeting_link: meeting.meeting_link || "",
+    outcome: outcomeParts.join(" ").trim(),
+    status: "completed"
+  };
+
+  if (meeting.meeting_type === "virtual") {
+    payload.meeting_platform = meta.platform || "Online";
+  } else if (meeting.meeting_type === "physical") {
+    payload.meeting_location = meta.location || "Location not specified";
+  }
+
+  try {
+    const response = await window.ApiClient.put("meeting", "", payload);
+
+    setStatus("meetingStatus", response.message || "Meeting marked as completed.", false);
+    await loadTutorMeetings();
+  } catch (error) {
+    setStatus("meetingStatus", error.message || "Unable to complete meeting.", true);
+  } finally {
+    completeButton.disabled = false;
+  }
+}
+
 function renderMeetingCard(data) {
   const meta = parseOutcomeMeta(data.meeting.outcome || "");
   const scheduleLabel = `${formatDate(data.meeting.meeting_date)} ${formatTime(data.meeting.meeting_time)}`.trim();
   const displayTitle = meta.title || (data.meeting.meeting_type || "Meeting").toUpperCase();
+  const isTutorView = documentStateFromMeetingRole() === "tutor";
+  const isCompleted = String(data.meeting.status || "").toLowerCase() === "completed";
   let messageBody = meta.note || "";
 
   if (data.meeting.meeting_type === "virtual") {
@@ -438,6 +525,22 @@ function renderMeetingCard(data) {
     messageBody = escapeHtml(messageBody || "Meeting details available.");
   }
 
+  const completionBlock = meta.completion
+    ? `<div class="meeting-completion-note"><p class="meeting-completion-label">Tutor note</p><p class="meeting-completion-text">${escapeHtml(meta.completion)}</p></div>`
+    : "";
+
+  const completionEditor = isTutorView && !isCompleted
+    ? `
+      <div class="meeting-complete-box">
+        <textarea class="meeting-complete-input" data-complete-note="${escapeAttribute(data.meeting.meeting_id)}" placeholder="Add completion note..."></textarea>
+        <div class="meeting-complete-actions">
+          <p class="meeting-complete-hint">Save a tutor note and mark this meeting as completed.</p>
+          <button type="button" class="meeting-complete-btn" data-complete-meeting-id="${escapeAttribute(data.meeting.meeting_id)}">Mark as Completed</button>
+        </div>
+      </div>
+    `
+    : "";
+
   return `
     <div class="meeting-card">
       <div class="flex items-center gap-4 mb-4">
@@ -450,10 +553,12 @@ function renderMeetingCard(data) {
       </div>
       <div class="message-section">
         <p class="message-text">${messageBody}</p>
+        ${completionBlock}
         <p class="message-time">
           ${escapeHtml(scheduleLabel)} | Status: ${escapeHtml(data.meeting.status || "scheduled")}
         </p>
       </div>
+      ${completionEditor}
     </div>
   `;
 }
@@ -464,6 +569,7 @@ function parseOutcomeMeta(outcome) {
   let location = "";
   let title = "";
   let student = "";
+  let completion = "";
 
   const titleMatch = text.match(/\[title:([^\]]+)\]/i);
   if (titleMatch) {
@@ -489,11 +595,18 @@ function parseOutcomeMeta(outcome) {
     text = text.replace(locationMatch[0], "").trim();
   }
 
+  const completionMatch = text.match(/\[completed_note:([^\]]+)\]/i);
+  if (completionMatch) {
+    completion = completionMatch[1].trim();
+    text = text.replace(completionMatch[0], "").trim();
+  }
+
   return {
     title,
     student,
     platform,
     location,
+    completion,
     note: text
   };
 }
@@ -584,6 +697,10 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
+function escapeAttribute(value) {
+  return escapeHtml(value).replace(/`/g, "&#96;");
+}
+
 function getAvatarFromName(name) {
   const safeName = String(name || "User").trim() || "User";
   const initials = safeName
@@ -594,7 +711,6 @@ function getAvatarFromName(name) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="100%" height="100%" fill="#1d4ed8"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="#ffffff">${initials}</text></svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
-
 
 function formatDateTime(value) {
   if (!value) {
@@ -615,3 +731,4 @@ function formatDateTime(value) {
     hour12: false
   });
 }
+
