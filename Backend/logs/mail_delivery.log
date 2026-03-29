@@ -2,3 +2,7 @@
 [2026-03-29 10:30:29] send_result transport=smtp to=kazuha@gmail.com success=true
 [2026-03-29 10:30:37] send_attempt transport=smtp to=student@gmail.com subject=New comment on your blog post
 [2026-03-29 10:30:42] send_result transport=smtp to=student@gmail.com success=true
+[2026-03-29 20:18:11] send_attempt transport=smtp to=student@gmail.com subject=Meeting recording uploaded
+[2026-03-29 20:18:17] send_result transport=smtp to=student@gmail.com success=true
+[2026-03-29 20:31:18] send_attempt transport=smtp to=kazuha@gmail.com subject=Meeting recording uploaded
+[2026-03-29 20:31:26] send_result transport=smtp to=kazuha@gmail.com success=true

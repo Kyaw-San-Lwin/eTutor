@@ -1,4 +1,4 @@
-﻿/* Main container */
+/* Main container */
 .meeting-main {
     flex: 1;
     display: flex;
@@ -259,5 +259,301 @@
 
     .meeting-complete-btn {
         width: 100%;
+    }
+}
+
+.meeting-complete-box,
+.meeting-recording-box {
+    margin-top: 18px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 16px;
+}
+
+.meeting-complete-hint,
+.meeting-recording-hint,
+.meeting-recording-existing {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.meeting-complete-btn,
+.meeting-recording-btn,
+.meeting-recording-download-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.meeting-recording-btn,
+.meeting-recording-download-btn {
+    background: #1d4ed8;
+}
+
+.meeting-recording-btn:hover,
+.meeting-recording-download-btn:hover {
+    background: #1e40af;
+}
+
+.meeting-recording-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.meeting-recording-preview {
+    margin: 12px 0;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border: 1px solid #dbeafe;
+    border-radius: 10px;
+}
+
+.meeting-recording-label {
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #1d4ed8;
+}
+
+.meeting-recording-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.meeting-recording-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.meeting-recording-controls,
+.meeting-recording-download-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.meeting-recording-input {
+    flex: 1 1 280px;
+    min-width: 0;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #ffffff;
+    outline: none;
+}
+
+.meeting-recording-status {
+    min-height: 20px;
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+.meeting-recording-status.is-error {
+    color: #dc2626;
+}
+
+.meeting-recording-status.is-success {
+    color: #059669;
+}
+
+.meeting-recording-video {
+    width: 100%;
+    max-height: 340px;
+    border-radius: 10px;
+    background: #0f172a;
+    margin-top: 8px;
+}
+
+.meeting-recording-filename {
+    flex: 1 1 240px;
+    min-width: 0;
+    color: #1f2937;
+    font-size: 14px;
+    word-break: break-word;
+}
+
+@media (max-width: 1024px) {
+    .meeting-recording-video {
+        max-height: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .meeting-complete-actions,
+    .meeting-recording-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .meeting-recording-download-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .meeting-recording-filename {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+
+    .meeting-complete-btn,
+    .meeting-recording-btn,
+    .meeting-recording-input,
+    .meeting-recording-download-btn {
+        width: 100%;
+    }
+
+    .meeting-recording-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .meeting-recording-download-actions {
+        width: 100%;
+        margin-top: 0;
+    }
+
+    .meeting-recording-video {
+        max-height: 220px;
+    }
+}
+
+.meeting-recording-toggle-row {
+    margin: 12px 0;
+}
+
+.meeting-recording-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #e0ecff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.meeting-recording-toggle-btn:hover {
+    background: #dbeafe;
+}
+
+.meeting-recording-preview.is-hidden {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .meeting-recording-toggle-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.meeting-recording-input {
+    height: auto;
+    min-height: 48px;
+    line-height: 1.35;
+}
+
+.meeting-recording-input::file-selector-button {
+    margin-right: 10px;
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.meeting-recording-input::-webkit-file-upload-button {
+    margin-right: 10px;
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .meeting-recording-input {
+        min-height: 44px;
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    .meeting-recording-input::file-selector-button,
+    .meeting-recording-input::-webkit-file-upload-button {
+        display: inline-block;
+        margin-right: 8px;
+        padding: 7px 10px;
+        font-size: 13px;
+    }
+}
+
+.meeting-recording-download-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .meeting-recording-download-actions {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 10px;
+    }
+}
+
+.meeting-recording-inline-preview {
+    margin-top: 12px;
+}
+
+
+.meeting-recording-inline-preview.is-hidden {
+    display: none;
+}
+
+
+
+@media (max-width: 768px) {
+    .meeting-recording-preview.meeting-recording-download {
+        display: block;
+    }
+
+    .meeting-recording-preview.meeting-recording-download .meeting-recording-download-row {
+        display: block;
+    }
+
+    .meeting-recording-preview.meeting-recording-download .meeting-recording-filename {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .meeting-recording-preview.meeting-recording-download .meeting-recording-download-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        gap: 10px;
     }
 }

@@ -10,6 +10,7 @@
   }
 
   bindLogout();
+  bindMeetingCardActions();
   await loadLastLogin();
 
   if (role === "student") {
@@ -24,6 +25,7 @@
 
 const meetingState = {
   meetings: [],
+  recordings: new Map(),
   myTutor: null,
   currentTutor: null,
   studentMap: new Map(),
@@ -31,6 +33,19 @@ const meetingState = {
   pageSize: 6
 };
 
+const MAX_RECORDING_SIZE = 300 * 1024 * 1024;
+const ALLOWED_RECORDING_EXTENSIONS = ["mp4"];
+
+
+function bindMeetingCardActions() {
+  const meetingContainer = document.getElementById("meetingContainer");
+  if (!meetingContainer || meetingContainer.dataset.actionsBound === "1") {
+    return;
+  }
+
+  meetingContainer.addEventListener("click", handleMeetingCardAction);
+  meetingContainer.dataset.actionsBound = "1";
+}
 function bindLogout() {
   const logoutLink = document.querySelector(".logout");
   if (logoutLink) {
@@ -64,9 +79,10 @@ async function initializeStudentMeetings() {
   container.innerHTML = '<div class="meeting-card"><p class="message-text">Loading meetings...</p></div>';
 
   try {
-    const [meetingsResponse, tutorResponse] = await Promise.allSettled([
+    const [meetingsResponse, tutorResponse, recordingsResponse] = await Promise.allSettled([
       window.ApiClient.get("meeting"),
-      window.ApiClient.get("allocation", "myTutor")
+      window.ApiClient.get("allocation", "myTutor"),
+      window.ApiClient.get("meeting_recording")
     ]);
 
     meetingState.meetings = meetingsResponse.status === "fulfilled" && Array.isArray(meetingsResponse.value.data)
@@ -78,6 +94,7 @@ async function initializeStudentMeetings() {
       ? (tutorResponse.value.data || null)
       : null;
 
+    setMeetingRecordings(recordingsResponse.status === "fulfilled" ? recordingsResponse.value.data : []);
     renderStudentMeetings();
   } catch (error) {
     container.innerHTML = `<div class="meeting-card"><p class="message-text">${escapeHtml(error.message || "Unable to load meetings.")}</p></div>`;
@@ -91,7 +108,8 @@ async function initializeTutorMeetings() {
   await Promise.allSettled([
     loadTutorIdentity(),
     loadAssignedStudents(),
-    loadTutorMeetings()
+    loadTutorMeetings(),
+    loadMeetingRecordings()
   ]);
 }
 
@@ -210,6 +228,28 @@ async function loadTutorMeetings() {
   }
 }
 
+
+async function loadMeetingRecordings() {
+  try {
+    const response = await window.ApiClient.get("meeting_recording");
+    setMeetingRecordings(response.data);
+    refreshMeetingList();
+  } catch (error) {
+    setMeetingRecordings([]);
+  }
+}
+
+function setMeetingRecordings(rows) {
+  const map = new Map();
+  (Array.isArray(rows) ? rows : []).forEach(function (row) {
+    const meetingId = Number(row.meeting_id || 0);
+    if (!meetingId || map.has(meetingId)) {
+      return;
+    }
+    map.set(meetingId, row);
+  });
+  meetingState.recordings = map;
+}
 async function createTutorMeeting() {
   const postButton = document.getElementById("postMeetingBtn");
   const studentId = Number(getValue("meetingStudent"));
@@ -272,7 +312,7 @@ async function createTutorMeeting() {
     } else {
       setValue("meetingLocation", "");
     }
-    await loadTutorMeetings();
+    await Promise.allSettled([loadTutorMeetings(), loadMeetingRecordings()]);
   } catch (error) {
     setStatus("meetingStatus", error.message || "Unable to create meeting.", true);
   } finally {
@@ -314,7 +354,8 @@ function renderStudentMeetings() {
       displayName: tutorName,
       displayEmail: tutorEmail,
       displayImage: tutorPhoto,
-      meeting
+      meeting,
+      recording: meetingState.recordings.get(Number(meeting.meeting_id)) || null
     });
   }).join("");
   renderMeetingPagination(totalPages);
@@ -357,7 +398,8 @@ function renderTutorMeetings() {
       displayEmail: tutorSecondary,
       displayImage: tutorImage,
       targetLine: `To: ${recipient}`,
-      meeting
+      meeting,
+      recording: meetingState.recordings.get(Number(meeting.meeting_id)) || null
     });
   }).join("");
   renderMeetingPagination(totalPages);
@@ -421,16 +463,46 @@ function renderMeetingPagination(totalPages) {
   }
 }
 
+function refreshMeetingList() {
+  if (documentStateFromMeetingRole() === "student") {
+    renderStudentMeetings();
+  } else {
+    renderTutorMeetings();
+  }
+}
+
 function documentStateFromMeetingRole() {
   return String(document.body.dataset.meetingRole || "").toLowerCase();
 }
 
 async function handleMeetingCardAction(event) {
   const completeButton = event.target.closest("[data-complete-meeting-id]");
-  if (!completeButton) {
+  if (completeButton) {
+    await handleCompleteMeeting(completeButton);
     return;
   }
 
+  const toggleButton = event.target.closest("[data-toggle-recording-id]");
+  if (toggleButton) {
+    const meetingId = toggleButton.getAttribute("data-toggle-recording-id");
+    const card = toggleButton.closest(".meeting-card");
+    const preview = card ? card.querySelector(`[data-recording-preview="${meetingId}"]`) : null;
+    if (preview) {
+      const isHidden = preview.classList.toggle("is-hidden");
+      toggleButton.innerHTML = isHidden
+        ? `<i class="bi bi-eye"></i> View Recording`
+        : `<i class="bi bi-eye-slash"></i> Hide Recording`;
+    }
+    return;
+  }
+
+  const uploadButton = event.target.closest("[data-upload-recording-id]");
+  if (uploadButton) {
+    await handleRecordingUpload(uploadButton);
+  }
+}
+
+async function handleCompleteMeeting(completeButton) {
   const meetingId = Number(completeButton.getAttribute("data-complete-meeting-id"));
   const noteInput = document.querySelector(`[data-complete-note="${meetingId}"]`);
   const completionNote = noteInput ? String(noteInput.value || "").trim() : "";
@@ -494,14 +566,81 @@ async function handleMeetingCardAction(event) {
 
   try {
     const response = await window.ApiClient.put("meeting", "", payload);
-
     setStatus("meetingStatus", response.message || "Meeting marked as completed.", false);
-    await loadTutorMeetings();
+    await Promise.allSettled([loadTutorMeetings(), loadMeetingRecordings()]);
   } catch (error) {
     setStatus("meetingStatus", error.message || "Unable to complete meeting.", true);
   } finally {
     completeButton.disabled = false;
   }
+}
+
+async function handleRecordingUpload(uploadButton) {
+  const meetingId = Number(uploadButton.getAttribute("data-upload-recording-id"));
+  const fileInput = document.querySelector(`[data-recording-file="${meetingId}"]`);
+  const file = fileInput?.files?.[0] || null;
+
+  if (!meetingId || !fileInput) {
+    return;
+  }
+
+  if (!file) {
+    setRecordingStatus(meetingId, "Please choose an MP4 video before uploading.", true);
+    return;
+  }
+
+  const validationError = validateRecordingFile(file);
+  if (validationError) {
+    setRecordingStatus(meetingId, validationError, true);
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("meeting_id", String(meetingId));
+  formData.append("file", file);
+
+  uploadButton.disabled = true;
+  setRecordingStatus(meetingId, "Uploading recording...", false);
+
+  try {
+    const response = await window.ApiClient.post("meeting_recording", "", formData);
+    setRecordingStatus(meetingId, response.message || "Recording uploaded successfully.", false);
+    fileInput.value = "";
+    await loadMeetingRecordings();
+  } catch (error) {
+    setRecordingStatus(meetingId, error.message || "Unable to upload recording.", true);
+  } finally {
+    uploadButton.disabled = false;
+  }
+}
+
+function validateRecordingFile(file) {
+  const name = String(file?.name || "");
+  const ext = name.includes(".") ? name.split(".").pop().toLowerCase() : "";
+
+  if (!ALLOWED_RECORDING_EXTENSIONS.includes(ext)) {
+    return "Only MP4 video files are allowed.";
+  }
+
+  if (file.size > MAX_RECORDING_SIZE) {
+    return "Recording is too large. Maximum size is 300MB.";
+  }
+
+  if (file.type && file.type !== "video/mp4") {
+    return "Only MP4 video files are allowed.";
+  }
+
+  return "";
+}
+
+function setRecordingStatus(meetingId, message, isError) {
+  const element = document.querySelector(`[data-recording-status="${meetingId}"]`);
+  if (!element) {
+    return;
+  }
+
+  element.textContent = message;
+  element.className = `meeting-recording-status ${isError ? "is-error" : "is-success"}`;
 }
 
 function renderMeetingCard(data) {
@@ -510,6 +649,8 @@ function renderMeetingCard(data) {
   const displayTitle = meta.title || (data.meeting.meeting_type || "Meeting").toUpperCase();
   const isTutorView = documentStateFromMeetingRole() === "tutor";
   const isCompleted = String(data.meeting.status || "").toLowerCase() === "completed";
+  const recording = data.recording || null;
+  const recordingUrl = recording?.file_path ? resolveAssetUrl(recording.file_path) : "";
   let messageBody = meta.note || "";
 
   if (data.meeting.meeting_type === "virtual") {
@@ -526,7 +667,58 @@ function renderMeetingCard(data) {
   }
 
   const completionBlock = meta.completion
-    ? `<div class="meeting-completion-note"><p class="meeting-completion-label">Tutor note</p><p class="meeting-completion-text">${escapeHtml(meta.completion)}</p></div>`
+    ? `<div class="meeting-completion-note"><p class="meeting-completion-label">Completion Note</p><p class="meeting-completion-text">${escapeHtml(meta.completion)}</p></div>`
+    : "";
+
+  const recordingPreview = recordingUrl
+    ? (isTutorView
+      ? `
+      <div class="meeting-recording-toggle-row">
+        <button type="button" class="meeting-recording-toggle-btn" data-toggle-recording-id="${escapeAttribute(data.meeting.meeting_id)}"><i class="bi bi-eye"></i> View Recording</button>
+      </div>
+      <div class="meeting-recording-preview is-hidden" data-recording-preview="${escapeAttribute(data.meeting.meeting_id)}">
+        <p class="meeting-recording-label">Meeting Recording</p>
+        <video class="meeting-recording-video" controls preload="metadata">
+          <source src="${escapeAttribute(recordingUrl)}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    `
+      : `
+      <div class="meeting-recording-preview meeting-recording-download">
+        <p class="meeting-recording-label">Meeting Recording</p>
+        <div class="meeting-recording-download-row">
+          <span class="meeting-recording-filename">${escapeHtml(getFileNameFromPath(recording.file_path || "recording.mp4"))}</span>
+          <div class="meeting-recording-download-actions">
+            <button type="button" class="meeting-recording-toggle-btn" data-toggle-recording-id="${escapeAttribute(data.meeting.meeting_id)}"><i class="bi bi-eye"></i> View Recording</button>
+            <a class="meeting-recording-download-btn" href="${escapeAttribute(recordingUrl)}" download>Download</a>
+          </div>
+        </div>
+        <div class="meeting-recording-inline-preview is-hidden" data-recording-preview="${escapeAttribute(data.meeting.meeting_id)}">
+          <video class="meeting-recording-video" controls preload="metadata">
+            <source src="${escapeAttribute(recordingUrl)}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
+    `)
+    : "";
+
+  const recordingUploader = isTutorView && isCompleted && !recordingUrl
+    ? `
+      <div class="meeting-recording-box">
+        <div class="meeting-recording-header">
+          <p class="meeting-recording-title">Upload Recording Video</p>
+          <p class="meeting-recording-hint">MP4 only, up to 300MB.</p>
+        </div>
+        ${recordingUrl ? `<p class="meeting-recording-existing">A recording is already uploaded for this meeting.</p>` : ""}
+        <div class="meeting-recording-controls">
+          <input class="meeting-recording-input" data-recording-file="${escapeAttribute(data.meeting.meeting_id)}" type="file" accept="video/mp4">
+          <button type="button" class="meeting-recording-btn" data-upload-recording-id="${escapeAttribute(data.meeting.meeting_id)}">Upload Video</button>
+        </div>
+        <p class="meeting-recording-status" data-recording-status="${escapeAttribute(data.meeting.meeting_id)}"></p>
+      </div>
+    `
     : "";
 
   const completionEditor = isTutorView && !isCompleted
@@ -554,11 +746,13 @@ function renderMeetingCard(data) {
       <div class="message-section">
         <p class="message-text">${messageBody}</p>
         ${completionBlock}
+        ${recordingPreview}
         <p class="message-time">
           ${escapeHtml(scheduleLabel)} | Status: ${escapeHtml(data.meeting.status || "scheduled")}
         </p>
       </div>
       ${completionEditor}
+      ${recordingUploader}
     </div>
   `;
 }
@@ -712,6 +906,15 @@ function getAvatarFromName(name) {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
+
+function getFileNameFromPath(path) {
+  const value = String(path || "").trim();
+  if (!value) {
+    return "recording.mp4";
+  }
+  const segments = value.split("/");
+  return segments[segments.length - 1] || "recording.mp4";
+}
 function formatDateTime(value) {
   if (!value) {
     return "";
@@ -731,4 +934,23 @@ function formatDateTime(value) {
     hour12: false
   });
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
