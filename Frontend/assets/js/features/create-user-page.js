@@ -104,10 +104,8 @@ function bindCreateUserSubmit() {
       form.reset();
       toggleRoleFields();
     } catch (error) {
-      const message = String(error.message || "").toLowerCase();
-      if (message.includes("already exists") || error.status === 409) {
-        setStatus("This email or username already exists.", true);
-      } else {
+      const handled = showCreateUserError(error);
+      if (!handled) {
         setStatus(error.message || "Unable to create user.", true);
       }
     } finally {
@@ -275,6 +273,88 @@ function setError(id, message) {
   if (node) {
     node.textContent = message;
   }
+}
+
+function showCreateUserError(error) {
+  const payload = error?.payload || {};
+  const structuredErrors = payload?.errors && typeof payload.errors === "object" ? payload.errors : null;
+  const rawMessage = String(payload.message || error?.message || "").trim();
+  const message = rawMessage.toLowerCase();
+  const field = String(payload.field || "").toLowerCase();
+
+  if (structuredErrors) {
+    const fieldIdMap = {
+      full_name: "nameError",
+      user_name: "nameError",
+      email: "emailError",
+      contact_number: "phoneError",
+      phone_number: "phoneError",
+      role_name: "roleError",
+      role_id: "roleError",
+      programme: "programError",
+      department: "departmentError",
+      is_admin: "staffTypeError",
+      password: "passwordError",
+      confirm_password: "confirmPasswordError"
+    };
+
+    let applied = false;
+    Object.entries(structuredErrors).forEach(function ([key, value]) {
+      const target = fieldIdMap[String(key || "").toLowerCase()];
+      const text = String(value || "").trim();
+      if (target && text) {
+        setError(target, text);
+        applied = true;
+      }
+    });
+
+    if (applied) {
+      setStatus(rawMessage || "Please correct the highlighted fields.", true);
+      return true;
+    }
+  }
+
+  if (field === "email" || message.includes("email already exists")) {
+    setError("emailError", "This email already exists.");
+    setStatus("Create user failed: this email is already in use.", true);
+    return true;
+  }
+
+  if (field === "user_name" || message.includes("username already exists")) {
+    setError("nameError", "This username already exists.");
+    setStatus("Create user failed: generated username already exists. Please try again.", true);
+    return true;
+  }
+
+  if (message.includes("role_id or role_name is required") || message.includes("invalid role")) {
+    setError("roleError", "Please choose a valid role.");
+    setStatus("Create user failed: role is missing or invalid.", true);
+    return true;
+  }
+
+  if (message.includes("password must be at least 8")) {
+    setError("passwordError", "Password must be at least 8 characters.");
+    setStatus("Create user failed: password is too short.", true);
+    return true;
+  }
+
+  if (message.includes("valid email") || message.includes("invalid email")) {
+    setError("emailError", "Please enter a valid email address.");
+    setStatus("Create user failed: email format is invalid.", true);
+    return true;
+  }
+
+  if (error?.status === 409 || message.includes("already exists")) {
+    setStatus(rawMessage || "Create user failed: this account already exists.", true);
+    return true;
+  }
+
+  if (error?.status === 400) {
+    setStatus(rawMessage || "Create user failed: please check required fields.", true);
+    return true;
+  }
+
+  return false;
 }
 
 function setStatus(message, isError) {

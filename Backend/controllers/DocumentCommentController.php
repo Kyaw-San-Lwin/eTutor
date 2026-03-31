@@ -3,6 +3,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/activityMiddleware.php';
 require_once __DIR__ . '/../services/PermissionService.php';
 require_once __DIR__ . '/../services/NotificationService.php';
+require_once __DIR__ . '/../services/AsyncNotificationService.php';
 
 class DocumentCommentController
 {
@@ -300,8 +301,11 @@ class DocumentCommentController
         }
 
         try {
-            $notifier = new NotificationService($this->conn);
-            $notifier->sendDocumentCommentNotification($did, $tutorId);
+            $queued = AsyncNotificationService::dispatch('document_comment', $did, $tutorId);
+            if (!$queued) {
+                $notifier = new NotificationService($this->conn);
+                $notifier->sendDocumentCommentNotification($did, $tutorId);
+            }
         } catch (Throwable $e) {
             // Non-blocking: keep API success even if email fails.
         }

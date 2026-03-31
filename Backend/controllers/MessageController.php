@@ -3,6 +3,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/activityMiddleware.php';
 require_once __DIR__ . '/../services/ValidationService.php';
 require_once __DIR__ . '/../services/NotificationService.php';
+require_once __DIR__ . '/../services/AsyncNotificationService.php';
 
 class MessageController
 {
@@ -198,8 +199,11 @@ class MessageController
         }
 
         try {
-            $notifier = new NotificationService($this->conn);
-            $notifier->sendMessageNotification($senderId, (int) $receiverId);
+            $queued = AsyncNotificationService::dispatch('message', $senderId, (int) $receiverId);
+            if (!$queued) {
+                $notifier = new NotificationService($this->conn);
+                $notifier->sendMessageNotification($senderId, (int) $receiverId);
+            }
         } catch (Throwable $e) {
             // Non-blocking: message must still be delivered in-app even if email fails.
         }

@@ -1,0 +1,4 @@
+[2026-03-31 18:25:02] start type=message arg1=9 arg2=10
+[2026-03-31 18:25:07] done type=message arg1=9 arg2=10
+[2026-03-31 18:25:55] start type=message arg1=10 arg2=9
+[2026-03-31 18:26:01] done type=message arg1=10 arg2=9

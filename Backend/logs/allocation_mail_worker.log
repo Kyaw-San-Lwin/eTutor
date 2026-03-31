@@ -10,3 +10,7 @@
 [2026-03-25 21:15:28] start student_id=1 tutor_id=4 event=reallocated
 [2026-03-25 21:15:34] done student_id=1 tutor_id=3 event=reallocated
 [2026-03-25 21:15:37] done student_id=1 tutor_id=4 event=reallocated
+[2026-03-31 12:13:07] start student_id=2 tutor_id=1 event=allocated
+[2026-03-31 12:13:17] done student_id=2 tutor_id=1 event=allocated
+[2026-03-31 12:15:09] start student_id=2 tutor_id=2 event=reallocated
+[2026-03-31 12:15:19] done student_id=2 tutor_id=2 event=reallocated

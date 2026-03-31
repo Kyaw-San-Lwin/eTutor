@@ -103,6 +103,49 @@ class UserController
         return (int) ($row['user_id'] ?? 0);
     }
 
+    private function detectCreateUserConflict(string $userName, string $email): ?array
+    {
+        $stmt = $this->conn->prepare("
+            SELECT user_name, email
+            FROM users
+            WHERE user_name = ? OR email = ?
+            LIMIT 1
+        ");
+        if (!$stmt) {
+            return null;
+        }
+
+        $stmt->bind_param("ss", $userName, $email);
+        if (!$stmt->execute()) {
+            return null;
+        }
+
+        $result = $stmt->get_result();
+        $row = $result ? $result->fetch_assoc() : null;
+        if (!$row) {
+            return null;
+        }
+
+        if (strcasecmp((string) ($row['email'] ?? ''), $email) === 0) {
+            return [
+                "field" => "email",
+                "message" => "This email already exists."
+            ];
+        }
+
+        if (strcasecmp((string) ($row['user_name'] ?? ''), $userName) === 0) {
+            return [
+                "field" => "user_name",
+                "message" => "This username already exists."
+            ];
+        }
+
+        return [
+            "field" => "unknown",
+            "message" => "Username or email already exists."
+        ];
+    }
+
     private function getRoleNameById(int $roleId): ?string
     {
         $stmt = $this->conn->prepare("SELECT role_name FROM roles WHERE role_id = ? LIMIT 1");
@@ -730,15 +773,63 @@ class UserController
             return;
         }
 
-        ValidationService::requireFields($data, ['user_name', 'email', 'password']);
-        $userName = ValidationService::sanitizeString($data['user_name'], 30);
-        $email = ValidationService::sanitizeEmail($data['email']);
+        $userNameRaw = trim((string) ($data['user_name'] ?? ''));
+        $emailRaw = trim((string) ($data['email'] ?? ''));
         $password = (string) ($data['password'] ?? '');
-        [$roleId, $roleName] = $this->resolveRoleInput($data);
-        if (strlen($password) < 8) {
-            Response::json(["success" => false, "message" => "password must be at least 8 characters"], 400);
+        $roleNameRaw = strtolower(trim((string) ($data['role_name'] ?? '')));
+        $roleIdRaw = $data['role_id'] ?? null;
+
+        $errors = [];
+        if ($userNameRaw === '') {
+            $errors['user_name'] = 'Username is required.';
+        } elseif (mb_strlen($userNameRaw) > 30) {
+            $errors['user_name'] = 'Username must be at most 30 characters.';
+        }
+
+        if ($emailRaw === '') {
+            $errors['email'] = 'Email is required.';
+        } elseif (!filter_var($emailRaw, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Please enter a valid email address.';
+        }
+
+        if ($password === '') {
+            $errors['password'] = 'Password is required.';
+        } elseif (strlen($password) < 8) {
+            $errors['password'] = 'Password must be at least 8 characters.';
+        }
+
+        $roleId = 0;
+        $roleName = '';
+        if ($roleNameRaw !== '') {
+            $roleId = $this->getRoleIdByName($roleNameRaw);
+            if ($roleId <= 0) {
+                $errors['role_name'] = 'Please select a valid role.';
+            } else {
+                $roleName = $roleNameRaw;
+            }
+        } elseif ($roleIdRaw !== null && $roleIdRaw !== '') {
+            $roleId = filter_var($roleIdRaw, FILTER_VALIDATE_INT) ?: 0;
+            $resolvedName = $roleId > 0 ? $this->getRoleNameById($roleId) : null;
+            if ($resolvedName === null || $resolvedName === '') {
+                $errors['role_id'] = 'Please select a valid role.';
+            } else {
+                $roleName = $resolvedName;
+            }
+        } else {
+            $errors['role_name'] = 'Role is required.';
+        }
+
+        if (!empty($errors)) {
+            Response::json([
+                "success" => false,
+                "message" => "Please correct the highlighted fields.",
+                "errors" => $errors
+            ], 400);
             return;
         }
+
+        $userName = ValidationService::sanitizeString($userNameRaw, 30);
+        $email = ValidationService::sanitizeEmail($emailRaw);
 
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         if ($hashedPassword == false) {
@@ -752,13 +843,34 @@ class UserController
             return;
         }
 
+        $conflict = $this->detectCreateUserConflict($userName, $email);
+        if ($conflict) {
+            Response::json([
+                "success" => false,
+                "message" => $conflict['message'],
+                "field" => $conflict['field'],
+                "errors" => [
+                    $conflict['field'] => $conflict['message']
+                ]
+            ], 409);
+            return;
+        }
+
         $this->conn->begin_transaction();
         try {
             $stmt->bind_param("sssi", $userName, $email, $hashedPassword, $roleId);
             if (!$stmt->execute()) {
                 if ($this->isDuplicateKeyError($stmt)) {
                     $this->conn->rollback();
-                    Response::json(["success" => false, "message" => "Username or email already exists"], 409);
+                    $raceConflict = $this->detectCreateUserConflict($userName, $email);
+                    $raceMessage = $raceConflict['message'] ?? "Username or email already exists.";
+                    $raceField = $raceConflict['field'] ?? "unknown";
+                    Response::json([
+                        "success" => false,
+                        "message" => $raceMessage,
+                        "field" => $raceField,
+                        "errors" => $raceField !== "unknown" ? [$raceField => $raceMessage] : []
+                    ], 409);
                 }
                 $this->conn->rollback();
                 Response::json(["success" => false, "message" => "Failed to create user"], 500);

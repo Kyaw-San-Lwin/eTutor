@@ -3,6 +3,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/activityMiddleware.php';
 require_once __DIR__ . '/../services/PermissionService.php';
 require_once __DIR__ . '/../services/NotificationService.php';
+require_once __DIR__ . '/../services/AsyncNotificationService.php';
 
 class MeetingRecordingController
 {
@@ -297,8 +298,11 @@ class MeetingRecordingController
         }
 
         try {
-            $notifier = new NotificationService($this->conn);
-            $notifier->sendMeetingRecordingNotification($mid, $userId);
+            $queued = AsyncNotificationService::dispatch('meeting_recording', $mid, $userId);
+            if (!$queued) {
+                $notifier = new NotificationService($this->conn);
+                $notifier->sendMeetingRecordingNotification($mid, $userId);
+            }
         } catch (Throwable $e) {
             // Non-blocking: recording upload should stay successful even if mail fails.
         }

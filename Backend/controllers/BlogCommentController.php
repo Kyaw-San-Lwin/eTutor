@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/activityMiddleware.php';
 require_once __DIR__ . '/../services/NotificationService.php';
+require_once __DIR__ . '/../services/AsyncNotificationService.php';
 
 class BlogCommentController
 {
@@ -205,8 +206,11 @@ class BlogCommentController
         }
 
         try {
-            $notifier = new NotificationService($this->conn);
-            $notifier->sendBlogCommentNotification($pid, $userId);
+            $queued = AsyncNotificationService::dispatch('blog_comment', $pid, $userId);
+            if (!$queued) {
+                $notifier = new NotificationService($this->conn);
+                $notifier->sendBlogCommentNotification($pid, $userId);
+            }
         } catch (Throwable $e) {
             // Non-blocking: comment creation should not fail on mail transport issues.
         }

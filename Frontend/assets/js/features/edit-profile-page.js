@@ -120,7 +120,6 @@ async function loadCurrentProfile() {
     const data = response.data || {};
     const profile = data.profile || {};
 
-    setValue("profileEmail", data.email || "");
     if (mode === "staff-edit") {
       setValue("profileFullName", profile.display_name || "");
       setValue("profileDepartmentInput", profile.department || "");

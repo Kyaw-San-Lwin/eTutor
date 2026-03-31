@@ -8,3 +8,23 @@
 [2026-03-29 20:31:26] send_result transport=smtp to=kazuha@gmail.com success=true
 [2026-03-29 21:57:13] send_attempt transport=smtp to=student@gmail.com subject=Meeting recording uploaded
 [2026-03-29 21:57:20] send_result transport=smtp to=student@gmail.com success=true
+[2026-03-31 12:07:22] send_attempt transport=smtp to=student@gmail.com subject=Meeting recording uploaded
+[2026-03-31 12:07:27] send_result transport=smtp to=student@gmail.com success=true
+[2026-03-31 12:07:51] send_attempt transport=smtp to=student@gmail.com subject=New message notification
+[2026-03-31 12:07:56] send_result transport=smtp to=student@gmail.com success=true
+[2026-03-31 12:08:38] send_attempt transport=smtp to=student@gmail.com subject=New document feedback notification
+[2026-03-31 12:08:42] send_result transport=smtp to=student@gmail.com success=true
+[2026-03-31 12:13:07] allocation_recipients student_id=2 student_email=kyawsanlwin737@gmail.com tutor_id=1 tutor_email=tutor@gmail.com event=allocated
+[2026-03-31 12:13:07] send_attempt transport=smtp to=kyawsanlwin737@gmail.com subject=Personal Tutor allocated
+[2026-03-31 12:13:13] send_result transport=smtp to=kyawsanlwin737@gmail.com success=true
+[2026-03-31 12:13:13] send_attempt transport=smtp to=tutor@gmail.com subject=Student allocated
+[2026-03-31 12:13:17] send_result transport=smtp to=tutor@gmail.com success=true
+[2026-03-31 12:15:09] allocation_recipients student_id=2 student_email=kyawsanlwin737@gmail.com tutor_id=2 tutor_email=kyawsanlwin2004@gmail.com event=reallocated
+[2026-03-31 12:15:09] send_attempt transport=smtp to=kyawsanlwin737@gmail.com subject=Personal Tutor reallocated
+[2026-03-31 12:15:14] send_result transport=smtp to=kyawsanlwin737@gmail.com success=true
+[2026-03-31 12:15:14] send_attempt transport=smtp to=kyawsanlwin2004@gmail.com subject=Student reallocated
+[2026-03-31 12:15:19] send_result transport=smtp to=kyawsanlwin2004@gmail.com success=true
+[2026-03-31 18:25:02] send_attempt transport=smtp to=kyawsanlwin2004@gmail.com subject=New message notification
+[2026-03-31 18:25:07] send_result transport=smtp to=kyawsanlwin2004@gmail.com success=true
+[2026-03-31 18:25:55] send_attempt transport=smtp to=kyawsanlwin737@gmail.com subject=New message notification
+[2026-03-31 18:26:01] send_result transport=smtp to=kyawsanlwin737@gmail.com success=true
