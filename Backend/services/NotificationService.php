@@ -275,12 +275,18 @@ class NotificationService
         $this->sendMail($tutor['email'], $subjectTutor, $bodyTutor);
     }
 
-    public function sendInactivityWarning(string $studentEmail, string $tutorEmail, int $days): void
+    public function sendInactivityWarning(string $studentEmail, string $tutorEmail, int $days): array
     {
         $subject = "Inactivity warning ({$days} days)";
         $message = "No interaction has been recorded for {$days} days.";
-        $this->sendMail($studentEmail, $subject, $message);
-        $this->sendMail($tutorEmail, $subject, $message);
+        $studentSent = $this->sendMail($studentEmail, $subject, $message);
+        $tutorSent = $this->sendMail($tutorEmail, $subject, $message);
+
+        return [
+            "student_sent" => $studentSent,
+            "tutor_sent" => $tutorSent,
+            "all_sent" => ($studentSent && $tutorSent)
+        ];
     }
 
     public function sendPasswordResetToken(string $email, string $userName, string $token, int $expiresInMinutes): bool

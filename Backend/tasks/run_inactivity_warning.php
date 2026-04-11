@@ -1,4 +1,24 @@
 <?php
+
+// Load Backend/.env for CLI runs so mail/database settings are available.
+$root = realpath(__DIR__ . '/..');
+if ($root !== false) {
+    $envPath = $root . DIRECTORY_SEPARATOR . '.env';
+    if (is_file($envPath)) {
+        $env = parse_ini_file($envPath, false, INI_SCANNER_TYPED);
+        if (is_array($env)) {
+            foreach ($env as $key => $value) {
+                $_ENV[$key] = $value;
+                if (is_bool($value)) {
+                    putenv($key . '=' . ($value ? 'true' : 'false'));
+                } else {
+                    putenv($key . '=' . $value);
+                }
+            }
+        }
+    }
+}
+
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../services/NotificationService.php';
 require_once __DIR__ . '/../services/InactivityService.php';
