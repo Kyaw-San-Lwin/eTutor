@@ -99,6 +99,8 @@ class InactivityService
         $rows = $this->listInactiveAllocations($days);
         $sent = 0;
         $failed = 0;
+        $emailsSent = 0;
+        $emailsFailed = 0;
 
         foreach ($rows as $row) {
             $studentEmail = (string) ($row['student_email'] ?? '');
@@ -106,14 +108,29 @@ class InactivityService
 
             if ($studentEmail === '' || $tutorEmail === '') {
                 $failed++;
+                $emailsFailed += 2;
                 continue;
             }
 
             try {
-                $this->notifier->sendInactivityWarning($studentEmail, $tutorEmail, $days);
-                $sent++;
+                $result = $this->notifier->sendInactivityWarning($studentEmail, $tutorEmail, $days);
+                $studentSent = (bool) ($result['student_sent'] ?? false);
+                $tutorSent = (bool) ($result['tutor_sent'] ?? false);
+                $allSent = (bool) ($result['all_sent'] ?? ($studentSent && $tutorSent));
+
+                $emailsSent += $studentSent ? 1 : 0;
+                $emailsSent += $tutorSent ? 1 : 0;
+                $emailsFailed += $studentSent ? 0 : 1;
+                $emailsFailed += $tutorSent ? 0 : 1;
+
+                if ($allSent) {
+                    $sent++;
+                } else {
+                    $failed++;
+                }
             } catch (Throwable $e) {
                 $failed++;
+                $emailsFailed += 2;
                 error_log("Inactivity warning failed: " . $e->getMessage());
             }
         }
@@ -122,7 +139,9 @@ class InactivityService
             "days" => $days,
             "candidates" => count($rows),
             "sent" => $sent,
-            "failed" => $failed
+            "failed" => $failed,
+            "emails_sent" => $emailsSent,
+            "emails_failed" => $emailsFailed
         ];
     }
 }

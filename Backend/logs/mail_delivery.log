@@ -28,13 +28,31 @@
 [2026-03-31 18:25:07] send_result transport=smtp to=kyawsanlwin2004@gmail.com success=true
 [2026-03-31 18:25:55] send_attempt transport=smtp to=kyawsanlwin737@gmail.com subject=New message notification
 [2026-03-31 18:26:01] send_result transport=smtp to=kyawsanlwin737@gmail.com success=true
-[2026-04-05 11:28:41] send_attempt transport=smtp to=tutor@gmail.com subject=New message notification
-[2026-04-05 11:28:47] send_result transport=smtp to=tutor@gmail.com success=true
-[2026-04-12 12:47:52] send_attempt transport=smtp to=kazuha@gmail.com subject=New document feedback notification
-[2026-04-12 12:47:58] send_result transport=smtp to=kazuha@gmail.com success=true
-[2026-04-12 12:48:02] send_attempt transport=smtp to=kazuha@gmail.com subject=New document feedback notification
-[2026-04-12 12:48:08] send_result transport=smtp to=kazuha@gmail.com success=true
-[2026-04-12 12:49:44] send_attempt transport=smtp to=tutor@gmail.com subject=New message notification
-[2026-04-12 12:49:49] send_result transport=smtp to=tutor@gmail.com success=true
-[2026-04-12 12:50:13] send_attempt transport=smtp to=tutor@gmail.com subject=New message notification
-[2026-04-12 12:50:18] send_result transport=smtp to=tutor@gmail.com success=true
+[2026-04-08 17:38:25] send_attempt transport=smtp to=kyawsanlwin737@gmail.com subject=Inactivity warning (7 days)
+[2026-04-08 17:38:25] send_skip reason=mail_disabled to=kyawsanlwin737@gmail.com
+[2026-04-08 17:38:25] send_attempt transport=smtp to=kyawsanlwin2004@gmail.com subject=Inactivity warning (7 days)
+[2026-04-08 17:38:25] send_skip reason=mail_disabled to=kyawsanlwin2004@gmail.com
+[2026-04-08 17:38:25] send_attempt transport=smtp to=student@gmail.com subject=Inactivity warning (7 days)
+[2026-04-08 17:38:25] send_skip reason=mail_disabled to=student@gmail.com
+[2026-04-08 17:38:25] send_attempt transport=smtp to=tutor@gmail.com subject=Inactivity warning (7 days)
+[2026-04-08 17:38:25] send_skip reason=mail_disabled to=tutor@gmail.com
+[2026-04-08 17:43:24] send_attempt transport=smtp to=kyawsanlwin737@gmail.com subject=Inactivity warning (7 days)
+[2026-04-08 17:43:30] send_result transport=smtp to=kyawsanlwin737@gmail.com success=true
+[2026-04-08 17:43:30] send_attempt transport=smtp to=kyawsanlwin2004@gmail.com subject=Inactivity warning (7 days)
+[2026-04-08 17:43:37] send_result transport=smtp to=kyawsanlwin2004@gmail.com success=true
+[2026-04-08 17:43:37] send_attempt transport=smtp to=student@gmail.com subject=Inactivity warning (7 days)
+[2026-04-08 17:43:42] send_result transport=smtp to=student@gmail.com success=true
+[2026-04-08 17:43:42] send_attempt transport=smtp to=tutor@gmail.com subject=Inactivity warning (7 days)
+[2026-04-08 17:43:54] send_result transport=smtp to=tutor@gmail.com success=true
+[2026-04-08 17:48:52] send_attempt transport=smtp to=kyawsanlwin737@gmail.com subject=Inactivity warning (7 days)
+[2026-04-08 17:48:57] send_result transport=smtp to=kyawsanlwin737@gmail.com success=true
+[2026-04-08 17:48:57] send_attempt transport=smtp to=kyawsanlwin2004@gmail.com subject=Inactivity warning (7 days)
+[2026-04-08 17:49:01] send_result transport=smtp to=kyawsanlwin2004@gmail.com success=true
+[2026-04-08 17:49:01] send_attempt transport=smtp to=student@gmail.com subject=Inactivity warning (7 days)
+[2026-04-08 17:49:07] send_result transport=smtp to=student@gmail.com success=true
+[2026-04-08 17:49:07] send_attempt transport=smtp to=tutor@gmail.com subject=Inactivity warning (7 days)
+[2026-04-08 17:49:11] send_result transport=smtp to=tutor@gmail.com success=true
+[2026-04-08 17:57:48] send_attempt transport=smtp to=student@gmail.com subject=Inactivity warning (28 days)
+[2026-04-08 17:57:54] send_result transport=smtp to=student@gmail.com success=true
+[2026-04-08 17:57:54] send_attempt transport=smtp to=tutor@gmail.com subject=Inactivity warning (28 days)
+[2026-04-08 17:57:58] send_result transport=smtp to=tutor@gmail.com success=true

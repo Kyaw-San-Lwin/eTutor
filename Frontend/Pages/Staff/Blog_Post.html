@@ -93,7 +93,7 @@
                 <!-- Placeholder for admin-only dropdown -->
                 <div id="admin-reports-placeholder"></div>
 
-                <a href="./Blog_Post.html" class="nav-item active">
+                <a href="./Blog_Post.html" class="nav-item active" data-admin-only>
                     <i class="bi bi-journal-text"></i>
                     <span class="menu-text">Blog Post</span>
                 </a>
@@ -121,67 +121,5 @@
 
     </div>
 
-<script>
-    
-    document.addEventListener("DOMContentLoaded", function() {
-
-        const sidebar = document.querySelector(".sidebar");
-
-        sidebar.addEventListener("click", function(e) {
-            const toggle = e.target.closest(".dropdown-toggle");
-
-            if (toggle) {
-                e.stopPropagation(); // prevent conflicts
-
-                const parent = toggle.parentElement;
-
-                // Close others
-                document.querySelectorAll(".sidebar .dropdown").forEach(d => {
-                    if (d !== parent) d.classList.remove("active");
-                });
-
-                parent.classList.toggle("active");
-            }
-        });
-
-        // Click outside closes all
-        document.addEventListener("click", function(e) {
-            if (!e.target.closest(".sidebar")) {
-                document.querySelectorAll(".sidebar .dropdown")
-                    .forEach(d => d.classList.remove("active"));
-            }
-        });
-
-        /* ADMIN REPORTS */
-        const userRole = "admin";
-
-        if (userRole === "admin") {
-            const placeholder = document.getElementById("admin-reports-placeholder");
-
-            const reportsDropdown = document.createElement("div");
-            reportsDropdown.classList.add("dropdown");
-            reportsDropdown.innerHTML = `
-                <div class="nav-item dropdown-toggle">
-                    <i class="bi bi-file-bar-graph"></i>
-                    <span class="menu-text">Reports</span>
-                    <i class="bi bi-chevron-down arrow"></i>
-                </div>
-                <div class="dropdown-menu">
-                    <a href="./Exception_Report.html">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        <span class="menu-text">Exception Report</span>
-                    </a>
-                    <a href="./Statistical_Report.html">
-                        <i class="bi bi-bar-chart-line"></i>
-                        <span class="menu-text">Statistical Report</span>
-                    </a>
-                </div>
-            `;
-            placeholder.replaceWith(reportsDropdown);
-        }
-
-    });
-    
-</script>
 </body>
 </html>
