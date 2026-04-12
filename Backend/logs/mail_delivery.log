@@ -28,3 +28,13 @@
 [2026-03-31 18:25:07] send_result transport=smtp to=kyawsanlwin2004@gmail.com success=true
 [2026-03-31 18:25:55] send_attempt transport=smtp to=kyawsanlwin737@gmail.com subject=New message notification
 [2026-03-31 18:26:01] send_result transport=smtp to=kyawsanlwin737@gmail.com success=true
+[2026-04-05 11:28:41] send_attempt transport=smtp to=tutor@gmail.com subject=New message notification
+[2026-04-05 11:28:47] send_result transport=smtp to=tutor@gmail.com success=true
+[2026-04-12 12:47:52] send_attempt transport=smtp to=kazuha@gmail.com subject=New document feedback notification
+[2026-04-12 12:47:58] send_result transport=smtp to=kazuha@gmail.com success=true
+[2026-04-12 12:48:02] send_attempt transport=smtp to=kazuha@gmail.com subject=New document feedback notification
+[2026-04-12 12:48:08] send_result transport=smtp to=kazuha@gmail.com success=true
+[2026-04-12 12:49:44] send_attempt transport=smtp to=tutor@gmail.com subject=New message notification
+[2026-04-12 12:49:49] send_result transport=smtp to=tutor@gmail.com success=true
+[2026-04-12 12:50:13] send_attempt transport=smtp to=tutor@gmail.com subject=New message notification
+[2026-04-12 12:50:18] send_result transport=smtp to=tutor@gmail.com success=true
