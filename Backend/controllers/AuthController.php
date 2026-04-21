@@ -373,16 +373,13 @@ class AuthController
                 ]
             ], 429);
         }
-
         $data = $this->getRequestData();
         if ($data === null) {
             Response::json(["message" => "Invalid JSON body"], 400);
         }
-
         ValidationService::requireFields($data, ['login', 'password']);
         $login = ValidationService::sanitizeString($data['login'], 100);
         $password = (string) $data['password'];
-
         $stmt = $conn->prepare("
     SELECT 
         users.user_id,
@@ -406,7 +403,6 @@ class AuthController
     LEFT JOIN staff ON users.user_id = staff.user_id
     WHERE users.email = ? OR users.user_name = ?
 ");
-
         if (!$stmt) {
             Response::json(["message" => "Failed to process login"], 500);
         }
@@ -416,13 +412,10 @@ class AuthController
         }
         $result = $stmt->get_result();
         if ($result->num_rows > 0) {
-
             $user = $result->fetch_assoc();
-
             if ((string) ($user['account_status'] ?? '') !== 'active') {
                 Response::json(["message" => "Account is inactive"], 403);
             }
-
             if (password_verify($password, $user['password'])) {
                 $this->clearClientLockout($conn, $clientKey);
                 if ($lockFeatureReady) {
@@ -436,7 +429,6 @@ class AuthController
                         $resetAttemptsStmt->execute();
                     }
                 }
-
                 $roleName = strtolower((string) ($user['role_name'] ?? ''));
                 $enforceActiveTutor = $this->envBool('ETUTOR_REQUIRE_ACTIVE_TUTOR_ON_STUDENT_LOGIN', false);
                 if (
@@ -455,7 +447,6 @@ class AuthController
                     $updateLastLogin->bind_param("i", $user['user_id']);
                     $updateLastLogin->execute();
                 }
-
                 $accessToken  = generateAccessToken($user);
                 $refreshToken = generateRefreshToken($user);
 
